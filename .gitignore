@@ -1,0 +1,45 @@
+# Logs
+logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+lerna-debug.log*
+
+node_modules
+dist
+dist-electron
+dist-ssr
+release
+*.local
+
+# Editor directories and files
+.vscode/*
+!.vscode/extensions.json
+.idea
+.DS_Store
+*.suo
+*.ntvs*
+*.njsproj
+*.sln
+*.sw?
+
+# Electron runtime data
+electron/data/
+
+# AI agent artifacts
+.codex/
+.codex-run/
+.workbuddy/
+
+# PrizmKit
+.prizmkit/*
+
+# Portable Everything runtime DB (keep binaries if tracked separately)
+Everything-*/Everything.db
+Everything-*/Everything.db.tmp
+Everything-*/Everything.csv
+
+# Local Claude overrides
+.claude/settings.local.json
