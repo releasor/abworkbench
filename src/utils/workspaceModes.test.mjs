@@ -1,0 +1,10 @@
+import assert from 'node:assert/strict'
+import test from 'node:test'
+
+import { WORKSPACE_MODE_OPTIONS, getWorkspaceModeOption } from './workspaceModes.ts'
+
+test('workspace mode options include focus, night, minimal and dashboard modes', () => {
+  assert.deepEqual(WORKSPACE_MODE_OPTIONS.map((item) => item.mode), ['focus', 'night', 'minimal', 'dashboard'])
+  assert.equal(getWorkspaceModeOption('minimal').label, '极简工作台')
+})
+
