@@ -1,0 +1,46 @@
+{
+  "skill_name": "recovery-workflow",
+  "notes": "These test cases require workspace state setup. Each has a setup_description that creates the necessary mock state before the skill is invoked. Due to the interactive nature and state-dependency of this skill, automated evaluation is limited — qualitative review is primary.",
+  "evals": [
+    {
+      "id": 1,
+      "name": "bugfix-mid-fix",
+      "prompt": "session 断了，帮我恢复一下",
+      "expected_output": "Should auto-detect bug-fix-workflow from fix/B-001-* branch. Should detect fix-plan.md + code changes → infer Phase 5 (Review). Should display recovery report with workflow type, phase, artifacts, code stats. After user confirms, should invoke /prizmkit-code-review on existing changes.",
+      "setup_description": "Create fix/B-001-login-crash branch, .prizmkit/bugfix/B-001/fix-plan.md, modify 3 source files + 1 test file. No fix-report.md, no commits ahead of main.",
+      "files": []
+    },
+    {
+      "id": 2,
+      "name": "bugfix-plan-only",
+      "prompt": "继续之前的工作",
+      "expected_output": "Should auto-detect bug-fix-workflow from fix/B-002-* branch. Should detect fix-plan.md but no code changes → infer Phase 4 (Fix). Should read fix-plan.md and start implementing the fix.",
+      "setup_description": "Create fix/B-002-null-pointer branch, .prizmkit/bugfix/B-002/fix-plan.md with diagnosis and fix approach. No code changes.",
+      "files": []
+    },
+    {
+      "id": 3,
+      "name": "feature-list-exists",
+      "prompt": "resume",
+      "expected_output": "Should auto-detect feature-workflow from .prizmkit/plans/feature-list.json. Should detect .prizmkit/plans/feature-list.json exists but no pipeline state → infer Phase 3 (Launch). Should invoke feature-pipeline-launcher to start the pipeline.",
+      "setup_description": "On main branch, create .prizmkit/plans/feature-list.json with 3 features. No .prizmkit/state/features/features/ directory.",
+      "files": []
+    },
+    {
+      "id": 4,
+      "name": "refactor-monitoring",
+      "prompt": "pick up where it left off",
+      "expected_output": "Should auto-detect refactor-workflow from .prizmkit/plans/refactor-list.json + pipeline state. Should infer Phase 4 (Monitor). Should check pipeline status and report results.",
+      "setup_description": "On main branch, create .prizmkit/plans/refactor-list.json with 2 items. Create .prizmkit/state/refactor/refactors/ with status files showing 1 completed, 1 in-progress.",
+      "files": []
+    },
+    {
+      "id": 5,
+      "name": "no-workflow-detected",
+      "prompt": "恢复",
+      "expected_output": "Should detect no workflow signatures in workspace. Should display guidance message suggesting /feature-workflow, /bug-fix-workflow, or /refactor-workflow. Should NOT attempt any recovery actions.",
+      "setup_description": "Clean workspace on main branch. No .prizmkit/plans/feature-list.json, no bug-fix artifacts, no .prizmkit/plans/refactor-list.json, no fix/* or feat/* or refactor/* branches.",
+      "files": []
+    }
+  ]
+}
