@@ -41,8 +41,25 @@ function configureDiskCacheIsolation() {
 
 configureDiskCacheIsolation()
 
+/** Destroy the main BrowserWindow immediately to free its Chromium renderer. */
+function reclaimMainWindowNow() {
+  if (!launcherSettings.reclaimMainWindowWhenHidden) return
+  if (isQuitting) return
+  if (!win || win.isDestroyed()) {
+    win = null
+    return
+  }
+  if (win.isVisible()) return
+  try {
+    saveWindowState()
+  } catch { /* ignore */ }
+  const target = win
+  win = null
+  target.destroy()
+}
+
 function showMainWindow() {
-  if (!win) {
+  if (!win || win.isDestroyed()) {
     createWindow()
     return
   }
@@ -51,7 +68,7 @@ function showMainWindow() {
   win.focus()
 }
 
-/** Ctrl+Alt+Space: show main window, or hide to tray when already visible. */
+/** Ctrl+Alt+Space: show main window, or hide and reclaim when already visible. */
 function toggleMainWindow() {
   if (!win || win.isDestroyed()) {
     createWindow()
@@ -59,14 +76,28 @@ function toggleMainWindow() {
   }
   if (win.isVisible() && !win.isMinimized()) {
     win.hide()
+    reclaimMainWindowNow()
     return
   }
   showMainWindow()
 }
 
+function sendToMainWindow(channel: string, ...args: unknown[]) {
+  if (!win || win.isDestroyed()) return
+  const dispatch = () => {
+    if (!win || win.isDestroyed()) return
+    win.webContents.send(channel, ...args)
+  }
+  if (win.webContents.isLoadingMainFrame()) {
+    win.webContents.once('did-finish-load', dispatch)
+  } else {
+    dispatch()
+  }
+}
+
 function openQuickCapture() {
   showMainWindow()
-  win?.webContents.send('open-quick-capture')
+  sendToMainWindow('open-quick-capture')
 }
 
 function createMiniWindow() {
@@ -445,11 +476,17 @@ function createWindow() {
   win.on('move', saveWindowState)
   win.on('maximize', () => win?.webContents.send('window-maximized-changed', true))
   win.on('unmaximize', () => win?.webContents.send('window-maximized-changed', false))
+  win.on('hide', () => reclaimMainWindowNow())
+  win.on('closed', () => {
+    win = null
+  })
   win.on('close', (event) => {
     saveWindowState()
     if (!isQuitting) {
       event.preventDefault()
+      // Hide then immediately destroy so the Chromium renderer is freed.
       win?.hide()
+      reclaimMainWindowNow()
     }
   })
 
@@ -463,6 +500,8 @@ function createWindow() {
   })
 
   win.loadFile(path.join(process.env.DIST!, 'index.html'))
+  win.show()
+  win.focus()
 }
 
 const hasSingleInstanceLock = app.requestSingleInstanceLock()
@@ -559,7 +598,7 @@ app.whenReady().then(() => {
   })
   ipcMain.handle('desktop:open-main-page', (_event, page: string) => {
     showMainWindow()
-    win?.webContents.send('open-main-page', page)
+    sendToMainWindow('open-main-page', page)
     if (launcherWin && !launcherWin.isDestroyed()) launcherWin.hide()
     return true
   })
@@ -625,8 +664,9 @@ app.whenReady().then(() => {
   })
 
   initRecentApps(app.getPath('userData'))
-  createWindow()
+  // Keep tray + warm launcher resident; do not open the heavy main window until summoned.
   createTray()
+  createLauncherWindow()
   registerQuickCaptureHotkey(launcherSettings.quickCaptureHotkey)
   registerMainWindowHotkey(launcherSettings.mainWindowHotkey)
   registerLauncherHotkey(launcherSettings.hotkey)

@@ -11,6 +11,7 @@ interface LauncherSettingsConfig {
   hotkey: string
   mainWindowHotkey: string
   quickCaptureHotkey: string
+  reclaimMainWindowWhenHidden: boolean
   esPath: string
   everythingHttpUrl: string
   defaultProviderId: string

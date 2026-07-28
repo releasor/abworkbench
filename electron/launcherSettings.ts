@@ -16,6 +16,11 @@ export interface LauncherSettings {
   mainWindowHotkey: string
   /** Electron accelerator for quick capture, e.g. "Ctrl+Shift+Space" */
   quickCaptureHotkey: string
+  /**
+   * When true, destroy the main BrowserWindow as soon as it is hidden/closed,
+   * reclaiming renderer memory while the tray + launcher stay alive.
+   */
+  reclaimMainWindowWhenHidden: boolean
   /** Absolute path to Everything's es.exe; empty string means auto-detect */
   esPath: string
   /** Everything HTTP server base URL used when es.exe is unavailable */
@@ -30,6 +35,7 @@ export const DEFAULT_MAIN_WINDOW_HOTKEY = 'Ctrl+Alt+Space'
 export const MISASSIGNED_LAUNCHER_HOTKEY = 'Ctrl+Alt+Space'
 export const DEFAULT_QUICK_CAPTURE_HOTKEY = 'Ctrl+Shift+Space'
 export const DEFAULT_EVERYTHING_HTTP_URL = 'http://127.0.0.1:23581'
+export const DEFAULT_RECLAIM_MAIN_WINDOW = true
 
 export const DEFAULT_PROVIDERS: TranslateProvider[] = [
   { id: 'sogou', name: '搜狗翻译', urlTemplate: 'https://translate.sogou.com/text', builtin: true },
@@ -44,6 +50,7 @@ export function defaultLauncherSettings(): LauncherSettings {
     hotkey: DEFAULT_HOTKEY,
     mainWindowHotkey: DEFAULT_MAIN_WINDOW_HOTKEY,
     quickCaptureHotkey: DEFAULT_QUICK_CAPTURE_HOTKEY,
+    reclaimMainWindowWhenHidden: DEFAULT_RECLAIM_MAIN_WINDOW,
     esPath: '',
     everythingHttpUrl: DEFAULT_EVERYTHING_HTTP_URL,
     defaultProviderId: 'sogou',
@@ -83,6 +90,9 @@ export function normalizeLauncherSettings(input: unknown): LauncherSettings {
   }
   if (typeof raw.quickCaptureHotkey === 'string' && raw.quickCaptureHotkey.trim()) {
     base.quickCaptureHotkey = normalizeAcceleratorLabel(raw.quickCaptureHotkey)
+  }
+  if (typeof raw.reclaimMainWindowWhenHidden === 'boolean') {
+    base.reclaimMainWindowWhenHidden = raw.reclaimMainWindowWhenHidden
   }
   if (typeof raw.esPath === 'string') base.esPath = raw.esPath.trim()
   if (typeof raw.everythingHttpUrl === 'string' && /^https?:\/\//i.test(raw.everythingHttpUrl.trim())) {
