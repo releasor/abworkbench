@@ -7,6 +7,27 @@ import { getIsolatedCachePaths } from './desktopReliability'
 import { buildTranslateUrl, DEFAULT_HOTKEY, DEFAULT_MAIN_WINDOW_HOTKEY, DEFAULT_QUICK_CAPTURE_HOTKEY, loadLauncherSettings, saveLauncherSettings, type LauncherSettings } from './launcherSettings'
 import { everythingStatus, searchEverything } from './everythingSearch'
 import { initRecentApps, listLauncherRecentHome, openDesktopApp, searchInstalledApps, pinRecentApp, unpinRecentApp, hideRecentApp } from './recentApps'
+import { loadReaderSettings, saveReaderSettings } from './readerSettings'
+import type { ReaderSettings } from './reader/types'
+import { resolveOpenMode } from './reader/resolveOpenMode'
+import {
+  getBook,
+  importTxtDirectory,
+  loadLibrary,
+  readLocalChapter,
+  setProgress,
+  upsertBook,
+} from './readerLibrary'
+import { readChapterCache, scrapeUrl } from './readerScrape'
+import {
+  applyReaderOpacity,
+  createReaderWindow,
+  hideReader,
+  registerBossKey,
+  setReaderBounds,
+  showReader,
+  unregisterBossKey,
+} from './readerWindow'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -19,12 +40,15 @@ let win: BrowserWindow | null
 let miniWin: BrowserWindow | null = null
 let launcherWin: BrowserWindow | null = null
 let translateWin: BrowserWindow | null = null
+let readerWin: BrowserWindow | null = null
 let tray: Tray | null = null
 let isQuitting = false
 let launcherHotkey = ''
 let mainWindowHotkey = ''
 let quickCaptureHotkey = ''
 let launcherSettings: LauncherSettings = loadLauncherSettings(app.getPath('userData'))
+let readerSettings: ReaderSettings = loadReaderSettings(app.getPath('userData'))
+let lastBossKeyError: string | undefined
 
 function configureDiskCacheIsolation() {
   const paths = getIsolatedCachePaths(app.getPath('userData'))
@@ -173,6 +197,71 @@ function toggleLauncher() {
   launcherWin.show()
   launcherWin.focus()
   launcherWin.webContents.send('launcher:shown')
+}
+
+function ensureReaderWindow(): BrowserWindow {
+  if (readerWin && !readerWin.isDestroyed()) return readerWin
+  readerWin = createReaderWindow({
+    dist: process.env.DIST!,
+    preload: path.join(__dirname, 'preload.js'),
+    bounds: readerSettings.windowBounds,
+  })
+  applyReaderOpacity(readerWin, readerSettings.opacity)
+  readerWin.on('closed', () => { readerWin = null })
+  readerWin.on('moved', () => {
+    if (!readerWin || readerWin.isDestroyed()) return
+    const b = readerWin.getBounds()
+    readerSettings = saveReaderSettings(app.getPath('userData'), {
+      ...readerSettings,
+      windowBounds: b,
+    })
+  })
+  readerWin.on('resized', () => {
+    if (!readerWin || readerWin.isDestroyed()) return
+    const b = readerWin.getBounds()
+    readerSettings = saveReaderSettings(app.getPath('userData'), {
+      ...readerSettings,
+      windowBounds: b,
+    })
+  })
+  return readerWin
+}
+
+function handleBossKey() {
+  if (!readerWin || readerWin.isDestroyed() || !readerWin.isVisible()) return
+  if (readerSettings.disguiseEnabled) {
+    readerWin.webContents.send('reader:toggle-disguise')
+    return
+  }
+  hideReader(readerWin)
+}
+
+function applyBossKeyRegistration() {
+  const result = registerBossKey(readerSettings.bossKey, handleBossKey)
+  lastBossKeyError = result.ok ? undefined : result.error
+  return result
+}
+
+async function openReaderWindow(req?: { mode?: string; bookId?: string }) {
+  const userData = app.getPath('userData')
+  const state = loadLibrary(userData)
+  const requestMode = (req?.mode === 'library' || req?.mode === 'reading' || req?.mode === 'auto')
+    ? req.mode
+    : 'auto'
+  let resolved = resolveOpenMode(requestMode, state)
+  if (req?.bookId && state.books.some((b) => b.id === req.bookId)) {
+    resolved = { mode: 'reading', bookId: req.bookId }
+  }
+  const winRef = ensureReaderWindow()
+  applyReaderOpacity(winRef, readerSettings.opacity)
+  const send = () => showReader(winRef, { mode: resolved.mode, bookId: resolved.bookId })
+  if (winRef.webContents.isLoading()) {
+    winRef.webContents.once('did-finish-load', send)
+  } else {
+    send()
+  }
+  if (launcherWin && !launcherWin.isDestroyed()) launcherWin.hide()
+  return { ...resolved, bossKeyError: lastBossKeyError }
 }
 
 function registerLauncherHotkey(accelerator: string) {
@@ -628,12 +717,131 @@ app.whenReady().then(() => {
     return hideRecentApp(app.getPath('userData'), String(appPath || ''))
   })
 
+  // --- Stealth reader IPC ---
+  ipcMain.handle('desktop:open-reader', async (_event, req?: { mode?: string; bookId?: string }) => {
+    return openReaderWindow(req)
+  })
+  ipcMain.handle('desktop:hide-reader', () => {
+    hideReader(readerWin)
+    return true
+  })
+  ipcMain.handle('desktop:reader-window-control', (_event, action: {
+    type?: string
+    opacity?: number
+    bounds?: { x: number; y: number; width: number; height: number }
+  }) => {
+    if (!action || typeof action !== 'object') return false
+    if (action.type === 'set-opacity' && typeof action.opacity === 'number') {
+      applyReaderOpacity(readerWin, action.opacity)
+      return true
+    }
+    if (action.type === 'set-bounds' && action.bounds) {
+      setReaderBounds(readerWin, action.bounds)
+      return true
+    }
+    if (action.type === 'hide') {
+      hideReader(readerWin)
+      return true
+    }
+    return false
+  })
+  ipcMain.handle('desktop:get-reader-settings', () => ({
+    ...readerSettings,
+    bossKeyError: lastBossKeyError,
+  }))
+  ipcMain.handle('desktop:set-reader-settings', (_event, next: unknown) => {
+    const previousBoss = readerSettings.bossKey
+    readerSettings = saveReaderSettings(app.getPath('userData'), next)
+    if (readerSettings.bossKey !== previousBoss) {
+      applyBossKeyRegistration()
+    }
+    applyReaderOpacity(readerWin, readerSettings.opacity)
+    return { ...readerSettings, bossKeyError: lastBossKeyError }
+  })
+  ipcMain.handle('desktop:reader-list-books', () => loadLibrary(app.getPath('userData')))
+  ipcMain.handle('desktop:reader-set-progress', (_event, progress: unknown) => {
+    const userData = app.getPath('userData')
+    if (!progress || typeof progress !== 'object') {
+      return setProgress(userData, null)
+    }
+    const p = progress as Record<string, unknown>
+    if (typeof p.bookId !== 'string') return loadLibrary(userData)
+    return setProgress(userData, {
+      bookId: p.bookId,
+      chapterIndex: typeof p.chapterIndex === 'number' ? p.chapterIndex : 0,
+      offset: typeof p.offset === 'number' ? p.offset : 0,
+      updatedAt: Date.now(),
+    })
+  })
+  ipcMain.handle('desktop:reader-get-chapter', async (_event, payload: { bookId?: string; chapterIndex?: number }) => {
+    const userData = app.getPath('userData')
+    const bookId = String(payload?.bookId || '')
+    const chapterIndex = typeof payload?.chapterIndex === 'number' ? payload.chapterIndex : 0
+    const book = getBook(userData, bookId)
+    if (!book) return { ok: false as const, message: '书籍不存在' }
+    if (book.source === 'local' && book.path) {
+      try {
+        if (!fs.existsSync(book.path)) return { ok: false as const, message: '本地文件不存在' }
+        const chapter = readLocalChapter(book.path, chapterIndex)
+        return { ok: true as const, book, chapter }
+      } catch (err) {
+        return { ok: false as const, message: err instanceof Error ? err.message : String(err) }
+      }
+    }
+    const cached = readChapterCache(userData, bookId, chapterIndex)
+    if (cached) {
+      return {
+        ok: true as const,
+        book,
+        chapter: { ...cached, chapterIndex, chapterCount: Math.max(chapterIndex + 1, 1) },
+      }
+    }
+    if (book.chapterUrl && chapterIndex === 0) {
+      const scraped = await scrapeUrl(book.chapterUrl, userData)
+      if (!scraped.ok) return scraped
+      return { ok: true as const, book: scraped.book, chapter: scraped.chapter }
+    }
+    return { ok: false as const, message: '章节未缓存，请从书架重新抓取或打开链接' }
+  })
+  ipcMain.handle('desktop:reader-pick-directory', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openDirectory'],
+      title: '选择小说目录',
+    })
+    if (result.canceled || !result.filePaths[0]) return loadLibrary(app.getPath('userData'))
+    const dir = result.filePaths[0]
+    readerSettings = saveReaderSettings(app.getPath('userData'), { ...readerSettings, novelDir: dir })
+    return importTxtDirectory(app.getPath('userData'), dir)
+  })
+  ipcMain.handle('desktop:reader-scrape-url', async (_event, url: string) => {
+    return scrapeUrl(String(url || ''), app.getPath('userData'))
+  })
+  ipcMain.handle('desktop:reader-open-book', async (_event, bookId: string) => {
+    return openReaderWindow({ mode: 'reading', bookId: String(bookId || '') })
+  })
+  ipcMain.handle('desktop:reader-upsert-book', (_event, book: unknown) => {
+    if (!book || typeof book !== 'object') return loadLibrary(app.getPath('userData'))
+    const b = book as Record<string, unknown>
+    if (typeof b.id !== 'string' || typeof b.title !== 'string') return loadLibrary(app.getPath('userData'))
+    if (b.source !== 'local' && b.source !== 'web') return loadLibrary(app.getPath('userData'))
+    return upsertBook(app.getPath('userData'), {
+      id: b.id,
+      title: b.title,
+      source: b.source,
+      path: typeof b.path === 'string' ? b.path : undefined,
+      catalogUrl: typeof b.catalogUrl === 'string' ? b.catalogUrl : undefined,
+      chapterUrl: typeof b.chapterUrl === 'string' ? b.chapterUrl : undefined,
+      updatedAt: Date.now(),
+    })
+  })
+
   initRecentApps(app.getPath('userData'))
   createWindow()
   createTray()
   registerQuickCaptureHotkey(launcherSettings.quickCaptureHotkey)
   registerMainWindowHotkey(launcherSettings.mainWindowHotkey)
   registerLauncherHotkey(launcherSettings.hotkey)
+  applyBossKeyRegistration()
 })
 
 app.on('activate', () => {
@@ -645,5 +853,6 @@ app.on('before-quit', () => {
 })
 
 app.on('will-quit', () => {
+  unregisterBossKey()
   globalShortcut.unregisterAll()
 })

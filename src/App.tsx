@@ -8,6 +8,7 @@ import CommandPalette from './components/common/CommandPalette'
 import QuickCaptureModal from './components/common/QuickCaptureModal'
 import MiniWindow from './components/common/MiniWindow'
 import LauncherApp from './launcher/LauncherApp'
+import StealthReaderApp from './modules/stealthReader/StealthReaderApp'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import { useI18nStore, useTranslation } from './i18n'
 import { acceleratorToKeys, eventMatchesShortcut, useShortcutStore, useSyncElectronShortcuts } from './shortcuts'
@@ -43,6 +44,7 @@ function App() {
   const toggleSidebar = useStore((s) => s.toggleSidebar)
   const isMiniMode = useMemo(() => new URLSearchParams(window.location.search).get('mini') === '1', [])
   const isLauncherMode = useMemo(() => new URLSearchParams(window.location.search).get('launcher') === '1', [])
+  const isReaderMode = useMemo(() => new URLSearchParams(window.location.search).get('reader') === '1', [])
 
   const pageTitles = useMemo(
     () => Object.fromEntries(pages.map((page) => [page, t(PAGE_TITLE_KEYS[page])])) as Record<Page, string>,
@@ -220,6 +222,10 @@ function App() {
       })
     })
   }, [activePage])
+
+  if (isReaderMode) {
+    return <StealthReaderApp />
+  }
 
   if (isLauncherMode) {
     return <LauncherApp />

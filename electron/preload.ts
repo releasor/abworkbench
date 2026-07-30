@@ -56,4 +56,29 @@ contextBridge.exposeInMainWorld('electronAPI', {
   pinRecentApp: (appPath: string) => ipcRenderer.invoke('desktop:pin-recent-app', appPath),
   unpinRecentApp: (appPath: string) => ipcRenderer.invoke('desktop:unpin-recent-app', appPath),
   hideRecentApp: (appPath: string) => ipcRenderer.invoke('desktop:hide-recent-app', appPath),
+
+  // Stealth reader
+  openReader: (req?: { mode?: 'auto' | 'library' | 'reading'; bookId?: string }) =>
+    ipcRenderer.invoke('desktop:open-reader', req),
+  hideReader: () => ipcRenderer.invoke('desktop:hide-reader'),
+  onReaderShown: (callback: (payload: { mode: string; bookId?: string }) => void) => {
+    const listener = (_event: unknown, payload: { mode: string; bookId?: string }) => callback(payload)
+    ipcRenderer.on('reader:shown', listener)
+    return () => ipcRenderer.removeListener('reader:shown', listener)
+  },
+  onReaderToggleDisguise: (callback: () => void) => {
+    const listener = () => callback()
+    ipcRenderer.on('reader:toggle-disguise', listener)
+    return () => ipcRenderer.removeListener('reader:toggle-disguise', listener)
+  },
+  getReaderSettings: () => ipcRenderer.invoke('desktop:get-reader-settings'),
+  setReaderSettings: (settings: unknown) => ipcRenderer.invoke('desktop:set-reader-settings', settings),
+  readerListBooks: () => ipcRenderer.invoke('desktop:reader-list-books'),
+  readerSetProgress: (progress: unknown) => ipcRenderer.invoke('desktop:reader-set-progress', progress),
+  readerGetChapter: (bookId: string, chapterIndex: number) =>
+    ipcRenderer.invoke('desktop:reader-get-chapter', { bookId, chapterIndex }),
+  readerPickDirectory: () => ipcRenderer.invoke('desktop:reader-pick-directory'),
+  readerScrapeUrl: (url: string) => ipcRenderer.invoke('desktop:reader-scrape-url', url),
+  readerOpenBook: (bookId: string) => ipcRenderer.invoke('desktop:reader-open-book', bookId),
+  readerWindowControl: (action: unknown) => ipcRenderer.invoke('desktop:reader-window-control', action),
 })

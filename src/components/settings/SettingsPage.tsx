@@ -21,6 +21,7 @@ import {
   UserCircle,
   FileText,
   Rocket,
+  BookOpen,
 } from 'lucide-react'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
@@ -33,6 +34,7 @@ import { buildDataHealthReport } from '../../utils/dataHealth'
 import { WORKSPACE_MODE_OPTIONS, type WorkspaceMode } from '../../utils/workspaceModes'
 import BackupCenter from './BackupCenter'
 import LauncherSettings from './LauncherSettings'
+import ReaderSettings from './ReaderSettings'
 import ShortcutRecorder from './ShortcutRecorder'
 import { SHORTCUT_BY_ID, SHORTCUT_GROUPS, useShortcutStore } from '../../shortcuts'
 
@@ -60,6 +62,7 @@ const TIMER_DURATION_KEYS = [
 const SETTINGS_TABS = [
   { id: 'general' as const, label: '通用', icon: UserCircle },
   { id: 'launcher' as const, label: '启动器', icon: Rocket },
+  { id: 'reader' as const, label: '阅读', icon: BookOpen },
   { id: 'appearance' as const, label: '外观', icon: Sparkles },
   { id: 'pomodoro' as const, label: '番茄钟', icon: Timer },
   { id: 'data' as const, label: '数据与安全', icon: ShieldCheck },
@@ -893,6 +896,7 @@ export default function SettingsPage() {
 
       {/* Tab: Launcher (uTools-style) */}
       {activeTab === 'launcher' && <LauncherSettings onToast={showToast} />}
+      {activeTab === 'reader' && <ReaderSettings onToast={showToast} />}
 
       {/* Confirm Dialog */}
       {showConfirmClear && (

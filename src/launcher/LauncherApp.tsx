@@ -21,6 +21,7 @@ import {
   Pin,
   PinOff,
   X,
+  BookOpen,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useShortcutStore } from '../shortcuts'
@@ -70,6 +71,7 @@ const COMMAND_ICONS: Record<string, typeof LayoutDashboard> = {
   'nav-weather': Cloud,
   'nav-settings': Settings,
   'translate-clipboard': Languages,
+  'stealth-reader': BookOpen,
 }
 
 const PAGE_BY_COMMAND: Record<string, string> = {
@@ -145,6 +147,7 @@ export default function LauncherApp({
   const [matchedApps, setMatchedApps] = useState<DesktopAppInfo[]>([])
   const [appsLoading, setAppsLoading] = useState(false)
   const [copied, setCopied] = useState(false)
+  const [readerMenu, setReaderMenu] = useState<{ x: number; y: number } | null>(null)
   const launcherHotkey = useShortcutStore((s) => s.getAccelerator('launcher'))
   const inputRef = useRef<HTMLInputElement>(null)
   const searchSeq = useRef(0)
@@ -281,6 +284,11 @@ export default function LauncherApp({
     if (commandId === 'translate-clipboard') {
       const text = clipboardText
       if (text) void window.electronAPI?.openTranslate?.({ text })
+      hideLauncher()
+      return
+    }
+    if (commandId === 'stealth-reader') {
+      void window.electronAPI?.openReader?.({ mode: 'auto' })
       hideLauncher()
       return
     }
@@ -622,6 +630,11 @@ export default function LauncherApp({
         key={item.id}
         onClick={() => executeItem(item)}
         onMouseEnter={() => setSelectedIndex(index)}
+        onContextMenu={(event) => {
+          if (item.kind !== 'command' || item.commandId !== 'stealth-reader') return
+          event.preventDefault()
+          setReaderMenu({ x: event.clientX, y: event.clientY })
+        }}
         className={rowClass(isSelected)}
       >
         <div className={clsx(
@@ -798,6 +811,11 @@ export default function LauncherApp({
                     <button
                       key={command.id}
                       onClick={() => runCommand(command.id)}
+                      onContextMenu={(event) => {
+                        if (command.id !== 'stealth-reader') return
+                        event.preventDefault()
+                        setReaderMenu({ x: event.clientX, y: event.clientY })
+                      }}
                       title={command.description}
                       className="flex flex-col items-center gap-2 px-2 py-3 rounded-2xl border border-border/70 bg-surface/50 hover:border-primary/30 hover:bg-primary/10 transition-all"
                     >
@@ -863,6 +881,35 @@ export default function LauncherApp({
           </div>
           {copied ? <span className="text-success">结果已复制</span> : <span>{launcherHotkey} 快速启动 · ESC 关闭</span>}
         </div>
+
+        {readerMenu && (
+          <div
+            className="fixed inset-0 z-[80]"
+            onClick={() => setReaderMenu(null)}
+            onContextMenu={(event) => {
+              event.preventDefault()
+              setReaderMenu(null)
+            }}
+          >
+            <div
+              className="absolute min-w-[140px] rounded-xl border border-border bg-surface shadow-xl py-1"
+              style={{ left: readerMenu.x, top: readerMenu.y }}
+              onClick={(event) => event.stopPropagation()}
+            >
+              <button
+                type="button"
+                className="w-full px-3 py-2 text-left text-sm text-text hover:bg-primary/15"
+                onClick={() => {
+                  setReaderMenu(null)
+                  void window.electronAPI?.openReader?.({ mode: 'library' })
+                  hideLauncher()
+                }}
+              >
+                进入书架
+              </button>
+            </div>
+          </div>
+        )}
       </div>
   )
 

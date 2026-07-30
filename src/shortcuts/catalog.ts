@@ -16,6 +16,7 @@ export const SHORTCUT_CATALOG: ShortcutDefinition[] = [
   { id: 'launcher', group: '全局', label: '打开启动器', defaultAccelerator: 'Alt+Space', scope: 'global', electron: true },
   { id: 'mainWindow', group: '全局', label: '显示 / 隐藏主程序窗口', defaultAccelerator: 'Ctrl+Alt+Space', scope: 'global', electron: true },
   { id: 'quickCapture', group: '全局', label: '快速捕获（后台可用）', defaultAccelerator: 'Ctrl+Shift+Space', scope: 'global', electron: true },
+  { id: 'readerBossKey', group: '全局', label: '摸鱼阅读老板键', defaultAccelerator: 'Ctrl+Shift+Q', scope: 'global', electron: true },
   { id: 'commandPalette', group: '全局', label: '打开命令面板', defaultAccelerator: 'Ctrl+K', scope: 'global' },
   { id: 'toggleSidebar', group: '全局', label: '切换侧边栏', defaultAccelerator: 'Ctrl+B', scope: 'global' },
   { id: 'pageDashboard', group: '全局', label: '切换到仪表盘', defaultAccelerator: 'Ctrl+1', scope: 'global' },

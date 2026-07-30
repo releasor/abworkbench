@@ -56,6 +56,32 @@ interface LauncherRecentHomeInfo {
   folders: RecentPathInfo[]
 }
 
+interface ReaderSettingsConfig {
+  opacity: number
+  fontSize: number
+  fontColor: string
+  bossKey: string
+  disguiseEnabled: boolean
+  novelDir: string
+  windowBounds: { x: number; y: number; width: number; height: number } | null
+  bossKeyError?: string
+}
+
+interface ReaderBookInfo {
+  id: string
+  title: string
+  source: 'local' | 'web'
+  path?: string
+  catalogUrl?: string
+  chapterUrl?: string
+  updatedAt: number
+}
+
+interface ReaderLibraryInfo {
+  books: ReaderBookInfo[]
+  progress: { bookId: string; chapterIndex: number; offset: number; updatedAt: number } | null
+}
+
 declare global {
   interface Window {
     electronAPI?: {
@@ -89,6 +115,25 @@ declare global {
       pinRecentApp?: (appPath: string) => Promise<DesktopAppInfo[]>
       unpinRecentApp?: (appPath: string) => Promise<DesktopAppInfo[]>
       hideRecentApp?: (appPath: string) => Promise<DesktopAppInfo[]>
+      openReader?: (req?: { mode?: 'auto' | 'library' | 'reading'; bookId?: string }) => Promise<{ mode: string; bookId?: string; bossKeyError?: string }>
+      hideReader?: () => Promise<boolean>
+      onReaderShown?: (callback: (payload: { mode: string; bookId?: string }) => void) => (() => void) | undefined
+      onReaderToggleDisguise?: (callback: () => void) => (() => void) | undefined
+      getReaderSettings?: () => Promise<ReaderSettingsConfig>
+      setReaderSettings?: (settings: ReaderSettingsConfig | Record<string, unknown>) => Promise<ReaderSettingsConfig>
+      readerListBooks?: () => Promise<ReaderLibraryInfo>
+      readerSetProgress?: (progress: unknown) => Promise<ReaderLibraryInfo>
+      readerGetChapter?: (bookId: string, chapterIndex: number) => Promise<
+        | { ok: true; book: ReaderBookInfo; chapter: { title: string; body: string; chapterIndex: number; chapterCount: number } }
+        | { ok: false; message: string }
+      >
+      readerPickDirectory?: () => Promise<ReaderLibraryInfo>
+      readerScrapeUrl?: (url: string) => Promise<
+        | { ok: true; book: ReaderBookInfo; chapter: { title: string; body: string; chapterIndex: number; chapterCount: number } }
+        | { ok: false; message: string }
+      >
+      readerOpenBook?: (bookId: string) => Promise<{ mode: string; bookId?: string }>
+      readerWindowControl?: (action: unknown) => Promise<boolean>
     }
   }
 }

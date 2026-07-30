@@ -28,6 +28,7 @@ export const LAUNCHER_COMMANDS: LauncherCommandDef[] = [
   { id: 'nav-weather', label: '天气', description: '打开主窗口并查看天气', keywords: ['weather', 'tianqi', '天气'] },
   { id: 'nav-settings', label: '设置', description: '打开主窗口并进入设置', keywords: ['settings', 'shezhi', '设置', 'preferences'] },
   { id: 'translate-clipboard', label: '翻译剪贴板内容', description: '用默认翻译引擎翻译剪贴板中的文本', keywords: ['translate', 'fanyi', '翻译', 'fy', 'clipboard'] },
+  { id: 'stealth-reader', label: '摸鱼阅读', description: '打开透明悬浮窗继续阅读或进入书架', keywords: ['reader', 'novel', 'moyu', '摸鱼', '阅读', '小说', '看书'] },
 ]
 
 // --- Prefix handling ---
