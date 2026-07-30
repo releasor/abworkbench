@@ -59,24 +59,69 @@ export async function locateEsExe(configuredPath?: string): Promise<string | nul
   return null
 }
 
-/** Find an Everything.exe we can launch: Everything* folder next to the app, then system installs. */
-export function findEverythingExe(appDir?: string): string | null {
+/** Find an Everything.exe we can launch: packaged resources, project folder, then system installs. */
+export function findEverythingExe(...searchRoots: Array<string | undefined | null>): string | null {
   const candidates: string[] = []
-  if (appDir) {
+  const roots = searchRoots.filter((root): root is string => typeof root === 'string' && root.length > 0)
+
+  for (const root of roots) {
+    // Packaged layout: resources/Everything/everything.exe
+    candidates.push(path.join(root, 'Everything', 'everything.exe'))
+    candidates.push(path.join(root, 'Everything', 'Everything.exe'))
     try {
-      for (const entry of fs.readdirSync(appDir, { withFileTypes: true })) {
+      for (const entry of fs.readdirSync(root, { withFileTypes: true })) {
         if (entry.isDirectory() && entry.name.toLowerCase().startsWith('everything')) {
-          candidates.push(path.join(appDir, entry.name, 'everything.exe'))
-          candidates.push(path.join(appDir, entry.name, 'Everything.exe'))
+          candidates.push(path.join(root, entry.name, 'everything.exe'))
+          candidates.push(path.join(root, entry.name, 'Everything.exe'))
         }
       }
     } catch {
-      // ignore unreadable app dir
+      // ignore unreadable roots
     }
   }
+
   candidates.push('C:\\Program Files\\Everything\\Everything.exe')
   candidates.push('C:\\Program Files (x86)\\Everything\\Everything.exe')
   return candidates.find(exists) || null
+}
+
+const PORTABLE_FILES = ['everything.exe', 'Everything.ini', 'Everything.lng'] as const
+
+/**
+ * Ensure a writable portable Everything lives under userData.
+ * Packaged installs copy exe/ini/lng from resources (never the machine-specific .db).
+ */
+export function ensurePortableEverything(resourcesPath?: string, userDataPath?: string, appDir?: string): string | null {
+  if (!userDataPath) {
+    return findEverythingExe(resourcesPath, appDir)
+  }
+
+  const destDir = path.join(userDataPath, 'Everything')
+  const destExe = path.join(destDir, 'everything.exe')
+  if (exists(destExe)) return destExe
+
+  const sourceExe = findEverythingExe(resourcesPath, appDir)
+  if (!sourceExe) return null
+
+  const sourceDir = path.dirname(sourceExe)
+  try {
+    fs.mkdirSync(destDir, { recursive: true })
+    for (const file of PORTABLE_FILES) {
+      const src = path.join(sourceDir, file)
+      const dest = path.join(destDir, file === 'everything.exe' ? 'everything.exe' : file)
+      if (!exists(src)) continue
+      if (!exists(dest)) fs.copyFileSync(src, dest)
+    }
+    // Case-insensitive fallback for Everything.exe on case-sensitive volumes.
+    if (!exists(destExe) && exists(path.join(sourceDir, 'Everything.exe'))) {
+      fs.copyFileSync(path.join(sourceDir, 'Everything.exe'), destExe)
+    }
+  } catch {
+    // Fall back to launching the read-only packaged copy if seeding fails.
+    return sourceExe
+  }
+
+  return exists(destExe) ? destExe : sourceExe
 }
 
 // --- HTTP server mode (works with portable Everything, no es.exe needed) ---
@@ -155,7 +200,12 @@ function toItem(fullPath: string): EverythingItem {
 export interface EverythingSearchOptions {
   esPath?: string
   httpUrl?: string
+  /** Dev project root / app path (may contain Everything-* folder). */
   appDir?: string
+  /** Packaged Electron resources path (contains bundled Everything/). */
+  resourcesPath?: string
+  /** Writable userData path; portable Everything is seeded here. */
+  userDataPath?: string
   limit?: number
 }
 
@@ -194,7 +244,7 @@ export async function searchEverything(query: string, options: EverythingSearchO
     if (await probeHttp(baseUrl)) {
       return { ok: true, mode: 'http', items: await searchViaHttp(trimmed, baseUrl, limit) }
     }
-    const exe = findEverythingExe(options.appDir)
+    const exe = ensurePortableEverything(options.resourcesPath, options.userDataPath, options.appDir)
     if (exe) {
       launchEverything(exe)
       if (await waitForHttp(baseUrl)) {
@@ -231,7 +281,7 @@ export async function everythingStatus(options: EverythingSearchOptions = {}): P
     if (await probeHttp(baseUrl)) {
       return { installed: true, running: true, mode: 'http', detail: `HTTP 模式：${baseUrl}` }
     }
-    const exe = findEverythingExe(options.appDir)
+    const exe = ensurePortableEverything(options.resourcesPath, options.userDataPath, options.appDir)
     if (exe) {
       return { installed: true, running: false, mode: null, detail: `找到 ${exe}，但未在运行（搜索时会自动拉起）` }
     }

@@ -192,7 +192,7 @@ export default function LauncherApp({
       return
     }
     // Skip app search for pure math / URL so results stay clean.
-    if (items.length === 1 && (items[0].kind === 'calc' || items[0].kind === 'url')) {
+    if (items.length === 1 && (items[0].kind === 'calc' || items[0].kind === 'url' || items[0].kind === 'path')) {
       queueMicrotask(() => {
         setMatchedApps([])
         setAppsLoading(false)
@@ -355,6 +355,11 @@ export default function LauncherApp({
     }
     if (item.kind === 'url' || item.kind === 'websearch') {
       void window.electronAPI?.openTarget?.(item.url)
+      hideLauncher()
+      return
+    }
+    if (item.kind === 'path') {
+      void window.electronAPI?.openTarget?.(item.path)
       hideLauncher()
       return
     }
@@ -609,7 +614,9 @@ export default function LauncherApp({
           ? Calculator
           : item.kind === 'url' || item.kind === 'websearch'
             ? Globe
-            : FileSearch
+            : item.kind === 'path'
+              ? (item.pathKind === 'file' ? File : Folder)
+              : FileSearch
     return (
       <button
         key={item.id}

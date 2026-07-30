@@ -234,7 +234,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
           <h2 className="text-lg font-semibold text-text">Everything 全局搜索</h2>
         </div>
         <p className="text-xs text-text-muted mb-3">
-          接入 voidtools Everything 实现全盘文件秒搜。优先使用 es.exe（命令行）；找不到时自动改用下方 HTTP 服务——项目目录里的便携版 Everything 已预配好，搜索时若未运行会自动拉起，无需手动配置。
+          接入 voidtools Everything 实现全盘文件秒搜。优先使用 es.exe（命令行）；找不到时自动改用下方 HTTP 服务。安装包已内置便携版 Everything，首次搜索会自动复制到用户目录并拉起，无需单独安装。
         </p>
         <div className="space-y-2">
           <div className="flex items-center gap-3">

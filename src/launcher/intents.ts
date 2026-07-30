@@ -13,6 +13,7 @@ export type LauncherItem =
   | { id: string; kind: 'translate'; label: string; description: string; text: string; explicit: boolean }
   | { id: string; kind: 'calc'; label: string; description: string; expression: string; result: string }
   | { id: string; kind: 'url'; label: string; description: string; url: string }
+  | { id: string; kind: 'path'; label: string; description: string; path: string; pathKind: 'file' | 'dir' }
   | { id: string; kind: 'websearch'; label: string; description: string; query: string; url: string; explicit: boolean }
   | { id: string; kind: 'everything'; label: string; description: string; query: string; explicit: boolean }
 
@@ -60,6 +61,67 @@ export function looksTranslatable(text: string): boolean {
   if (trimmed.length < 2) return false
   if (containsCJK(trimmed)) return true
   return /^[a-zA-Z][a-zA-Z0-9\s',.!?;:"()&-]*[a-zA-Z0-9.!?]$/.test(trimmed) && trimmed.length <= 200
+}
+
+// --- Local path detection (Windows absolute / UNC / file://) ---
+export type DetectedLocalPath = {
+  path: string
+  pathKind: 'file' | 'dir'
+}
+
+/** Normalize and detect an absolute local filesystem path the user typed. */
+export function detectLocalPath(input: string): DetectedLocalPath | null {
+  let trimmed = input.trim()
+  if (!trimmed) return null
+
+  if (
+    (trimmed.startsWith('"') && trimmed.endsWith('"') && trimmed.length > 1)
+    || (trimmed.startsWith("'") && trimmed.endsWith("'") && trimmed.length > 1)
+  ) {
+    trimmed = trimmed.slice(1, -1).trim()
+  }
+  if (!trimmed) return null
+
+  if (/^file:/i.test(trimmed)) {
+    try {
+      const url = new URL(trimmed)
+      if (url.protocol.toLowerCase() !== 'file:') return null
+      // file:///E:/foo/bar → E:\foo\bar ; file://localhost/E:/foo → E:\foo
+      let pathname = decodeURIComponent(url.pathname || '')
+      if (/^\/[A-Za-z]:/.test(pathname)) pathname = pathname.slice(1)
+      trimmed = pathname.replace(/\//g, '\\')
+    } catch {
+      return null
+    }
+  }
+
+  const isDrive = /^[A-Za-z]:[\\/]/.test(trimmed)
+  const isUnc = /^\\\\[^\\\/]+[\\/][^\\\/]/.test(trimmed)
+  if (!isDrive && !isUnc) return null
+
+  // Reject newlines / control chars; spaces are allowed (e.g. "Setup 1.0.0.exe").
+  if (/[\r\n\0]/.test(trimmed)) return null
+
+  const normalized = trimmed.replace(/\//g, '\\')
+  const endsWithSep = /\\$/.test(normalized)
+  const withoutTrailing = normalized.replace(/\\+$/, '')
+  const base = withoutTrailing.split('\\').filter(Boolean).pop() || ''
+
+  // Drive root: E: or E:\
+  if (/^[A-Za-z]:$/i.test(withoutTrailing)) {
+    return { path: `${withoutTrailing.toUpperCase()}\\`, pathKind: 'dir' }
+  }
+
+  if (endsWithSep) {
+    return { path: `${withoutTrailing}\\`, pathKind: 'dir' }
+  }
+
+  // Filename with extension → file; otherwise treat as directory (Explorer can still open it).
+  if (/\.[a-zA-Z0-9]{1,16}$/.test(base)) {
+    return { path: withoutTrailing, pathKind: 'file' }
+  }
+
+  return { path: withoutTrailing, pathKind: 'dir' }
 }
 
 // --- URL detection ---
@@ -287,7 +349,26 @@ export function buildLauncherItems(input: string, commands: LauncherCommandDef[]
     }
   }
 
-  // 2. URL — open directly in default browser.
+  // 2. Absolute local path — open file or jump to folder.
+  const localPath = detectLocalPath(trimmed)
+  if (localPath) {
+    const label = localPath.pathKind === 'dir' ? '打开目录' : '打开文件'
+    const description =
+      localPath.pathKind === 'dir'
+        ? `在资源管理器中打开：${localPath.path}`
+        : `用默认程序打开：${localPath.path}`
+    items.push({
+      id: 'path',
+      kind: 'path',
+      label,
+      description,
+      path: localPath.path,
+      pathKind: localPath.pathKind,
+    })
+    return items
+  }
+
+  // 3. URL — open directly in default browser.
   const url = detectUrl(trimmed)
   if (url) {
     const t = trimmed.trim()
@@ -298,7 +379,7 @@ export function buildLauncherItems(input: string, commands: LauncherCommandDef[]
     }
   }
 
-  // 3. Explicit translate prefix.
+  // 4. Explicit translate prefix.
   const translateText = stripTranslatePrefix(trimmed)
   if (translateText) {
     items.push({
@@ -311,7 +392,7 @@ export function buildLauncherItems(input: string, commands: LauncherCommandDef[]
     })
   }
 
-  // 4. Explicit web search prefix.
+  // 5. Explicit web search prefix.
   const webQuery = stripWebSearchPrefix(trimmed)
   if (webQuery) {
     items.push({
@@ -325,7 +406,7 @@ export function buildLauncherItems(input: string, commands: LauncherCommandDef[]
     })
   }
 
-  // 5. Explicit file-search prefix.
+  // 6. Explicit file-search prefix.
   const fileQuery = stripFileSearchPrefix(trimmed)
   if (fileQuery) {
     items.push({
@@ -338,7 +419,7 @@ export function buildLauncherItems(input: string, commands: LauncherCommandDef[]
     })
   }
 
-  // 6. Feature commands.
+  // 7. Feature commands.
   for (const command of matchCommands(trimmed, commands)) {
     items.push({
       id: `cmd-${command.id}`,
@@ -349,7 +430,7 @@ export function buildLauncherItems(input: string, commands: LauncherCommandDef[]
     })
   }
 
-  // 7. Implicit intents for bare text.
+  // 8. Implicit intents for bare text.
   if (!translateText && !fileQuery && !webQuery) {
     if (looksTranslatable(trimmed)) {
       items.push({

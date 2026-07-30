@@ -567,14 +567,18 @@ app.whenReady().then(() => {
     return searchEverything(String(query || ''), {
       esPath: launcherSettings.esPath || undefined,
       httpUrl: launcherSettings.everythingHttpUrl || undefined,
-      appDir: app.getAppPath(),
+      appDir: app.isPackaged ? undefined : process.cwd(),
+      resourcesPath: process.resourcesPath,
+      userDataPath: app.getPath('userData'),
     })
   })
   ipcMain.handle('desktop:everything-status', async () => {
     return everythingStatus({
       esPath: launcherSettings.esPath || undefined,
       httpUrl: launcherSettings.everythingHttpUrl || undefined,
-      appDir: app.getAppPath(),
+      appDir: app.isPackaged ? undefined : process.cwd(),
+      resourcesPath: process.resourcesPath,
+      userDataPath: app.getPath('userData'),
     })
   })
   ipcMain.handle('desktop:reveal-path', (_event, target: string) => {

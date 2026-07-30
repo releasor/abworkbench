@@ -4,6 +4,7 @@ import test from 'node:test'
 import {
   buildLauncherItems,
   containsCJK,
+  detectLocalPath,
   detectUrl,
   evaluateExpression,
   formatCalcResult,
@@ -44,6 +45,45 @@ test('detectUrl accepts urls and domains only', () => {
   assert.equal(detectUrl('not a url'), null)
   assert.equal(detectUrl('翻译 x.com'), null)
   assert.equal(detectUrl('  https://github.com/prizm  '), 'https://github.com/prizm')
+})
+
+test('detectLocalPath recognizes Windows directories and files', () => {
+  assert.deepEqual(detectLocalPath('E:\\Prizm\\abworkbench\\release\\'), {
+    path: 'E:\\Prizm\\abworkbench\\release\\',
+    pathKind: 'dir',
+  })
+  assert.deepEqual(detectLocalPath('E:/Prizm/abworkbench/release/'), {
+    path: 'E:\\Prizm\\abworkbench\\release\\',
+    pathKind: 'dir',
+  })
+  assert.deepEqual(
+    detectLocalPath('E:\\Prizm\\abworkbench\\release\\Abworkbench Setup 1.0.0.exe'),
+    {
+      path: 'E:\\Prizm\\abworkbench\\release\\Abworkbench Setup 1.0.0.exe',
+      pathKind: 'file',
+    },
+  )
+  assert.deepEqual(
+    detectLocalPath('"E:\\Prizm\\abworkbench\\release\\Abworkbench Setup 1.0.0.exe"'),
+    {
+      path: 'E:\\Prizm\\abworkbench\\release\\Abworkbench Setup 1.0.0.exe',
+      pathKind: 'file',
+    },
+  )
+  assert.equal(detectLocalPath('release\\'), null)
+  assert.equal(detectLocalPath('github.com'), null)
+})
+
+test('buildLauncherItems opens typed local paths directly', () => {
+  const dir = buildLauncherItems('E:\\Prizm\\abworkbench\\release\\')
+  assert.equal(dir[0]?.kind, 'path')
+  assert.equal(dir[0]?.pathKind, 'dir')
+  assert.equal(dir.length, 1)
+
+  const file = buildLauncherItems('E:\\Prizm\\abworkbench\\release\\Abworkbench Setup 1.0.0.exe')
+  assert.equal(file[0]?.kind, 'path')
+  assert.equal(file[0]?.pathKind, 'file')
+  assert.equal(file.length, 1)
 })
 
 test('math expression detection and safe evaluation', () => {

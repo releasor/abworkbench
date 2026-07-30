@@ -21,6 +21,18 @@
       "dist/**/*",
       "dist-electron/**/*"
     ],
+    "extraResources": [
+      {
+        "from": "Everything-1.4.1.1032.x64/",
+        "to": "Everything",
+        "filter": [
+          "**/*",
+          "!*.db",
+          "!*.db.tmp",
+          "!*.csv"
+        ]
+      }
+    ],
     "win": {
       "target": [
         "nsis"
