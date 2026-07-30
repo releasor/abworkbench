@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { Keyboard, Languages, FileSearch, Plus, Trash2, RefreshCw, Info, Gauge } from 'lucide-react'
+import { Keyboard, Languages, FileSearch, Plus, Trash2, RefreshCw, Info } from 'lucide-react'
 import ShortcutRecorder from './ShortcutRecorder'
 import { SHORTCUT_BY_ID, useShortcutStore } from '../../shortcuts'
 
@@ -14,7 +14,6 @@ interface LauncherSettingsConfig {
   hotkey: string
   mainWindowHotkey: string
   quickCaptureHotkey: string
-  reclaimMainWindowWhenHidden: boolean
   esPath: string
   everythingHttpUrl: string
   defaultProviderId: string
@@ -47,7 +46,6 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
         ...loaded,
         mainWindowHotkey: loaded.mainWindowHotkey || 'Ctrl+Alt+Space',
         quickCaptureHotkey: loaded.quickCaptureHotkey || 'Ctrl+Shift+Space',
-        reclaimMainWindowWhenHidden: loaded.reclaimMainWindowWhenHidden !== false,
       })
       setEsPathDraft(loaded.esPath)
       setHttpUrlDraft(loaded.everythingHttpUrl)
@@ -168,34 +166,6 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
         <p className="mt-2 text-[11px] text-text-muted/70">
           点击后按下新组合键。启动器默认 Alt+Space；主程序窗口请用 Ctrl+Alt+Space（可在「快捷键」页修改）。若被其他软件占用会回退到默认键。
         </p>
-      </div>
-
-      <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
-        <div className="flex items-center gap-2 mb-4">
-          <Gauge size={20} className="text-emerald-400" />
-          <h2 className="text-lg font-semibold text-text">后台内存</h2>
-        </div>
-        <p className="text-xs text-text-muted mb-4">
-          托盘常挂时启动器保持温热秒开；主界面默认不常驻。关闭或隐藏主窗口后会立刻释放其渲染进程以降低内存。
-        </p>
-        <label className="flex items-start gap-3 rounded-2xl border border-border bg-background/50 p-3 cursor-pointer">
-          <input
-            type="checkbox"
-            className="mt-0.5 accent-primary"
-            checked={settings.reclaimMainWindowWhenHidden !== false}
-            onChange={(e) => {
-              void persist({ ...settings, reclaimMainWindowWhenHidden: e.target.checked }).then((saved) => {
-                if (saved) onToast(e.target.checked ? '已开启主窗口后台回收' : '已关闭主窗口后台回收', 'success')
-              })
-            }}
-          />
-          <span>
-            <span className="block text-sm font-medium text-text">关闭后立即回收主窗口</span>
-            <span className="block text-xs text-text-muted mt-0.5">
-              推荐开启。再次按 Ctrl+Alt+Space 会重新打开主界面（可能有短暂加载）。
-            </span>
-          </span>
-        </label>
       </div>
 
       <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
