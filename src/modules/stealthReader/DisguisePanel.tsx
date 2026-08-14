@@ -46,7 +46,6 @@ export default function DisguisePanel() {
     .join(', ')
 }`}
         </pre>
-        <p className="mt-3 text-[11px] text-[#888]">按老板键切回阅读 · Esc 隐藏窗口</p>
       </div>
     </div>
   )

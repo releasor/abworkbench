@@ -762,6 +762,26 @@ export default function LauncherApp({
                 </div>
               )}
 
+              <div className="px-3 py-1.5 text-xs text-text-muted font-medium">摸鱼阅读</div>
+              <button
+                type="button"
+                onClick={() => runCommand('stealth-reader')}
+                onContextMenu={(event) => {
+                  event.preventDefault()
+                  setReaderMenu({ x: event.clientX, y: event.clientY })
+                }}
+                title="左键继续阅读 / 右键进入书架"
+                className="mx-1 mb-2 flex w-[calc(100%-0.5rem)] items-center gap-3 rounded-2xl border border-amber-400/25 bg-amber-500/10 px-3 py-2.5 text-left transition-all hover:border-amber-400/40 hover:bg-amber-500/15"
+              >
+                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20">
+                  <BookOpen size={18} className="text-amber-300" />
+                </div>
+                <div className="min-w-0 flex-1">
+                  <div className="text-sm font-medium text-text">摸鱼阅读</div>
+                  <div className="truncate text-[11px] text-text-muted">左键续读 · 右键进书架 · 透明悬浮窗</div>
+                </div>
+              </button>
+
               <div className="px-3 py-1.5 text-xs text-text-muted font-medium">最近文件</div>
               {recentFiles.length > 0 ? (
                 <div className="space-y-1 pb-2">
