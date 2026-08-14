@@ -224,18 +224,16 @@ export async function searchEverything(query: string, options: EverythingSearchO
 
   if (esPath) {
     const result = await run(esPath, ['-n', String(limit), trimmed])
-    if (result.code !== 0) {
-      const message = (result.stderr || result.stdout || '').trim()
-      // es.exe exits non-zero (error 8) when the Everything service/IPC is unavailable.
-      return { ok: false, reason: 'not-running', message: message || 'es.exe exited with an error' }
+    if (result.code === 0) {
+      const items = result.stdout
+        .split(/\r?\n/)
+        .map((line) => line.trim())
+        .filter(Boolean)
+        .slice(0, limit)
+        .map(toItem)
+      return { ok: true, mode: 'cli', items }
     }
-    const items = result.stdout
-      .split(/\r?\n/)
-      .map((line) => line.trim())
-      .filter(Boolean)
-      .slice(0, limit)
-      .map(toItem)
-    return { ok: true, mode: 'cli', items }
+    // Fall through to HTTP when Everything service/IPC is down but HTTP may still work.
   }
 
   // HTTP mode (portable Everything with its built-in HTTP server).
@@ -252,7 +250,14 @@ export async function searchEverything(query: string, options: EverythingSearchO
       }
       return { ok: false, reason: 'not-running', message: '已尝试启动 Everything，但 HTTP 服务未就绪' }
     }
+    if (esPath) {
+      return { ok: false, reason: 'not-running', message: `es.exe 不可用，且未能连接 ${baseUrl}` }
+    }
     return { ok: false, reason: 'not-installed', message: `未找到 es.exe，也未能连接 ${baseUrl}` }
+  }
+
+  if (esPath) {
+    return { ok: false, reason: 'not-running', message: 'es.exe 报错且未配置 HTTP 地址' }
   }
 
   return { ok: false, reason: 'not-installed' }

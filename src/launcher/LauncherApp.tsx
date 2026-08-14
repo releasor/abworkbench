@@ -59,7 +59,7 @@ type EverythingState =
   | { status: 'idle' }
   | { status: 'loading' }
   | { status: 'ok'; items: EverythingItem[] }
-  | { status: 'unavailable'; reason: 'not-installed' | 'not-running' | 'error' }
+  | { status: 'unavailable'; reason: 'not-installed' | 'not-running' | 'error'; message?: string }
 
 const COMMAND_ICONS: Record<string, typeof LayoutDashboard> = {
   'open-main': AppWindow,
@@ -148,6 +148,7 @@ export default function LauncherApp({
   const [appsLoading, setAppsLoading] = useState(false)
   const [copied, setCopied] = useState(false)
   const [readerMenu, setReaderMenu] = useState<{ x: number; y: number } | null>(null)
+  const [launchError, setLaunchError] = useState('')
   const launcherHotkey = useShortcutStore((s) => s.getAccelerator('launcher'))
   const inputRef = useRef<HTMLInputElement>(null)
   const searchSeq = useRef(0)
@@ -173,7 +174,11 @@ export default function LauncherApp({
         if (result?.ok) {
           setEverything({ status: 'ok', items: result.items })
         } else {
-          setEverything({ status: 'unavailable', reason: result?.reason || 'error' })
+          setEverything({
+            status: 'unavailable',
+            reason: result?.reason || 'error',
+            message: result?.message,
+          })
         }
       }).catch(() => {
         if (searchSeq.current !== seq) return
@@ -315,11 +320,22 @@ export default function LauncherApp({
   }, [clipboardText, hideLauncher, onNavigate, variant])
 
   const openApp = useCallback((appEntry: DesktopAppInfo) => {
-    void window.electronAPI?.openApp?.(appEntry.path).then((ok) => {
-      if (!ok) void window.electronAPI?.openTarget?.(appEntry.target)
-      refreshRecentApps()
-    })
-    hideLauncher()
+    setLaunchError('')
+    void (async () => {
+      const ok = await window.electronAPI?.openApp?.(appEntry.path)
+      if (ok) {
+        refreshRecentApps()
+        hideLauncher()
+        return
+      }
+      const fallback = await window.electronAPI?.openTarget?.(appEntry.target)
+      if (fallback) {
+        refreshRecentApps()
+        hideLauncher()
+        return
+      }
+      setLaunchError(`无法打开：${appEntry.name}`)
+    })()
   }, [hideLauncher, refreshRecentApps])
 
   const applyRecentAppsUpdate = useCallback((apps: DesktopAppInfo[] | undefined) => {
@@ -882,11 +898,12 @@ export default function LauncherApp({
               )}
               {everything.status === 'unavailable' && (
                 <div className="px-3 py-2 text-xs text-text-muted/80">
-                  {everything.reason === 'not-installed'
-                    ? '未检测到 Everything（es.exe），安装后可在启动器中全局搜索文件；可在 设置 → 启动器 中配置路径。'
-                    : everything.reason === 'not-running'
-                      ? 'Everything 未运行，请先启动 Everything。'
-                      : 'Everything 搜索出错。'}
+                  {everything.message
+                    || (everything.reason === 'not-installed'
+                      ? '未检测到 Everything（es.exe），安装后可在启动器中全局搜索文件；可在 设置 → 启动器 中配置路径。'
+                      : everything.reason === 'not-running'
+                        ? 'Everything 未运行，请先启动 Everything。'
+                        : 'Everything 搜索出错。')}
                 </div>
               )}
 
@@ -903,7 +920,7 @@ export default function LauncherApp({
             <span>↵ 打开</span>
             <span>Ctrl+↵ 定位文件</span>
           </div>
-          {copied ? <span className="text-success">结果已复制</span> : <span>{launcherHotkey} 快速启动 · ESC 关闭</span>}
+          {copied ? <span className="text-success">结果已复制</span> : launchError ? <span className="text-red-400">{launchError}</span> : <span>{launcherHotkey} 快速启动 · ESC 关闭</span>}
         </div>
 
         {readerMenu && (
