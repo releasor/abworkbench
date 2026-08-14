@@ -1,63 +1,21 @@
-import fs from 'node:fs'
-import path from 'node:path'
 import { extractChapterLinks, extractMainText, extractNextChapterHref } from './reader/scrapeHtml'
+import {
+  readCacheMeta,
+  readChapterCache,
+  resolveChapterUrl,
+  writeCacheMeta,
+  writeChapterCache,
+} from './reader/chapterCache'
 import { makeWebBookId, upsertBook } from './readerLibrary'
 import type { ReaderBook } from './reader/types'
 
-function cacheDir(userData: string, bookId: string): string {
-  return path.join(userData, 'reader-cache', bookId)
-}
+export type { ReaderCacheMeta } from './reader/chapterCache'
+export { readCacheMeta, readChapterCache } from './reader/chapterCache'
 
-function writeChapterCache(userData: string, bookId: string, index: number, body: string, title: string): void {
-  const dir = cacheDir(userData, bookId)
-  fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(path.join(dir, `${index}.json`), JSON.stringify({ title, body }), 'utf8')
-}
-
-export function readChapterCache(
-  userData: string,
-  bookId: string,
-  index: number,
-): { title: string; body: string } | null {
-  const file = path.join(cacheDir(userData, bookId), `${index}.json`)
-  try {
-    if (!fs.existsSync(file)) return null
-    const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as { title?: string; body?: string }
-    if (typeof raw.body !== 'string') return null
-    return { title: typeof raw.title === 'string' ? raw.title : `第${index + 1}章`, body: raw.body }
-  } catch {
-    return null
-  }
-}
-
-export type ReaderCacheMeta = {
-  catalog: Array<{ title: string; url: string }>
-  nextUrl: string | null
-  chapterUrl?: string
-  /** Map chapterIndex → url for sequential navigation */
-  chapterUrls?: string[]
-}
-
-export function readCacheMeta(userData: string, bookId: string): ReaderCacheMeta | null {
-  const file = path.join(cacheDir(userData, bookId), 'meta.json')
-  try {
-    if (!fs.existsSync(file)) return null
-    const raw = JSON.parse(fs.readFileSync(file, 'utf8')) as Partial<ReaderCacheMeta>
-    return {
-      catalog: Array.isArray(raw.catalog) ? raw.catalog : [],
-      nextUrl: typeof raw.nextUrl === 'string' ? raw.nextUrl : null,
-      chapterUrl: typeof raw.chapterUrl === 'string' ? raw.chapterUrl : undefined,
-      chapterUrls: Array.isArray(raw.chapterUrls) ? raw.chapterUrls.filter((u) => typeof u === 'string') : undefined,
-    }
-  } catch {
-    return null
-  }
-}
-
-function writeCacheMeta(userData: string, bookId: string, meta: ReaderCacheMeta): void {
-  const dir = cacheDir(userData, bookId)
-  fs.mkdirSync(dir, { recursive: true })
-  fs.writeFileSync(path.join(dir, 'meta.json'), JSON.stringify(meta, null, 2), 'utf8')
+const FETCH_TIMEOUT_MS = 15000
+const FETCH_HEADERS = {
+  'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AbworkbenchReader/1.0',
+  Accept: 'text/html,application/xhtml+xml',
 }
 
 export type ScrapeResult =
@@ -70,6 +28,26 @@ export type ScrapeResult =
   }
   | { ok: false; message: string }
 
+async function fetchHtml(url: string): Promise<{ ok: true; html: string } | { ok: false; message: string }> {
+  let res: Response
+  try {
+    res = await fetch(url, {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      headers: FETCH_HEADERS,
+    })
+  } catch (err) {
+    const msg = err instanceof Error ? err.message : String(err)
+    return { ok: false, message: `请求失败：${msg}` }
+  }
+  if (!res.ok) return { ok: false, message: `HTTP ${res.status}` }
+  const contentType = res.headers.get('content-type') || ''
+  const html = await res.text()
+  if (!/html/i.test(contentType) && !/<html|<body|<div/i.test(html)) {
+    return { ok: false, message: '响应不是 HTML 页面' }
+  }
+  return { ok: true, html }
+}
+
 /** Fetch a novel page and extract chapter text with generic heuristics. */
 export async function scrapeUrl(url: string, userData: string): Promise<ScrapeResult> {
   const trimmed = String(url || '').trim()
@@ -77,38 +55,17 @@ export async function scrapeUrl(url: string, userData: string): Promise<ScrapeRe
     return { ok: false, message: '请输入以 http(s) 开头的链接' }
   }
 
-  let res: Response
-  try {
-    res = await fetch(trimmed, {
-      signal: AbortSignal.timeout(15000),
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AbworkbenchReader/1.0',
-        Accept: 'text/html,application/xhtml+xml',
-      },
-    })
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return { ok: false, message: `请求失败：${msg}` }
-  }
+  const fetched = await fetchHtml(trimmed)
+  if (!fetched.ok) return fetched
 
-  if (!res.ok) {
-    return { ok: false, message: `HTTP ${res.status}` }
-  }
-
-  const contentType = res.headers.get('content-type') || ''
-  const html = await res.text()
-  if (!/html/i.test(contentType) && !/<html|<body|<div/i.test(html)) {
-    return { ok: false, message: '响应不是 HTML 页面' }
-  }
-
-  const body = extractMainText(html)
+  const body = extractMainText(fetched.html)
   if (!body || body.length < 20) {
     return { ok: false, message: '未能提取正文' }
   }
 
-  const catalog = extractChapterLinks(html, trimmed)
-  const nextUrl = extractNextChapterHref(html, trimmed)
-  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+  const catalog = extractChapterLinks(fetched.html, trimmed)
+  const nextUrl = extractNextChapterHref(fetched.html, trimmed)
+  const titleMatch = fetched.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
   const pageTitle = titleMatch
     ? titleMatch[1].replace(/<[^>]+>/g, '').trim().slice(0, 80)
     : '网文'
@@ -173,49 +130,20 @@ export async function getWebChapter(
     }
   }
 
-  let targetUrl: string | null = null
-  if (meta?.catalog[chapterIndex]?.url) {
-    targetUrl = meta.catalog[chapterIndex].url
-  } else if (meta?.chapterUrls?.[chapterIndex]) {
-    targetUrl = meta.chapterUrls[chapterIndex]
-  } else if (chapterIndex === 0 && book.chapterUrl) {
-    targetUrl = book.chapterUrl
-  } else if (chapterIndex > 0 && meta?.chapterUrls?.[chapterIndex - 1]) {
-    // Need sequential fetch: load previous page's nextUrl chain if only nextUrl known
-    const prevMeta = meta
-    if (chapterIndex === (prevMeta.chapterUrls?.length ?? 0) && prevMeta.nextUrl) {
-      targetUrl = prevMeta.nextUrl
-    }
-  } else if (chapterIndex === 1 && meta?.nextUrl) {
-    targetUrl = meta.nextUrl
-  }
-
+  const targetUrl = resolveChapterUrl(meta, chapterIndex, book.chapterUrl)
   if (!targetUrl) {
     return { ok: false, message: '没有更多章节，或尚未缓存下一章链接' }
   }
 
-  // Fetch without upserting a new book id — keep existing bookId
-  let res: Response
-  try {
-    res = await fetch(targetUrl, {
-      signal: AbortSignal.timeout(15000),
-      headers: {
-        'User-Agent': 'Mozilla/5.0 (Windows NT 10.0; Win64; x64) AbworkbenchReader/1.0',
-        Accept: 'text/html,application/xhtml+xml',
-      },
-    })
-  } catch (err) {
-    const msg = err instanceof Error ? err.message : String(err)
-    return { ok: false, message: `请求失败：${msg}` }
-  }
-  if (!res.ok) return { ok: false, message: `HTTP ${res.status}` }
-  const html = await res.text()
-  const body = extractMainText(html)
+  const fetched = await fetchHtml(targetUrl)
+  if (!fetched.ok) return fetched
+
+  const body = extractMainText(fetched.html)
   if (!body || body.length < 20) return { ok: false, message: '未能提取正文' }
 
-  const pageNext = extractNextChapterHref(html, targetUrl)
-  const catalog = extractChapterLinks(html, targetUrl)
-  const titleMatch = html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+  const pageNext = extractNextChapterHref(fetched.html, targetUrl)
+  const catalog = extractChapterLinks(fetched.html, targetUrl)
+  const titleMatch = fetched.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
   const pageTitle = titleMatch
     ? titleMatch[1].replace(/<[^>]+>/g, '').trim().slice(0, 80)
     : `第${chapterIndex + 1}章`
@@ -259,40 +187,5 @@ export async function getWebChapter(
     },
     nextUrl: pageNext,
     catalog: mergedCatalog,
-  }
-}
-
-export async function scrapeNextChapter(
-  userData: string,
-  bookId: string,
-  nextUrl: string,
-  chapterIndex: number,
-): Promise<ScrapeResult> {
-  const result = await scrapeUrl(nextUrl, userData)
-  if (!result.ok) return result
-  writeChapterCache(userData, bookId, chapterIndex, result.chapter.body, result.chapter.title)
-  const book = { ...result.book, id: bookId, chapterUrl: nextUrl, updatedAt: Date.now() }
-  upsertBook(userData, book)
-  const meta = readCacheMeta(userData, bookId)
-  const chapterUrls = [...(meta?.chapterUrls ?? [])]
-  while (chapterUrls.length < chapterIndex) chapterUrls.push('')
-  chapterUrls[chapterIndex] = nextUrl
-  if (result.nextUrl) chapterUrls[chapterIndex + 1] = result.nextUrl
-  writeCacheMeta(userData, bookId, {
-    catalog: result.catalog.length ? result.catalog : (meta?.catalog ?? []),
-    nextUrl: result.nextUrl,
-    chapterUrl: nextUrl,
-    chapterUrls,
-  })
-  return {
-    ok: true,
-    book,
-    chapter: {
-      ...result.chapter,
-      chapterIndex,
-      chapterCount: Math.max(result.chapter.chapterCount, chapterIndex + 1 + (result.nextUrl ? 1 : 0)),
-    },
-    nextUrl: result.nextUrl,
-    catalog: result.catalog,
   }
 }

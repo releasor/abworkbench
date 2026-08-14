@@ -25,9 +25,24 @@ export default function ReadingPanel({
   const [chapterCount, setChapterCount] = useState(1)
   const [hasNext, setHasNext] = useState(true)
   const [loading, setLoading] = useState(false)
+  const [chromeVisible, setChromeVisible] = useState(true)
   const scrollRef = useRef<HTMLDivElement>(null)
   const saveTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
   const loadGen = useRef(0)
+  const hideChromeTimer = useRef<ReturnType<typeof setTimeout> | null>(null)
+
+  const bumpChrome = useCallback(() => {
+    setChromeVisible(true)
+    if (hideChromeTimer.current) clearTimeout(hideChromeTimer.current)
+    hideChromeTimer.current = setTimeout(() => setChromeVisible(false), 2200)
+  }, [])
+
+  useEffect(() => {
+    queueMicrotask(() => bumpChrome())
+    return () => {
+      if (hideChromeTimer.current) clearTimeout(hideChromeTimer.current)
+    }
+  }, [bumpChrome, bookId])
 
   const persistProgress = useCallback((index: number, offset: number) => {
     if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -133,9 +148,9 @@ export default function ReadingPanel({
   }, [chapterIndex, hasNext, loadChapter, loading, onPatchSettings, settings.fontSize])
 
   return (
-    <div className="flex h-full flex-col">
+    <div className="flex h-full flex-col" onMouseMove={bumpChrome}>
       <div
-        className="flex items-center gap-2 border-b border-white/10 px-2 py-1.5 text-xs text-zinc-200"
+        className={`flex items-center gap-2 border-b border-white/10 px-2 py-1.5 text-xs text-zinc-200 transition-opacity ${chromeVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
       >
         <button
@@ -213,7 +228,7 @@ export default function ReadingPanel({
       </div>
 
       <div
-        className="flex items-center justify-between border-t border-white/10 px-3 py-1.5 text-[11px] text-zinc-400"
+        className={`flex items-center justify-between border-t border-white/10 px-3 py-1.5 text-[11px] text-zinc-400 transition-opacity ${chromeVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
       >
         <button
