@@ -209,22 +209,21 @@ function ensureReaderWindow(): BrowserWindow {
   })
   applyReaderOpacity(readerWin, readerSettings.opacity)
   readerWin.on('closed', () => { readerWin = null })
-  readerWin.on('moved', () => {
+  let boundsTimer: ReturnType<typeof setTimeout> | null = null
+  const persistBounds = () => {
     if (!readerWin || readerWin.isDestroyed()) return
     const b = readerWin.getBounds()
     readerSettings = saveReaderSettings(app.getPath('userData'), {
       ...readerSettings,
       windowBounds: b,
     })
-  })
-  readerWin.on('resized', () => {
-    if (!readerWin || readerWin.isDestroyed()) return
-    const b = readerWin.getBounds()
-    readerSettings = saveReaderSettings(app.getPath('userData'), {
-      ...readerSettings,
-      windowBounds: b,
-    })
-  })
+  }
+  const schedulePersistBounds = () => {
+    if (boundsTimer) clearTimeout(boundsTimer)
+    boundsTimer = setTimeout(persistBounds, 350)
+  }
+  readerWin.on('moved', schedulePersistBounds)
+  readerWin.on('resized', schedulePersistBounds)
   return readerWin
 }
 

@@ -9,7 +9,8 @@
     "desktop:dev": "vite build && electron .",
     "build": "npm run electron:build",
     "electron:build": "vite build && electron-builder",
-    "lint": "eslint ."
+    "lint": "eslint .",
+    "test": "node --test electron/reader/*.test.mjs src/launcher/*.test.mjs src/hooks/*.test.mjs"
   },
   "build": {
     "appId": "com.abworkbench.app",

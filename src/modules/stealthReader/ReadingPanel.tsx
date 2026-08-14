@@ -148,7 +148,12 @@ export default function ReadingPanel({
   }, [chapterIndex, hasNext, loadChapter, loading, onPatchSettings, settings.fontSize])
 
   return (
-    <div className="flex h-full flex-col" onMouseMove={bumpChrome}>
+    <div className="relative flex h-full flex-col" onMouseMove={bumpChrome}>
+      {/* Always-on drag strip so window stays movable when chrome auto-hides */}
+      <div
+        className="absolute inset-x-0 top-0 z-20 h-3"
+        style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
+      />
       <div
         className={`flex items-center gap-2 border-b border-white/10 px-2 py-1.5 text-xs text-zinc-200 transition-opacity ${chromeVisible ? 'opacity-100' : 'opacity-0 pointer-events-none'}`}
         style={{ WebkitAppRegion: 'drag' } as React.CSSProperties}
