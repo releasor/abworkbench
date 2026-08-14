@@ -62,7 +62,7 @@ const TIMER_DURATION_KEYS = [
 const SETTINGS_TABS = [
   { id: 'general' as const, label: '通用', icon: UserCircle },
   { id: 'launcher' as const, label: '启动器', icon: Rocket },
-  { id: 'reader' as const, label: '阅读', icon: BookOpen },
+  { id: 'reader' as const, labelKey: 'settings.tab.reader' as const, label: '阅读', icon: BookOpen },
   { id: 'appearance' as const, label: '外观', icon: Sparkles },
   { id: 'pomodoro' as const, label: '番茄钟', icon: Timer },
   { id: 'data' as const, label: '数据与安全', icon: ShieldCheck },
@@ -363,7 +363,7 @@ export default function SettingsPage() {
               }`}
             >
               <Icon size={16} />
-              <span className="hidden sm:inline">{tab.label}</span>
+              <span className="hidden sm:inline">{'labelKey' in tab && tab.labelKey ? t(tab.labelKey) : tab.label}</span>
             </button>
           )
         })}

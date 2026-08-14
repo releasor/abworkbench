@@ -75,6 +75,7 @@ interface ReaderBookInfo {
   catalogUrl?: string
   chapterUrl?: string
   updatedAt: number
+  missing?: boolean
 }
 
 interface ReaderLibraryInfo {

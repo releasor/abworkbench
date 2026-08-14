@@ -6,6 +6,7 @@ interface BookRow {
   id: string
   title: string
   source: 'local' | 'web'
+  missing?: boolean
 }
 
 interface LibraryPanelProps {
@@ -161,13 +162,22 @@ export default function LibraryPanel({
             >
               <button
                 type="button"
-                onClick={() => onOpenBook(book.id)}
+                onClick={() => {
+                  if (book.missing) {
+                    onError('本地文件不存在，请移除或重新选择目录')
+                    return
+                  }
+                  onOpenBook(book.id)
+                }}
                 className="flex min-w-0 flex-1 items-center justify-between px-3 py-2 text-left"
               >
-                <span className="truncate">{book.title}</span>
+                <span className={`truncate ${book.missing ? 'text-zinc-500 line-through' : ''}`}>{book.title}</span>
                 <span className="ml-2 flex shrink-0 items-center gap-1 text-[10px] text-zinc-500">
                   {progressBookId === book.id && (
                     <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-amber-200">续读</span>
+                  )}
+                  {book.missing && (
+                    <span className="rounded bg-red-500/20 px-1.5 py-0.5 text-red-200">缺失</span>
                   )}
                   {book.source === 'local' ? '本地' : '网上'}
                 </span>

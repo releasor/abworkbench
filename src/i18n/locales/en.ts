@@ -336,6 +336,18 @@ export const en = {
   'settings.importSuccess': 'Import successful!',
   'settings.importFail': 'Import failed: invalid file',
   'settings.pressForCommands': 'Press Ctrl+K for commands',
+  'settings.tab.reader': 'Reader',
+  'settings.reader.title': 'Stealth reader appearance',
+  'settings.reader.desc': 'Floating transparent reader style. Font size and opacity can also be adjusted in the reader window.',
+  'settings.reader.opacity': 'Opacity',
+  'settings.reader.fontSize': 'Font size',
+  'settings.reader.fontColor': 'Font color',
+  'settings.reader.bossKey': 'Boss key',
+  'settings.reader.bossKeyDesc': 'Hides the reader by default. With disguise on, toggles a fake work screen and the novel.',
+  'settings.reader.disguise': 'Enable disguise mode (fake spreadsheet)',
+  'settings.reader.novelDir': 'Recent novel folder',
+  'settings.reader.bossKeyUpdated': (key: string) => `Boss key updated to ${key}`,
+
 
   // Dashboard
   'dashboard.greeting.night': 'Good night',

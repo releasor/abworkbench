@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react'
 import { BookOpen, Keyboard } from 'lucide-react'
 import { SHORTCUT_BY_ID, useShortcutStore } from '../../shortcuts'
+import { useTranslation } from '../../i18n'
 import ShortcutRecorder from './ShortcutRecorder'
 
 interface ReaderSettingsProps {
@@ -29,6 +30,7 @@ const DEFAULTS: ReaderSettingsState = {
 }
 
 export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
+  const { t, tWith } = useTranslation()
   const [settings, setSettings] = useState<ReaderSettingsState>(DEFAULTS)
   const [recording, setRecording] = useState(false)
   const setAccelerator = useShortcutStore((s) => s.setAccelerator)
@@ -59,14 +61,14 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
       <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
         <div className="flex items-center gap-2 mb-4">
           <BookOpen size={20} className="text-primary" />
-          <h2 className="text-lg font-semibold text-text">摸鱼阅读样式</h2>
+          <h2 className="text-lg font-semibold text-text">{t('settings.reader.title')}</h2>
         </div>
         <p className="text-xs text-text-muted mb-4">
-          透明悬浮窗的阅读外观。也可在阅读窗内用 +/- 调节字号。
+          {t('settings.reader.desc')}
         </p>
         <div className="space-y-4">
           <label className="block text-sm text-text">
-            透明度 {Math.round(settings.opacity * 100)}%
+            {t('settings.reader.opacity')} {Math.round(settings.opacity * 100)}%
             <input
               type="range"
               min={20}
@@ -80,7 +82,7 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
             />
           </label>
           <label className="block text-sm text-text">
-            字号 {settings.fontSize}px
+            {t('settings.reader.fontSize')} {settings.fontSize}px
             <input
               type="range"
               min={12}
@@ -93,7 +95,7 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
             />
           </label>
           <label className="flex items-center gap-3 text-sm text-text">
-            字体颜色
+            {t('settings.reader.fontColor')}
             <input
               type="color"
               value={settings.fontColor}
@@ -109,10 +111,10 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
       <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
         <div className="flex items-center gap-2 mb-4">
           <Keyboard size={20} className="text-primary" />
-          <h2 className="text-lg font-semibold text-text">老板键</h2>
+          <h2 className="text-lg font-semibold text-text">{t('settings.reader.bossKey')}</h2>
         </div>
         <p className="text-xs text-text-muted mb-3">
-          默认立刻隐藏阅读窗。开启伪装后，热键在「假工作界面」与正文之间切换。
+          {t('settings.reader.bossKeyDesc')}
         </p>
         <div className="flex items-center gap-3 mb-4">
           <ShortcutRecorder
@@ -125,7 +127,7 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
               setAccelerator('readerBossKey', next)
               setRecording(false)
               void save({ ...settings, bossKey: next })
-              onToast(`老板键已更新为 ${next}`, 'success')
+              onToast(tWith('settings.reader.bossKeyUpdated', next), 'success')
             }}
           />
         </div>
@@ -138,13 +140,13 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
             }}
             className="accent-primary"
           />
-          启用伪装模式（假工作周报界面）
+          {t('settings.reader.disguise')}
         </label>
         {settings.bossKeyError && (
           <p className="mt-2 text-xs text-red-400">{settings.bossKeyError}</p>
         )}
         {settings.novelDir && (
-          <p className="mt-3 text-[11px] text-text-muted">最近小说目录：{settings.novelDir}</p>
+          <p className="mt-3 text-[11px] text-text-muted">{t('settings.reader.novelDir')}：{settings.novelDir}</p>
         )}
       </div>
     </div>

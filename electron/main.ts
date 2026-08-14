@@ -776,7 +776,13 @@ app.whenReady().then(() => {
     if (cleaned.progress !== state.progress) {
       state = setProgress(userData, cleaned.progress)
     }
-    return state
+    return {
+      ...state,
+      books: state.books.map((book) => ({
+        ...book,
+        missing: book.source === 'local' && (!book.path || !fs.existsSync(book.path)),
+      })),
+    }
   })
   ipcMain.handle('desktop:reader-set-progress', (_event, progress: unknown) => {
     const userData = app.getPath('userData')

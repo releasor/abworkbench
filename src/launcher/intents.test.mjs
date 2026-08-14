@@ -115,6 +115,12 @@ test('matchCommands matches labels and keywords', () => {
   assert.equal(withDefaults[0].id, 'nav-pomodoro')
 })
 
+test('matchCommands finds stealth reader by 摸鱼 / novel', () => {
+  assert.ok(matchCommands('摸鱼').some((c) => c.id === 'stealth-reader'))
+  assert.ok(matchCommands('novel').some((c) => c.id === 'stealth-reader'))
+  assert.ok(matchCommands('阅读').some((c) => c.id === 'stealth-reader'))
+})
+
 test('buildLauncherItems puts calculator result first', () => {
   const items = buildLauncherItems('1+2*3')
   assert.equal(items[0].kind, 'calc')

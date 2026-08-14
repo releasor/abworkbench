@@ -339,6 +339,18 @@ export const zh = {
   'settings.importSuccess': '导入成功！',
   'settings.importFail': '导入失败：文件无效',
   'settings.pressForCommands': '按 Ctrl+K 打开命令面板',
+  'settings.tab.reader': '阅读',
+  'settings.reader.title': '摸鱼阅读样式',
+  'settings.reader.desc': '透明悬浮窗的阅读外观。也可在阅读窗内调节字号与透明度。',
+  'settings.reader.opacity': '透明度',
+  'settings.reader.fontSize': '字号',
+  'settings.reader.fontColor': '字体颜色',
+  'settings.reader.bossKey': '老板键',
+  'settings.reader.bossKeyDesc': '默认立刻隐藏阅读窗。开启伪装后，热键在假工作界面与正文之间切换。',
+  'settings.reader.disguise': '启用伪装模式（假工作周报界面）',
+  'settings.reader.novelDir': '最近小说目录',
+  'settings.reader.bossKeyUpdated': (key: string) => `老板键已更新为 ${key}`,
+
 
   // Dashboard
   'dashboard.greeting.night': '夜深了',
