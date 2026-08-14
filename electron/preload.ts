@@ -45,7 +45,8 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('open-main-page', listener)
   },
   everythingSearch: (query: string) => ipcRenderer.invoke('desktop:everything-search', query),
-  everythingStatus: () => ipcRenderer.invoke('desktop:everything-status'),
+  everythingStatus: (overrides?: { esPath?: string; httpUrl?: string }) =>
+    ipcRenderer.invoke('desktop:everything-status', overrides),
   revealPath: (target: string) => ipcRenderer.invoke('desktop:reveal-path', target),
   openTranslate: (payload: { text: string; providerId?: string }) => ipcRenderer.invoke('desktop:open-translate', payload),
   getLauncherSettings: () => ipcRenderer.invoke('desktop:get-launcher-settings'),

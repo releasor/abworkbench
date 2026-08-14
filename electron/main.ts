@@ -671,10 +671,10 @@ app.whenReady().then(() => {
       userDataPath: app.getPath('userData'),
     })
   })
-  ipcMain.handle('desktop:everything-status', async () => {
+  ipcMain.handle('desktop:everything-status', async (_event, overrides?: { esPath?: string; httpUrl?: string }) => {
     return everythingStatus({
-      esPath: launcherSettings.esPath || undefined,
-      httpUrl: launcherSettings.everythingHttpUrl || undefined,
+      esPath: (overrides?.esPath ?? launcherSettings.esPath) || undefined,
+      httpUrl: (overrides?.httpUrl ?? launcherSettings.everythingHttpUrl) || undefined,
       appDir: app.isPackaged ? undefined : process.cwd(),
       resourcesPath: process.resourcesPath,
       userDataPath: app.getPath('userData'),

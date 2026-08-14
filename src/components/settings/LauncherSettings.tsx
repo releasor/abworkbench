@@ -120,12 +120,15 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
   const checkEverything = useCallback(async () => {
     setChecking(true)
     try {
-      const result = await window.electronAPI?.everythingStatus?.()
+      const result = await window.electronAPI?.everythingStatus?.({
+        esPath: esPathDraft.trim() || undefined,
+        httpUrl: httpUrlDraft.trim() || undefined,
+      })
       setStatus(result || null)
     } finally {
       setChecking(false)
     }
-  }, [])
+  }, [esPathDraft, httpUrlDraft])
 
   useEffect(() => {
     const timer = window.setTimeout(() => void checkEverything(), 0)

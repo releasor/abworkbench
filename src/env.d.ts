@@ -105,7 +105,7 @@ declare global {
       openMainPage?: (page: string) => Promise<boolean>
       onOpenMainPage?: (callback: (page: string) => void) => (() => void) | undefined
       everythingSearch?: (query: string) => Promise<EverythingSearchResult>
-      everythingStatus?: () => Promise<EverythingStatusResult>
+      everythingStatus?: (overrides?: { esPath?: string; httpUrl?: string }) => Promise<EverythingStatusResult>
       revealPath?: (target: string) => Promise<boolean>
       openTranslate?: (payload: { text: string; providerId?: string }) => Promise<boolean>
       getLauncherSettings?: () => Promise<LauncherSettingsConfig>
