@@ -270,7 +270,7 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
               onClose();
               playClickSound();
             } catch {
-              showToast('归档失败', 'error');
+              void window.electronAPI?.notify?.({ title: '归档失败', body: '请稍后重试' });
             }
           }}
           onCancel={() => setShowArchiveConfirm(false)}

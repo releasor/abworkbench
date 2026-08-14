@@ -407,9 +407,9 @@ export default function PomodoroTimer() {
     setTimeLeft(getDuration(modeRef.current))
   }, [stopTimer])
 
-  const toggleSound = useCallback(() => setSoundEnabled(prev => !prev), [setSoundEnabled])
-  const toggleAutoStartBreaks = useCallback(() => setAutoStartBreaks(prev => !prev), [setAutoStartBreaks])
-  const toggleAutoStartWork = useCallback(() => setAutoStartWork(prev => !prev), [setAutoStartWork])
+  const toggleSound = useCallback(() => setSoundEnabled(!soundEnabled), [setSoundEnabled, soundEnabled])
+  const toggleAutoStartBreaks = useCallback(() => setAutoStartBreaks(!autoStartBreaks), [setAutoStartBreaks, autoStartBreaks])
+  const toggleAutoStartWork = useCallback(() => setAutoStartWork(!autoStartWork), [setAutoStartWork, autoStartWork])
 
   // Keyboard shortcuts
   useEffect(() => {

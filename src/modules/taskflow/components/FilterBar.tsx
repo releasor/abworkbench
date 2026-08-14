@@ -183,7 +183,7 @@ export function FilterBar() {
         counts={categoryCounts}
         allLabel={tWith('taskflow.filter.allCategory', tasks.length)}
         allowAll
-        label={t('taskflow.filter.allCategory', tasks.length)}
+        label={tWith('taskflow.filter.allCategory', tasks.length)}
       />
 
       {/* Energy Level Filter */}

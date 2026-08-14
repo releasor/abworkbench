@@ -1,6 +1,6 @@
 import { useEffect, useMemo, useRef, useState } from 'react';
 import { nextDateStrN, todayStr as getTodayStr } from '../dateUtils';
-import { parseDate, getMonthDays, shiftMonth } from '../utils/calendarUtils';
+import { WEEKDAY_LABELS, MONTH_LABELS, parseDate, getMonthDays, shiftMonth } from '../utils/calendarUtils';
 import { Icon } from './Icon';
 
 interface DateRangePickerProps {
