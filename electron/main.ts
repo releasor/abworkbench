@@ -9,16 +9,17 @@ import { everythingStatus, searchEverything } from './everythingSearch'
 import { initRecentApps, listLauncherRecentHome, openDesktopApp, searchInstalledApps, pinRecentApp, unpinRecentApp, hideRecentApp } from './recentApps'
 import { loadReaderSettings, saveReaderSettings } from './readerSettings'
 import type { ReaderSettings } from './reader/types'
-import { resolveOpenMode } from './reader/resolveOpenMode'
+import { resolveOpenMode, sanitizeProgress } from './reader/resolveOpenMode'
 import {
   getBook,
   importTxtDirectory,
   loadLibrary,
   readLocalChapter,
+  removeBook,
   setProgress,
   upsertBook,
 } from './readerLibrary'
-import { readChapterCache, scrapeUrl } from './readerScrape'
+import { getWebChapter, scrapeUrl } from './readerScrape'
 import {
   applyReaderOpacity,
   createReaderWindow,
@@ -244,13 +245,23 @@ function applyBossKeyRegistration() {
 
 async function openReaderWindow(req?: { mode?: string; bookId?: string }) {
   const userData = app.getPath('userData')
-  const state = loadLibrary(userData)
+  let state = loadLibrary(userData)
+  const fileExists = (p: string) => fs.existsSync(p)
+  const cleaned = sanitizeProgress(state, fileExists)
+  if (cleaned.progress !== state.progress) {
+    state = setProgress(userData, cleaned.progress)
+  }
   const requestMode = (req?.mode === 'library' || req?.mode === 'reading' || req?.mode === 'auto')
     ? req.mode
     : 'auto'
-  let resolved = resolveOpenMode(requestMode, state)
-  if (req?.bookId && state.books.some((b) => b.id === req.bookId)) {
-    resolved = { mode: 'reading', bookId: req.bookId }
+  let resolved = resolveOpenMode(requestMode, state, fileExists)
+  if (req?.bookId) {
+    const book = state.books.find((b) => b.id === req.bookId)
+    if (book && (book.source !== 'local' || (book.path && fileExists(book.path))) && (book.source !== 'web' || book.chapterUrl || book.catalogUrl)) {
+      resolved = { mode: 'reading', bookId: req.bookId }
+    } else {
+      resolved = { mode: 'library' }
+    }
   }
   const winRef = ensureReaderWindow()
   applyReaderOpacity(winRef, readerSettings.opacity)
@@ -758,7 +769,15 @@ app.whenReady().then(() => {
     applyReaderOpacity(readerWin, readerSettings.opacity)
     return { ...readerSettings, bossKeyError: lastBossKeyError }
   })
-  ipcMain.handle('desktop:reader-list-books', () => loadLibrary(app.getPath('userData')))
+  ipcMain.handle('desktop:reader-list-books', () => {
+    const userData = app.getPath('userData')
+    let state = loadLibrary(userData)
+    const cleaned = sanitizeProgress(state, (p) => fs.existsSync(p))
+    if (cleaned.progress !== state.progress) {
+      state = setProgress(userData, cleaned.progress)
+    }
+    return state
+  })
   ipcMain.handle('desktop:reader-set-progress', (_event, progress: unknown) => {
     const userData = app.getPath('userData')
     if (!progress || typeof progress !== 'object') {
@@ -788,30 +807,28 @@ app.whenReady().then(() => {
         return { ok: false as const, message: err instanceof Error ? err.message : String(err) }
       }
     }
-    const cached = readChapterCache(userData, bookId, chapterIndex)
-    if (cached) {
-      return {
-        ok: true as const,
-        book,
-        chapter: { ...cached, chapterIndex, chapterCount: Math.max(chapterIndex + 1, 1) },
-      }
+    if (book.source === 'web') {
+      return getWebChapter(userData, book, chapterIndex)
     }
-    if (book.chapterUrl && chapterIndex === 0) {
-      const scraped = await scrapeUrl(book.chapterUrl, userData)
-      if (!scraped.ok) return scraped
-      return { ok: true as const, book: scraped.book, chapter: scraped.chapter }
-    }
-    return { ok: false as const, message: '章节未缓存，请从书架重新抓取或打开链接' }
+    return { ok: false as const, message: '不支持的书籍类型' }
+  })
+  ipcMain.handle('desktop:reader-remove-book', (_event, bookId: string) => {
+    return removeBook(app.getPath('userData'), String(bookId || ''))
   })
   ipcMain.handle('desktop:reader-pick-directory', async () => {
     const result = await dialog.showOpenDialog({
       properties: ['openDirectory'],
       title: '选择小说目录',
     })
-    if (result.canceled || !result.filePaths[0]) return loadLibrary(app.getPath('userData'))
+    if (result.canceled || !result.filePaths[0]) {
+      return { library: loadLibrary(app.getPath('userData')), novelDir: readerSettings.novelDir }
+    }
     const dir = result.filePaths[0]
     readerSettings = saveReaderSettings(app.getPath('userData'), { ...readerSettings, novelDir: dir })
-    return importTxtDirectory(app.getPath('userData'), dir)
+    return {
+      library: importTxtDirectory(app.getPath('userData'), dir),
+      novelDir: dir,
+    }
   })
   ipcMain.handle('desktop:reader-scrape-url', async (_event, url: string) => {
     return scrapeUrl(String(url || ''), app.getPath('userData'))

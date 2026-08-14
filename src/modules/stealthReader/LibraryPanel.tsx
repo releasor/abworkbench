@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useState } from 'react'
-import { BookOpen, FolderOpen, Link2, X } from 'lucide-react'
+import { BookOpen, FolderOpen, Link2, Trash2, X } from 'lucide-react'
 import type { ReaderUiSettings } from './StealthReaderApp'
 
 interface BookRow {
@@ -14,21 +14,24 @@ interface LibraryPanelProps {
   onError: (msg: string) => void
   onOpenBook: (id: string) => void
   onPatchSettings: (partial: Partial<ReaderUiSettings>) => Promise<void>
+  onReloadSettings: () => Promise<void>
 }
 
 export default function LibraryPanel({
   settings,
   onError,
   onOpenBook,
-  onPatchSettings,
+  onReloadSettings,
 }: LibraryPanelProps) {
   const [books, setBooks] = useState<BookRow[]>([])
+  const [progressBookId, setProgressBookId] = useState<string | null>(null)
   const [url, setUrl] = useState('')
   const [busy, setBusy] = useState(false)
 
   const refresh = useCallback(async () => {
     const lib = await window.electronAPI?.readerListBooks?.()
     if (lib?.books) setBooks(lib.books)
+    setProgressBookId(lib?.progress?.bookId ?? null)
   }, [])
 
   useEffect(() => {
@@ -41,10 +44,23 @@ export default function LibraryPanel({
     setBusy(true)
     onError('')
     try {
-      const lib = await window.electronAPI?.readerPickDirectory?.()
+      const result = await window.electronAPI?.readerPickDirectory?.()
+      if (result?.library?.books) setBooks(result.library.books)
+      setProgressBookId(result?.library?.progress?.bookId ?? null)
+      await onReloadSettings()
+    } finally {
+      setBusy(false)
+    }
+  }
+
+  const remove = async (bookId: string, event: { stopPropagation: () => void }) => {
+    event.stopPropagation()
+    setBusy(true)
+    onError('')
+    try {
+      const lib = await window.electronAPI?.readerRemoveBook?.(bookId)
       if (lib?.books) setBooks(lib.books)
-      if (lib) await onPatchSettings({ novelDir: settings.novelDir })
-      await refresh()
+      setProgressBookId(lib?.progress?.bookId ?? null)
     } finally {
       setBusy(false)
     }
@@ -129,7 +145,7 @@ export default function LibraryPanel({
 
         <div className="text-[11px] text-zinc-400">
           字号 {settings.fontSize} · 透明度 {Math.round(settings.opacity * 100)}%
-          {settings.bossKeyError ? ` · ${settings.bossKeyError}` : ''}
+          {settings.novelDir ? ` · ${settings.novelDir}` : ''}
         </div>
 
         <div className="space-y-1">
@@ -139,15 +155,33 @@ export default function LibraryPanel({
             </div>
           )}
           {books.map((book) => (
-            <button
+            <div
               key={book.id}
-              type="button"
-              onClick={() => onOpenBook(book.id)}
-              className="flex w-full items-center justify-between rounded-xl border border-transparent px-3 py-2 text-left hover:border-white/15 hover:bg-white/5"
+              className="group flex w-full items-center gap-1 rounded-xl border border-transparent hover:border-white/15 hover:bg-white/5"
             >
-              <span className="truncate">{book.title}</span>
-              <span className="shrink-0 text-[10px] text-zinc-500">{book.source === 'local' ? '本地' : '网上'}</span>
-            </button>
+              <button
+                type="button"
+                onClick={() => onOpenBook(book.id)}
+                className="flex min-w-0 flex-1 items-center justify-between px-3 py-2 text-left"
+              >
+                <span className="truncate">{book.title}</span>
+                <span className="ml-2 flex shrink-0 items-center gap-1 text-[10px] text-zinc-500">
+                  {progressBookId === book.id && (
+                    <span className="rounded bg-amber-500/25 px-1.5 py-0.5 text-amber-200">续读</span>
+                  )}
+                  {book.source === 'local' ? '本地' : '网上'}
+                </span>
+              </button>
+              <button
+                type="button"
+                disabled={busy}
+                title="移除"
+                onClick={(e) => void remove(book.id, e)}
+                className="mr-2 rounded-lg p-1.5 text-zinc-500 opacity-0 hover:bg-white/10 hover:text-red-300 group-hover:opacity-100 disabled:opacity-30"
+              >
+                <Trash2 size={14} />
+              </button>
+            </div>
           ))}
         </div>
       </div>

@@ -288,7 +288,11 @@ export default function LauncherApp({
       return
     }
     if (commandId === 'stealth-reader') {
-      void window.electronAPI?.openReader?.({ mode: 'auto' })
+      void window.electronAPI?.openReader?.({ mode: 'auto' }).then((result) => {
+        if (result?.bossKeyError) {
+          // Surface in reader window via settings; also keep launcher brief
+        }
+      })
       hideLauncher()
       return
     }
@@ -706,7 +710,7 @@ export default function LauncherApp({
               value={query}
               onChange={(event) => setQuery(event.target.value)}
               onKeyDown={handleKeyDown}
-              placeholder="搜索网页 / 输入网址 / 软件 / 设置 / 翻译 / 找文件"
+              placeholder="搜索网页 / 软件 / 摸鱼阅读 / 翻译 / 找文件"
               autoFocus
               className="flex-1 bg-transparent text-text text-[15px] outline-none placeholder:text-text-muted/70"
             />

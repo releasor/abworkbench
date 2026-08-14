@@ -69,6 +69,20 @@ export function setProgress(userData: string, progress: ReaderProgress | null): 
   return state
 }
 
+export function removeBook(userData: string, bookId: string): ReaderLibraryState {
+  const state = loadLibrary(userData)
+  state.books = state.books.filter((b) => b.id !== bookId)
+  if (state.progress?.bookId === bookId) state.progress = null
+  saveLibrary(userData, state)
+  try {
+    const cache = path.join(userData, 'reader-cache', bookId)
+    if (fs.existsSync(cache)) fs.rmSync(cache, { recursive: true, force: true })
+  } catch {
+    // cache cleanup is best-effort
+  }
+  return state
+}
+
 export function listTxtFiles(dir: string): Array<{ name: string; path: string }> {
   if (!dir || !fs.existsSync(dir)) return []
   const out: Array<{ name: string; path: string }> = []

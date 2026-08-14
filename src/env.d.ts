@@ -127,7 +127,8 @@ declare global {
         | { ok: true; book: ReaderBookInfo; chapter: { title: string; body: string; chapterIndex: number; chapterCount: number } }
         | { ok: false; message: string }
       >
-      readerPickDirectory?: () => Promise<ReaderLibraryInfo>
+      readerPickDirectory?: () => Promise<{ library: ReaderLibraryInfo; novelDir: string }>
+      readerRemoveBook?: (bookId: string) => Promise<ReaderLibraryInfo>
       readerScrapeUrl?: (url: string) => Promise<
         | { ok: true; book: ReaderBookInfo; chapter: { title: string; body: string; chapterIndex: number; chapterCount: number } }
         | { ok: false; message: string }
