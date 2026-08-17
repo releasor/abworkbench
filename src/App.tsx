@@ -9,6 +9,7 @@ import QuickCaptureModal from './components/common/QuickCaptureModal'
 import MiniWindow from './components/common/MiniWindow'
 import LauncherApp from './launcher/LauncherApp'
 import StealthReaderApp from './modules/stealthReader/StealthReaderApp'
+import GlobalToastHost from './components/common/GlobalToastHost'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import { useI18nStore, useTranslation } from './i18n'
 import { acceleratorToKeys, eventMatchesShortcut, useShortcutStore, useSyncElectronShortcuts } from './shortcuts'
@@ -17,6 +18,7 @@ import {
   WeatherSkeleton, HabitsSkeleton, SettingsSkeleton,
   TaskFlowSkeleton,
 } from './components/common/PageSkeletons'
+import { isPomodoroTitleActive } from './utils/documentTitle'
 
 const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'))
 const PomodoroTimer = lazy(() => import('./components/pomodoro/PomodoroTimer'))
@@ -58,7 +60,13 @@ function App() {
 
   // Update document title based on active page
   useEffect(() => {
-    document.title = activePage === 'dashboard' ? 'Abworkbench' : `${pageTitles[activePage]} | Abworkbench`
+    const syncTitle = () => {
+      if (isPomodoroTitleActive()) return
+      document.title = activePage === 'dashboard' ? 'Abworkbench' : `${pageTitles[activePage]} | Abworkbench`
+    }
+    syncTitle()
+    window.addEventListener('abwb:restore-title', syncTitle)
+    return () => window.removeEventListener('abwb:restore-title', syncTitle)
   }, [activePage, pageTitles])
 
   // Apply accent color as CSS custom properties
@@ -236,6 +244,7 @@ function App() {
       <>
         <MiniWindow onOpenQuickCapture={openQuickCapture} />
         <QuickCaptureModal isOpen={showQuickCapture} onClose={closeQuickCapture} />
+        <GlobalToastHost />
       </>
     )
   }
@@ -286,6 +295,7 @@ function App() {
       />
 
       <QuickCaptureModal isOpen={showQuickCapture} onClose={closeQuickCapture} />
+      <GlobalToastHost />
 
       {/* Keyboard Shortcuts Hint - desktop only */}
       <div className="fixed bottom-4 right-4 text-xs text-text-muted/50 hidden md:flex items-center gap-3">

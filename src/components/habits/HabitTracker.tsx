@@ -4,6 +4,7 @@ import type { Habit } from '../../store'
 import { useStore } from '../../store'
 import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { playHabitSound } from '../../utils/audio'
+import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import { useToday } from '../../hooks/useToday'
 import { useCurrentHour } from '../../hooks/useCurrentHour'
 import { HABIT_COLORS, HABIT_ICONS, HABIT_TEMPLATES } from './habitConstants'
@@ -97,12 +98,20 @@ export default function HabitTracker() {
   const handleToggleToday = (habitId: string) => {
     const index = habits.findIndex((habit) => habit.id === habitId)
     if (index === -1) return
+    const habit = habits[index]
+    const wasDone = habitDateSets[index].has(todayStr)
     try {
-      playHabitSound(!habitDateSets[index].has(todayStr))
+      playHabitSound(!wasDone)
     } catch {
       // Sound playback is non-critical, ignore errors
     }
     toggleHabitDate(habitId, todayStr)
+    if (!wasDone) {
+      showToast(`已打卡：${habit.name}`, 'success', {
+        label: '撤销',
+        onClick: () => toggleHabitDate(habitId, todayStr),
+      })
+    }
   }
 
   const toggleMonthExpand = (habitId: string) => {

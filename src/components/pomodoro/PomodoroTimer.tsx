@@ -7,6 +7,7 @@ import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useToday } from '../../hooks/useToday'
 import { getRelativeTimeShort, durationMinutes, fmtMin, dayNumToDateStr, fmtHHmm, dayNumToShortLabel, dayNumToYMD } from '../../utils/format'
 import { playPomodoroCompleteSound } from '../../utils/audio'
+import { setPomodoroTitleActive } from '../../utils/documentTitle'
 import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import AmbientSounds from '../common/AmbientSounds'
 import PomodoroStats from './PomodoroStats'
@@ -296,10 +297,21 @@ export default function PomodoroTimer() {
   }, [justCompleted])
 
   useEffect(() => {
-    document.title = isRunning
-      ? `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} - ${currentConfig.label} | Abworkbench`
-      : '番茄钟 | Abworkbench'
+    if (!isRunning) return
+    setPomodoroTitleActive(true)
+    document.title = `${String(minutes).padStart(2, '0')}:${String(seconds).padStart(2, '0')} - ${currentConfig.label} | Abworkbench`
   }, [minutes, seconds, isRunning, currentConfig.label])
+
+  useEffect(() => {
+    if (isRunning) return
+    setPomodoroTitleActive(false)
+    // Hand title back to the shell when the timer is not driving it.
+    window.dispatchEvent(new CustomEvent('abwb:restore-title'))
+  }, [isRunning])
+
+  useEffect(() => () => {
+    setPomodoroTitleActive(false)
+  }, [])
 
   useEffect(() => {
     const interval = setInterval(() => {
