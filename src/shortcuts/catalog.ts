@@ -78,6 +78,7 @@ export const SHORTCUT_CATALOG: ShortcutDefinition[] = [
   { id: 'notesPreview', group: '笔记', label: '预览 / 编辑切换', defaultAccelerator: 'Ctrl+P', scope: 'page' },
   { id: 'notesBold', group: '笔记', label: '粗体 (编辑中)', defaultAccelerator: 'Ctrl+B', scope: 'page' },
   { id: 'notesItalic', group: '笔记', label: '斜体 (编辑中)', defaultAccelerator: 'Ctrl+I', scope: 'page' },
+  { id: 'notesSave', group: '笔记', label: '立即保存', defaultAccelerator: 'Ctrl+S', scope: 'page' },
 ]
 
 export const SHORTCUT_BY_ID = Object.fromEntries(SHORTCUT_CATALOG.map((item) => [item.id, item])) as Record<

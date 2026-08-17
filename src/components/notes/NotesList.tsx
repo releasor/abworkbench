@@ -294,18 +294,30 @@ export default function NotesList() {
     [updateNote]
   )
 
-  // Flush pending content on unmount
-  useEffect(() => {
-    return () => {
-      if (debounceTimerRef.current) {
-        clearTimeout(debounceTimerRef.current)
-        if (pendingSaveRef.current) {
-          updateNote(pendingSaveRef.current.id, { content: pendingSaveRef.current.content })
-          pendingSaveRef.current = null
-        }
-      }
+  const flushPendingContent = useCallback(() => {
+    if (debounceTimerRef.current) {
+      clearTimeout(debounceTimerRef.current)
+      debounceTimerRef.current = null
+    }
+    if (pendingSaveRef.current) {
+      updateNote(pendingSaveRef.current.id, { content: pendingSaveRef.current.content })
+      pendingSaveRef.current = null
     }
   }, [updateNote])
+
+  // Flush pending content on unmount, hide, or page close (Electron may hide without unmount)
+  useEffect(() => {
+    const onHide = () => {
+      if (document.visibilityState === 'hidden') flushPendingContent()
+    }
+    window.addEventListener('pagehide', flushPendingContent)
+    document.addEventListener('visibilitychange', onHide)
+    return () => {
+      window.removeEventListener('pagehide', flushPendingContent)
+      document.removeEventListener('visibilitychange', onHide)
+      flushPendingContent()
+    }
+  }, [flushPendingContent])
 
   const renderedMarkdown = useMemo(() => renderMarkdown(localContent), [localContent])
 
@@ -409,6 +421,12 @@ export default function NotesList() {
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
       const target = e.target as HTMLElement
+      if (eventMatchesShortcut('notesSave', e)) {
+        e.preventDefault()
+        flushPendingContent()
+        if (pendingSaveRef.current === null) setSaveStatus('saved')
+        return
+      }
       if (eventMatchesShortcut('notesClose', e)) {
         if (activeNoteId && target !== searchInputRef.current) {
           e.preventDefault()
@@ -446,7 +464,7 @@ export default function NotesList() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [addNote, activeNoteId, setActiveNote, shortcutOverrides])
+  }, [addNote, activeNoteId, flushPendingContent, setActiveNote, shortcutOverrides])
 
   const exportNote = (note: typeof notes[0]) => {
     const blob = new Blob([`# ${note.title}\n\n${note.content}`], { type: 'text/markdown' })
