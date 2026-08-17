@@ -59,6 +59,7 @@ interface LauncherRecentHomeInfo {
 interface ReaderSettingsConfig {
   opacity: number
   fontSize: number
+  lineHeight: number
   fontColor: string
   bossKey: string
   disguiseEnabled: boolean
@@ -74,6 +75,7 @@ interface ReaderBookInfo {
   path?: string
   catalogUrl?: string
   chapterUrl?: string
+  pinned?: boolean
   updatedAt: number
   missing?: boolean
 }
@@ -81,6 +83,7 @@ interface ReaderBookInfo {
 interface ReaderLibraryInfo {
   books: ReaderBookInfo[]
   progress: { bookId: string; chapterIndex: number; offset: number; updatedAt: number } | null
+  progressByBook?: Record<string, { bookId: string; chapterIndex: number; offset: number; updatedAt: number }>
 }
 
 declare global {
@@ -128,9 +131,12 @@ declare global {
         | { ok: true; book: ReaderBookInfo; chapter: { title: string; body: string; chapterIndex: number; chapterCount: number } }
         | { ok: false; message: string }
       >
+      readerListChapters?: (bookId: string) => Promise<Array<{ index: number; title: string }>>
       readerPickDirectory?: () => Promise<{ library: ReaderLibraryInfo; novelDir: string }>
+      readerPickTxtFile?: () => Promise<{ library: ReaderLibraryInfo }>
       readerRemoveBook?: (bookId: string) => Promise<ReaderLibraryInfo>
-      readerScrapeUrl?: (url: string) => Promise<
+      readerUpsertBook?: (book: ReaderBookInfo | Record<string, unknown>) => Promise<ReaderLibraryInfo>
+      readerScrapeUrl?: (url: string, bookId?: string) => Promise<
         | { ok: true; book: ReaderBookInfo; chapter: { title: string; body: string; chapterIndex: number; chapterCount: number } }
         | { ok: false; message: string }
       >

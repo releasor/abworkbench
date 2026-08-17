@@ -1,19 +1,11 @@
-import type { ReaderBook, ReaderLibraryState, ReaderOpenRequest, ReaderOpenResult } from './types'
+import type { ReaderBook, ReaderLibraryState, ReaderOpenRequest, ReaderOpenResult, ReaderProgress } from './types'
 
-/** Drop progress when the target book is missing or its local file is gone. */
-export function sanitizeProgress(
-  state: ReaderLibraryState,
-  fileExists: (path: string) => boolean = () => true,
-): ReaderLibraryState {
-  if (!state.progress) return state
-  const book = state.books.find((b) => b.id === state.progress!.bookId)
-  if (!book) return { ...state, progress: null }
-  if (book.source === 'local') {
-    if (!book.path || !fileExists(book.path)) {
-      return { ...state, progress: null }
-    }
+function mostRecentProgress(map: Record<string, ReaderProgress>): ReaderProgress | null {
+  let best: ReaderProgress | null = null
+  for (const entry of Object.values(map)) {
+    if (!best || entry.updatedAt > best.updatedAt) best = entry
   }
-  return state
+  return best
 }
 
 export function isBookReadable(
@@ -22,8 +14,34 @@ export function isBookReadable(
 ): boolean {
   if (!book) return false
   if (book.source === 'local') return Boolean(book.path && fileExists(book.path))
-  // web: readable if we have a chapter URL (cache may still be empty)
   return Boolean(book.chapterUrl || book.catalogUrl)
+}
+
+/** Drop progress entries when the target book is missing or its local file is gone. */
+export function sanitizeProgress(
+  state: ReaderLibraryState,
+  fileExists: (path: string) => boolean = () => true,
+): ReaderLibraryState {
+  const progressByBook: Record<string, ReaderProgress> = { ...(state.progressByBook || {}) }
+  if (state.progress?.bookId && !progressByBook[state.progress.bookId]) {
+    progressByBook[state.progress.bookId] = state.progress
+  }
+
+  for (const id of Object.keys(progressByBook)) {
+    const book = state.books.find((b) => b.id === id)
+    if (!isBookReadable(book, fileExists)) {
+      delete progressByBook[id]
+    }
+  }
+
+  let progress = state.progress
+  if (progress && progressByBook[progress.bookId]) {
+    progress = progressByBook[progress.bookId]
+  } else {
+    progress = mostRecentProgress(progressByBook)
+  }
+
+  return { ...state, progress, progressByBook }
 }
 
 /** Decide whether to open reading or library from launcher request + persisted state. */
@@ -44,7 +62,6 @@ export function resolveOpenMode(
     return { mode: 'library' }
   }
 
-  // auto
   if (valid && id) return { mode: 'reading', bookId: id }
   return { mode: 'library' }
 }

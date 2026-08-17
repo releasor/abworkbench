@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react'
+import { useEffect, useRef, useState } from 'react'
 import { BookOpen, Keyboard } from 'lucide-react'
 import { SHORTCUT_BY_ID, useShortcutStore } from '../../shortcuts'
 import { useTranslation } from '../../i18n'
@@ -11,6 +11,7 @@ interface ReaderSettingsProps {
 interface ReaderSettingsState {
   opacity: number
   fontSize: number
+  lineHeight: number
   fontColor: string
   bossKey: string
   disguiseEnabled: boolean
@@ -22,6 +23,7 @@ interface ReaderSettingsState {
 const DEFAULTS: ReaderSettingsState = {
   opacity: 0.85,
   fontSize: 16,
+  lineHeight: 1.7,
   fontColor: '#e8e8e8',
   bossKey: 'Ctrl+Shift+Q',
   disguiseEnabled: false,
@@ -35,6 +37,12 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
   const [recording, setRecording] = useState(false)
   const setAccelerator = useShortcutStore((s) => s.setAccelerator)
   const bossKey = useShortcutStore((s) => s.getAccelerator('readerBossKey'))
+  const opacityTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null)
+  const settingsRef = useRef(settings)
+
+  useEffect(() => {
+    settingsRef.current = settings
+  }, [settings])
 
   useEffect(() => {
     queueMicrotask(() => {
@@ -42,6 +50,9 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
         if (loaded) setSettings({ ...DEFAULTS, ...loaded })
       })
     })
+    return () => {
+      if (opacityTimerRef.current) clearTimeout(opacityTimerRef.current)
+    }
   }, [])
 
   const save = async (next: ReaderSettingsState) => {
@@ -51,6 +62,17 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
       setSettings({ ...DEFAULTS, ...saved })
       if (saved.bossKeyError) onToast(saved.bossKeyError, 'error')
     }
+  }
+
+  const scheduleOpacitySave = (opacity: number) => {
+    const next = { ...settingsRef.current, opacity }
+    setSettings(next)
+    settingsRef.current = next
+    if (opacityTimerRef.current) clearTimeout(opacityTimerRef.current)
+    opacityTimerRef.current = setTimeout(() => {
+      opacityTimerRef.current = null
+      void save(settingsRef.current)
+    }, 180)
   }
 
   const conflictIds = useShortcutStore.getState().findConflicts('readerBossKey', bossKey)
@@ -75,8 +97,7 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
               max={100}
               value={Math.round(settings.opacity * 100)}
               onChange={(e) => {
-                const opacity = Number(e.target.value) / 100
-                void save({ ...settings, opacity })
+                scheduleOpacitySave(Number(e.target.value) / 100)
               }}
               className="mt-2 w-full accent-primary"
             />
@@ -90,6 +111,19 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
               value={settings.fontSize}
               onChange={(e) => {
                 void save({ ...settings, fontSize: Number(e.target.value) })
+              }}
+              className="mt-2 w-full accent-primary"
+            />
+          </label>
+          <label className="block text-sm text-text">
+            {t('settings.reader.lineHeight')} {settings.lineHeight.toFixed(1)}
+            <input
+              type="range"
+              min={12}
+              max={24}
+              value={Math.round(settings.lineHeight * 10)}
+              onChange={(e) => {
+                void save({ ...settings, lineHeight: Number(e.target.value) / 10 })
               }}
               className="mt-2 w-full accent-primary"
             />
@@ -123,10 +157,17 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
             conflictLabel={conflictLabel}
             onStartRecording={() => setRecording(true)}
             onCancel={() => setRecording(false)}
-            onChange={(next) => {
+            onChange={async (next) => {
               setAccelerator('readerBossKey', next)
               setRecording(false)
-              void save({ ...settings, bossKey: next })
+              const saved = await window.electronAPI?.setReaderSettings?.({ ...settings, bossKey: next })
+              if (saved) {
+                setSettings({ ...DEFAULTS, ...saved })
+                if (saved.bossKeyError) {
+                  onToast(saved.bossKeyError, 'error')
+                  return
+                }
+              }
               onToast(tWith('settings.reader.bossKeyUpdated', next), 'success')
             }}
           />

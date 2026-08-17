@@ -49,6 +49,7 @@ export function showReader(
   payload: { mode: string; bookId?: string },
 ): void {
   if (win.isDestroyed()) return
+  try { win.setIgnoreMouseEvents(false) } catch { /* ignore */ }
   if (!win.isVisible()) win.show()
   win.setAlwaysOnTop(true, 'screen-saver')
   win.focus()
@@ -56,7 +57,10 @@ export function showReader(
 }
 
 export function hideReader(win: BrowserWindow | null): void {
-  if (win && !win.isDestroyed() && win.isVisible()) win.hide()
+  if (win && !win.isDestroyed()) {
+    try { win.setIgnoreMouseEvents(false) } catch { /* ignore */ }
+    if (win.isVisible()) win.hide()
+  }
 }
 
 export function unregisterBossKey(): void {

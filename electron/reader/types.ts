@@ -7,6 +7,7 @@ export interface ReaderBook {
   path?: string
   catalogUrl?: string
   chapterUrl?: string
+  pinned?: boolean
   updatedAt: number
 }
 
@@ -19,7 +20,10 @@ export interface ReaderProgress {
 
 export interface ReaderLibraryState {
   books: ReaderBook[]
+  /** Last active progress (auto-resume target). */
   progress: ReaderProgress | null
+  /** Per-book resume points so switching titles does not wipe others. */
+  progressByBook: Record<string, ReaderProgress>
 }
 
 export type ReaderOpenRequest = 'auto' | 'library' | 'reading'
@@ -32,6 +36,7 @@ export interface ReaderOpenResult {
 export interface ReaderSettings {
   opacity: number
   fontSize: number
+  lineHeight: number
   fontColor: string
   bossKey: string
   disguiseEnabled: boolean

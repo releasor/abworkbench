@@ -8,6 +8,7 @@ export function defaultReaderSettings(): ReaderSettings {
   return {
     opacity: 0.85,
     fontSize: 16,
+    lineHeight: 1.7,
     fontColor: '#e8e8e8',
     bossKey: DEFAULT_BOSS_KEY,
     disguiseEnabled: false,
@@ -26,6 +27,7 @@ export function normalizeReaderSettings(input: unknown): ReaderSettings {
   const raw = input as Record<string, unknown>
   if (typeof raw.opacity === 'number' && raw.opacity >= 0.2 && raw.opacity <= 1) base.opacity = raw.opacity
   if (typeof raw.fontSize === 'number' && raw.fontSize >= 12 && raw.fontSize <= 36) base.fontSize = raw.fontSize
+  if (typeof raw.lineHeight === 'number' && raw.lineHeight >= 1.2 && raw.lineHeight <= 2.4) base.lineHeight = raw.lineHeight
   if (typeof raw.fontColor === 'string' && raw.fontColor.trim()) base.fontColor = raw.fontColor.trim()
   if (typeof raw.bossKey === 'string' && raw.bossKey.trim()) base.bossKey = raw.bossKey.trim().replace(/^CommandOrControl/i, 'Ctrl')
   if (typeof raw.disguiseEnabled === 'boolean') base.disguiseEnabled = raw.disguiseEnabled

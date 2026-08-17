@@ -11,13 +11,18 @@ import { loadReaderSettings, saveReaderSettings } from './readerSettings'
 import type { ReaderSettings } from './reader/types'
 import { resolveOpenMode, sanitizeProgress } from './reader/resolveOpenMode'
 import {
+  clearBookProgress,
   getBook,
   importTxtDirectory,
+  importTxtFile,
+  listChapterTitles,
   loadLibrary,
   readLocalChapter,
   removeBook,
+  saveLibrary,
   setProgress,
   upsertBook,
+  withLibraryLock,
 } from './readerLibrary'
 import { getWebChapter, scrapeUrl } from './readerScrape'
 import {
@@ -244,24 +249,31 @@ function applyBossKeyRegistration() {
 
 async function openReaderWindow(req?: { mode?: string; bookId?: string }) {
   const userData = app.getPath('userData')
-  let state = loadLibrary(userData)
-  const fileExists = (p: string) => fs.existsSync(p)
-  const cleaned = sanitizeProgress(state, fileExists)
-  if (cleaned.progress !== state.progress) {
-    state = setProgress(userData, cleaned.progress)
-  }
-  const requestMode = (req?.mode === 'library' || req?.mode === 'reading' || req?.mode === 'auto')
-    ? req.mode
-    : 'auto'
-  let resolved = resolveOpenMode(requestMode, state, fileExists)
-  if (req?.bookId) {
-    const book = state.books.find((b) => b.id === req.bookId)
-    if (book && (book.source !== 'local' || (book.path && fileExists(book.path))) && (book.source !== 'web' || book.chapterUrl || book.catalogUrl)) {
-      resolved = { mode: 'reading', bookId: req.bookId }
-    } else {
-      resolved = { mode: 'library' }
+  const { resolved } = await withLibraryLock(() => {
+    let state = loadLibrary(userData)
+    const fileExists = (p: string) => fs.existsSync(p)
+    const cleanedState = sanitizeProgress(state, fileExists)
+    if (
+      cleanedState.progress !== state.progress
+      || JSON.stringify(cleanedState.progressByBook) !== JSON.stringify(state.progressByBook)
+    ) {
+      state = cleanedState
+      saveLibrary(userData, state)
     }
-  }
+    const requestMode = (req?.mode === 'library' || req?.mode === 'reading' || req?.mode === 'auto')
+      ? req.mode
+      : 'auto'
+    let open = resolveOpenMode(requestMode, state, fileExists)
+    if (req?.bookId) {
+      const book = state.books.find((b) => b.id === req.bookId)
+      if (book && (book.source !== 'local' || (book.path && fileExists(book.path))) && (book.source !== 'web' || book.chapterUrl || book.catalogUrl)) {
+        open = { mode: 'reading', bookId: req.bookId }
+      } else {
+        open = { mode: 'library' }
+      }
+    }
+    return { resolved: open }
+  })
   const winRef = ensureReaderWindow()
   applyReaderOpacity(winRef, readerSettings.opacity)
   const send = () => showReader(winRef, { mode: resolved.mode, bookId: resolved.bookId })
@@ -738,6 +750,7 @@ app.whenReady().then(() => {
   ipcMain.handle('desktop:reader-window-control', (_event, action: {
     type?: string
     opacity?: number
+    enabled?: boolean
     bounds?: { x: number; y: number; width: number; height: number }
   }) => {
     if (!action || typeof action !== 'object') return false
@@ -749,7 +762,17 @@ app.whenReady().then(() => {
       setReaderBounds(readerWin, action.bounds)
       return true
     }
+    if (action.type === 'set-click-through' && typeof action.enabled === 'boolean') {
+      if (readerWin && !readerWin.isDestroyed()) {
+        // forward:true keeps mousemove so the reader can reclaim focus when hovered.
+        readerWin.setIgnoreMouseEvents(action.enabled, { forward: true })
+      }
+      return true
+    }
     if (action.type === 'hide') {
+      if (readerWin && !readerWin.isDestroyed()) {
+        readerWin.setIgnoreMouseEvents(false)
+      }
       hideReader(readerWin)
       return true
     }
@@ -768,34 +791,61 @@ app.whenReady().then(() => {
     applyReaderOpacity(readerWin, readerSettings.opacity)
     return { ...readerSettings, bossKeyError: lastBossKeyError }
   })
-  ipcMain.handle('desktop:reader-list-books', () => {
+  ipcMain.handle('desktop:reader-list-books', async () => {
     const userData = app.getPath('userData')
-    let state = loadLibrary(userData)
-    const cleaned = sanitizeProgress(state, (p) => fs.existsSync(p))
-    if (cleaned.progress !== state.progress) {
-      state = setProgress(userData, cleaned.progress)
-    }
-    return {
-      ...state,
-      books: state.books.map((book) => ({
-        ...book,
-        missing: book.source === 'local' && (!book.path || !fs.existsSync(book.path)),
-      })),
-    }
-  })
-  ipcMain.handle('desktop:reader-set-progress', (_event, progress: unknown) => {
-    const userData = app.getPath('userData')
-    if (!progress || typeof progress !== 'object') {
-      return setProgress(userData, null)
-    }
-    const p = progress as Record<string, unknown>
-    if (typeof p.bookId !== 'string') return loadLibrary(userData)
-    return setProgress(userData, {
-      bookId: p.bookId,
-      chapterIndex: typeof p.chapterIndex === 'number' ? p.chapterIndex : 0,
-      offset: typeof p.offset === 'number' ? p.offset : 0,
-      updatedAt: Date.now(),
+    return withLibraryLock(() => {
+      let state = loadLibrary(userData)
+      const cleaned = sanitizeProgress(state, (p) => fs.existsSync(p))
+      if (
+        cleaned.progress !== state.progress
+        || JSON.stringify(cleaned.progressByBook) !== JSON.stringify(state.progressByBook)
+      ) {
+        state = cleaned
+        saveLibrary(userData, state)
+      }
+      return {
+        ...state,
+        books: state.books.map((book) => ({
+          ...book,
+          missing: book.source === 'local' && (!book.path || !fs.existsSync(book.path)),
+        })),
+      }
     })
+  })
+  ipcMain.handle('desktop:reader-set-progress', async (_event, progress: unknown) => {
+    const userData = app.getPath('userData')
+    return withLibraryLock(() => {
+      if (!progress || typeof progress !== 'object') {
+        return setProgress(userData, null)
+      }
+      const p = progress as Record<string, unknown>
+      if (typeof p.bookId !== 'string') return loadLibrary(userData)
+      if (p.clear === true) {
+        return clearBookProgress(userData, p.bookId)
+      }
+      return setProgress(userData, {
+        bookId: p.bookId,
+        chapterIndex: typeof p.chapterIndex === 'number' ? p.chapterIndex : 0,
+        offset: typeof p.offset === 'number' ? p.offset : 0,
+        updatedAt: Date.now(),
+      })
+    })
+  })
+  ipcMain.handle('desktop:reader-list-chapters', async (_event, bookId: string) => {
+    return withLibraryLock(() => listChapterTitles(app.getPath('userData'), String(bookId || '')))
+  })
+  ipcMain.handle('desktop:reader-pick-txt-file', async () => {
+    const result = await dialog.showOpenDialog({
+      properties: ['openFile'],
+      title: '选择小说 txt',
+      filters: [{ name: 'Text', extensions: ['txt'] }],
+    })
+    if (result.canceled || !result.filePaths[0]) {
+      return withLibraryLock(() => ({ library: loadLibrary(app.getPath('userData')) }))
+    }
+    return withLibraryLock(() => ({
+      library: importTxtFile(app.getPath('userData'), result.filePaths[0]),
+    }))
   })
   ipcMain.handle('desktop:reader-get-chapter', async (_event, payload: { bookId?: string; chapterIndex?: number }) => {
     const userData = app.getPath('userData')
@@ -817,8 +867,8 @@ app.whenReady().then(() => {
     }
     return { ok: false as const, message: '不支持的书籍类型' }
   })
-  ipcMain.handle('desktop:reader-remove-book', (_event, bookId: string) => {
-    return removeBook(app.getPath('userData'), String(bookId || ''))
+  ipcMain.handle('desktop:reader-remove-book', async (_event, bookId: string) => {
+    return withLibraryLock(() => removeBook(app.getPath('userData'), String(bookId || '')))
   })
   ipcMain.handle('desktop:reader-pick-directory', async () => {
     const result = await dialog.showOpenDialog({
@@ -826,26 +876,32 @@ app.whenReady().then(() => {
       title: '选择小说目录',
     })
     if (result.canceled || !result.filePaths[0]) {
-      return { library: loadLibrary(app.getPath('userData')), novelDir: readerSettings.novelDir }
+      return withLibraryLock(() => ({
+        library: loadLibrary(app.getPath('userData')),
+        novelDir: readerSettings.novelDir,
+      }))
     }
     const dir = result.filePaths[0]
     readerSettings = saveReaderSettings(app.getPath('userData'), { ...readerSettings, novelDir: dir })
-    return {
+    return withLibraryLock(() => ({
       library: importTxtDirectory(app.getPath('userData'), dir),
       novelDir: dir,
-    }
+    }))
   })
-  ipcMain.handle('desktop:reader-scrape-url', async (_event, url: string) => {
-    return scrapeUrl(String(url || ''), app.getPath('userData'))
+  ipcMain.handle('desktop:reader-scrape-url', async (_event, payload: string | { url?: string; bookId?: string }) => {
+    const url = typeof payload === 'string' ? payload : String(payload?.url || '')
+    const bookId = typeof payload === 'object' && payload?.bookId ? String(payload.bookId) : undefined
+    return scrapeUrl(url, app.getPath('userData'), bookId)
   })
   ipcMain.handle('desktop:reader-open-book', async (_event, bookId: string) => {
     return openReaderWindow({ mode: 'reading', bookId: String(bookId || '') })
   })
-  ipcMain.handle('desktop:reader-upsert-book', (_event, book: unknown) => {
-    if (!book || typeof book !== 'object') return loadLibrary(app.getPath('userData'))
-    const b = book as Record<string, unknown>
-    if (typeof b.id !== 'string' || typeof b.title !== 'string') return loadLibrary(app.getPath('userData'))
-    if (b.source !== 'local' && b.source !== 'web') return loadLibrary(app.getPath('userData'))
+  ipcMain.handle('desktop:reader-upsert-book', async (_event, book: unknown) => {
+    return withLibraryLock(() => {
+      if (!book || typeof book !== 'object') return loadLibrary(app.getPath('userData'))
+      const b = book as Record<string, unknown>
+      if (typeof b.id !== 'string' || typeof b.title !== 'string') return loadLibrary(app.getPath('userData'))
+      if (b.source !== 'local' && b.source !== 'web') return loadLibrary(app.getPath('userData'))
     return upsertBook(app.getPath('userData'), {
       id: b.id,
       title: b.title,
@@ -853,7 +909,9 @@ app.whenReady().then(() => {
       path: typeof b.path === 'string' ? b.path : undefined,
       catalogUrl: typeof b.catalogUrl === 'string' ? b.catalogUrl : undefined,
       chapterUrl: typeof b.chapterUrl === 'string' ? b.chapterUrl : undefined,
+      pinned: typeof b.pinned === 'boolean' ? b.pinned : undefined,
       updatedAt: Date.now(),
+    })
     })
   })
 

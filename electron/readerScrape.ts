@@ -1,12 +1,13 @@
 import { extractChapterLinks, extractMainText, extractNextChapterHref } from './reader/scrapeHtml'
 import {
+  estimateChapterCount,
   readCacheMeta,
   readChapterCache,
   resolveChapterUrl,
   writeCacheMeta,
   writeChapterCache,
 } from './reader/chapterCache'
-import { makeWebBookId, upsertBook } from './readerLibrary'
+import { getBook, makeWebBookId, upsertBook, withLibraryLock } from './readerLibrary'
 import type { ReaderBook } from './reader/types'
 
 export type { ReaderCacheMeta } from './reader/chapterCache'
@@ -39,7 +40,12 @@ async function fetchHtml(url: string): Promise<{ ok: true; html: string } | { ok
     const msg = err instanceof Error ? err.message : String(err)
     return { ok: false, message: `请求失败：${msg}` }
   }
-  if (!res.ok) return { ok: false, message: `HTTP ${res.status}` }
+  if (!res.ok) {
+    if (res.status === 404 || res.status === 410) {
+      return { ok: false, message: `页面不存在（HTTP ${res.status}）` }
+    }
+    return { ok: false, message: `HTTP ${res.status}` }
+  }
   const contentType = res.headers.get('content-type') || ''
   const html = await res.text()
   if (!/html/i.test(contentType) && !/<html|<body|<div/i.test(html)) {
@@ -49,7 +55,7 @@ async function fetchHtml(url: string): Promise<{ ok: true; html: string } | { ok
 }
 
 /** Fetch a novel page and extract chapter text with generic heuristics. */
-export async function scrapeUrl(url: string, userData: string): Promise<ScrapeResult> {
+export async function scrapeUrl(url: string, userData: string, forceBookId?: string): Promise<ScrapeResult> {
   const trimmed = String(url || '').trim()
   if (!/^https?:\/\//i.test(trimmed)) {
     return { ok: false, message: '请输入以 http(s) 开头的链接' }
@@ -58,28 +64,94 @@ export async function scrapeUrl(url: string, userData: string): Promise<ScrapeRe
   const fetched = await fetchHtml(trimmed)
   if (!fetched.ok) return fetched
 
-  const body = extractMainText(fetched.html)
-  if (!body || body.length < 20) {
-    return { ok: false, message: '未能提取正文' }
-  }
-
   const catalog = extractChapterLinks(fetched.html, trimmed)
-  const nextUrl = extractNextChapterHref(fetched.html, trimmed)
+  const body = extractMainText(fetched.html)
   const titleMatch = fetched.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
   const pageTitle = titleMatch
     ? titleMatch[1].replace(/<[^>]+>/g, '').trim().slice(0, 80)
     : '网文'
 
-  const bookId = makeWebBookId(trimmed)
-  const book: ReaderBook = {
-    id: bookId,
-    title: pageTitle || '网文',
-    source: 'web',
-    catalogUrl: catalog.length ? trimmed : undefined,
-    chapterUrl: trimmed,
-    updatedAt: Date.now(),
+  // Directory/TOC pages: prefer seeding when the page has many chapter links and
+  // little standalone prose (avoid hijacking real chapter pages that also list TOC).
+  const looksLikeToc = catalog.length >= 3 && (!body || body.length < Math.max(120, catalog.length * 24))
+  if ((!body || body.length < 20 || looksLikeToc) && catalog[0]?.url) {
+    const first = await fetchHtml(catalog[0].url)
+    if (!first.ok) {
+      // Fall through to treating the pasted page as chapter 0 when TOC seed fails.
+      if (!body || body.length < 20) return first
+    } else {
+      const firstBody = extractMainText(first.html)
+      if (!firstBody || firstBody.length < 20) {
+        if (!body || body.length < 20) return { ok: false, message: '未能提取正文' }
+      } else {
+        const nextUrl = extractNextChapterHref(first.html, catalog[0].url)
+          || catalog[1]?.url
+          || null
+        const firstTitleMatch = first.html.match(/<title[^>]*>([\s\S]*?)<\/title>/i)
+        const firstTitle = firstTitleMatch
+          ? firstTitleMatch[1].replace(/<[^>]+>/g, '').trim().slice(0, 80)
+          : (catalog[0].title || '正文')
+
+        const bookId = forceBookId || makeWebBookId(trimmed)
+        const book: ReaderBook = await withLibraryLock(() => {
+          const existing = getBook(userData, bookId)
+          const next = {
+            id: bookId,
+            title: existing?.title || pageTitle || '网文',
+            source: 'web' as const,
+            catalogUrl: trimmed,
+            chapterUrl: catalog[0].url,
+            pinned: existing?.pinned,
+            updatedAt: Date.now(),
+          }
+          upsertBook(userData, next)
+          return next
+        })
+        writeChapterCache(userData, bookId, 0, firstBody, firstTitle || '正文')
+        const chapterUrls = catalog.map((c) => c.url)
+        writeCacheMeta(userData, bookId, {
+          catalog,
+          nextUrl,
+          chapterUrl: catalog[0].url,
+          chapterUrls: chapterUrls.length ? chapterUrls : [catalog[0].url],
+        })
+        return {
+          ok: true,
+          book,
+          chapter: {
+            title: firstTitle || '正文',
+            body: firstBody,
+            chapterIndex: 0,
+            chapterCount: Math.max(catalog.length, nextUrl ? 2 : 1),
+          },
+          nextUrl,
+          catalog,
+        }
+      }
+    }
   }
-  upsertBook(userData, book)
+
+  if (!body || body.length < 20) {
+    return { ok: false, message: '未能提取正文' }
+  }
+
+  const nextUrl = extractNextChapterHref(fetched.html, trimmed)
+
+  const bookId = forceBookId || makeWebBookId(trimmed)
+  const book: ReaderBook = await withLibraryLock(() => {
+    const existing = getBook(userData, bookId)
+    const next = {
+      id: bookId,
+      title: existing?.title || pageTitle || '网文',
+      source: 'web' as const,
+      catalogUrl: catalog.length ? trimmed : undefined,
+      chapterUrl: trimmed,
+      pinned: existing?.pinned,
+      updatedAt: Date.now(),
+    }
+    upsertBook(userData, next)
+    return next
+  })
   writeChapterCache(userData, bookId, 0, body, pageTitle || '正文')
 
   const chapterUrls = [trimmed]
@@ -109,11 +181,6 @@ export async function getWebChapter(
   const bookId = book.id
   const cached = readChapterCache(userData, bookId, chapterIndex)
   const meta = readCacheMeta(userData, bookId)
-  const catalogCount = Math.max(
-    meta?.catalog.length || 0,
-    meta?.chapterUrls?.length || 0,
-    chapterIndex + 1,
-  )
 
   if (cached) {
     return {
@@ -123,7 +190,7 @@ export async function getWebChapter(
         title: cached.title,
         body: cached.body,
         chapterIndex,
-        chapterCount: Math.max(catalogCount, chapterIndex + 1 + (meta?.nextUrl ? 1 : 0)),
+        chapterCount: estimateChapterCount(meta, chapterIndex),
       },
       nextUrl: meta?.nextUrl ?? null,
       catalog: meta?.catalog ?? [],
@@ -132,11 +199,28 @@ export async function getWebChapter(
 
   const targetUrl = resolveChapterUrl(meta, chapterIndex, book.chapterUrl)
   if (!targetUrl) {
+    // Resume/jump past known chapters: fall back to the nearest earlier readable chapter.
+    if (chapterIndex > 0) {
+      for (let i = chapterIndex - 1; i >= 0; i--) {
+        if (readChapterCache(userData, bookId, i) || resolveChapterUrl(meta, i, book.chapterUrl)) {
+          return getWebChapter(userData, book, i)
+        }
+      }
+    }
     return { ok: false, message: '没有更多章节，或尚未缓存下一章链接' }
   }
 
   const fetched = await fetchHtml(targetUrl)
-  if (!fetched.ok) return fetched
+  if (!fetched.ok) {
+    if (/页面不存在|HTTP 404|HTTP 410/.test(fetched.message) && chapterIndex > 0) {
+      for (let i = chapterIndex - 1; i >= 0; i--) {
+        if (readChapterCache(userData, bookId, i) || resolveChapterUrl(meta, i, book.chapterUrl)) {
+          return getWebChapter(userData, book, i)
+        }
+      }
+    }
+    return fetched
+  }
 
   const body = extractMainText(fetched.html)
   if (!body || body.length < 20) return { ok: false, message: '未能提取正文' }
@@ -170,7 +254,7 @@ export async function getWebChapter(
     catalogUrl: book.catalogUrl || (mergedCatalog.length ? targetUrl : undefined),
     updatedAt: Date.now(),
   }
-  upsertBook(userData, updatedBook)
+  await withLibraryLock(() => upsertBook(userData, updatedBook))
 
   return {
     ok: true,
@@ -179,10 +263,9 @@ export async function getWebChapter(
       title: pageTitle || '正文',
       body,
       chapterIndex,
-      chapterCount: Math.max(
-        mergedCatalog.length || 1,
-        chapterUrls.filter(Boolean).length,
-        chapterIndex + 1 + (pageNext ? 1 : 0),
+      chapterCount: estimateChapterCount(
+        { catalog: mergedCatalog, nextUrl: pageNext, chapterUrls },
+        chapterIndex,
       ),
     },
     nextUrl: pageNext,

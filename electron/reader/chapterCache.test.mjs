@@ -7,6 +7,7 @@ import {
   readCacheMeta,
   readChapterCache,
   resolveChapterUrl,
+  estimateChapterCount,
   writeCacheMeta,
   writeChapterCache,
 } from './chapterCache.ts'
@@ -42,6 +43,51 @@ test('resolveChapterUrl prefers catalog then chapterUrls then nextUrl', () => {
   )
   assert.equal(resolveChapterUrl(null, 0, 'https://a/0'), 'https://a/0')
   assert.equal(resolveChapterUrl({ catalog: [], nextUrl: null }, 3), null)
+  // Jumping ahead of known chapterUrls must not invent nextUrl as chapter N.
+  assert.equal(
+    resolveChapterUrl({
+      catalog: [],
+      nextUrl: 'https://a/2',
+      chapterUrls: ['https://a/1'],
+    }, 5),
+    null,
+  )
+  assert.equal(
+    resolveChapterUrl({
+      catalog: [],
+      nextUrl: 'https://a/2',
+      chapterUrls: ['https://a/1', ''],
+    }, 2),
+    null,
+  )
+  // Stale nextUrl equal to last known URL must not be reused as chapter N.
+  assert.equal(
+    resolveChapterUrl({
+      catalog: [],
+      nextUrl: 'https://a/1',
+      chapterUrls: ['https://a/0', 'https://a/1'],
+    }, 2),
+    null,
+  )
+})
+
+test('estimateChapterCount ignores stale duplicate nextUrl', () => {
+  assert.equal(
+    estimateChapterCount({
+      catalog: [],
+      nextUrl: 'https://a/1',
+      chapterUrls: ['https://a/0', 'https://a/1'],
+    }, 1),
+    2,
+  )
+  assert.equal(
+    estimateChapterCount({
+      catalog: [],
+      nextUrl: 'https://a/2',
+      chapterUrls: ['https://a/0', 'https://a/1'],
+    }, 1),
+    3,
+  )
 })
 
 test('writeCacheMeta then readCacheMeta', () => {

@@ -78,9 +78,13 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readerSetProgress: (progress: unknown) => ipcRenderer.invoke('desktop:reader-set-progress', progress),
   readerGetChapter: (bookId: string, chapterIndex: number) =>
     ipcRenderer.invoke('desktop:reader-get-chapter', { bookId, chapterIndex }),
+  readerListChapters: (bookId: string) => ipcRenderer.invoke('desktop:reader-list-chapters', bookId),
   readerPickDirectory: () => ipcRenderer.invoke('desktop:reader-pick-directory'),
+  readerPickTxtFile: () => ipcRenderer.invoke('desktop:reader-pick-txt-file'),
   readerRemoveBook: (bookId: string) => ipcRenderer.invoke('desktop:reader-remove-book', bookId),
-  readerScrapeUrl: (url: string) => ipcRenderer.invoke('desktop:reader-scrape-url', url),
+  readerUpsertBook: (book: unknown) => ipcRenderer.invoke('desktop:reader-upsert-book', book),
+  readerScrapeUrl: (url: string, bookId?: string) =>
+    ipcRenderer.invoke('desktop:reader-scrape-url', bookId ? { url, bookId } : url),
   readerOpenBook: (bookId: string) => ipcRenderer.invoke('desktop:reader-open-book', bookId),
   readerWindowControl: (action: unknown) => ipcRenderer.invoke('desktop:reader-window-control', action),
 })

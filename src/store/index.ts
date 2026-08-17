@@ -332,3 +332,20 @@ export const useStore = create<AppState>()(
     }
   )
 )
+
+// Cross-window note sync (e.g. stealth reader exports into dashboard-storage).
+if (typeof window !== 'undefined') {
+  try {
+    const channel = new BroadcastChannel('abwb-store')
+    channel.onmessage = (event) => {
+      const note = event.data?.note
+      if (event.data?.type !== 'notes-upsert' || !note || typeof note !== 'object') return
+      if (typeof note.id !== 'string') return
+      useStore.setState((s) => ({
+        notes: [note, ...s.notes.filter((n) => n.id !== note.id)],
+      }))
+    }
+  } catch {
+    // BroadcastChannel may be unavailable
+  }
+}

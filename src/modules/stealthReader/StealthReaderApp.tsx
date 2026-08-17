@@ -6,6 +6,7 @@ import DisguisePanel from './DisguisePanel'
 export interface ReaderUiSettings {
   opacity: number
   fontSize: number
+  lineHeight: number
   fontColor: string
   bossKey: string
   disguiseEnabled: boolean
@@ -19,6 +20,7 @@ type View = 'library' | 'reading' | 'disguise'
 const DEFAULT_SETTINGS: ReaderUiSettings = {
   opacity: 0.85,
   fontSize: 16,
+  lineHeight: 1.7,
   fontColor: '#e8e8e8',
   bossKey: 'Ctrl+Shift+Q',
   disguiseEnabled: false,
@@ -33,10 +35,15 @@ export default function StealthReaderApp() {
   const [error, setError] = useState('')
   const readingBeforeDisguise = useRef(false)
   const settingsRef = useRef(settings)
+  const viewRef = useRef(view)
 
   useEffect(() => {
     settingsRef.current = settings
   }, [settings])
+
+  useEffect(() => {
+    viewRef.current = view
+  }, [view])
 
   useEffect(() => {
     const html = document.documentElement
@@ -68,6 +75,12 @@ export default function StealthReaderApp() {
     if (message) setError(message)
   }, [])
 
+  useEffect(() => {
+    if (!error) return
+    const timer = window.setTimeout(() => setError(''), 5000)
+    return () => window.clearTimeout(timer)
+  }, [error])
+
   const toggleDisguise = useCallback(() => {
     setView((prev) => {
       if (prev === 'disguise') {
@@ -77,6 +90,15 @@ export default function StealthReaderApp() {
       return 'disguise'
     })
   }, [])
+
+  /** Boss key / Esc: hide from library; toggle disguise while reading or already disguised. */
+  const handleBossOrEsc = useCallback(() => {
+    if (settingsRef.current.disguiseEnabled && viewRef.current !== 'library') {
+      toggleDisguise()
+      return
+    }
+    void window.electronAPI?.hideReader?.()
+  }, [toggleDisguise])
 
   useEffect(() => {
     const offShown = window.electronAPI?.onReaderShown?.((payload) => {
@@ -91,27 +113,23 @@ export default function StealthReaderApp() {
       else setView('library')
     })
     const offDisguise = window.electronAPI?.onReaderToggleDisguise?.(() => {
-      toggleDisguise()
+      handleBossOrEsc()
     })
     return () => {
       offShown?.()
       offDisguise?.()
     }
-  }, [openBook, toggleDisguise])
+  }, [openBook, handleBossOrEsc])
 
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if (e.key !== 'Escape') return
       e.preventDefault()
-      if (settingsRef.current.disguiseEnabled) {
-        toggleDisguise()
-        return
-      }
-      void window.electronAPI?.hideReader?.()
+      handleBossOrEsc()
     }
     window.addEventListener('keydown', onKey)
     return () => window.removeEventListener('keydown', onKey)
-  }, [toggleDisguise])
+  }, [handleBossOrEsc])
 
   const patchSettings = useCallback(async (partial: Partial<ReaderUiSettings>) => {
     const next = { ...settingsRef.current, ...partial }
@@ -128,10 +146,26 @@ export default function StealthReaderApp() {
     if (s) setSettings({ ...DEFAULT_SETTINGS, ...s })
   }, [])
 
+  useEffect(() => {
+    if (view === 'disguise') {
+      void window.electronAPI?.readerWindowControl?.({ type: 'set-opacity', opacity: 1 })
+      void window.electronAPI?.readerWindowControl?.({ type: 'set-click-through', enabled: false })
+      return
+    }
+    if (view === 'library') {
+      void window.electronAPI?.readerWindowControl?.({ type: 'set-click-through', enabled: false })
+    }
+    void window.electronAPI?.readerWindowControl?.({ type: 'set-opacity', opacity: settings.opacity })
+  }, [view, settings.opacity])
+
   return (
     <div
       className="h-screen w-screen overflow-hidden select-none"
-      style={{ background: `rgba(12, 14, 18, ${settings.opacity * 0.55})` }}
+      style={{
+        background: view === 'disguise'
+          ? '#f3f3f3'
+          : `rgba(12, 14, 18, ${settings.opacity * 0.55})`,
+      }}
     >
       {view === 'library' && (
         <LibraryPanel
