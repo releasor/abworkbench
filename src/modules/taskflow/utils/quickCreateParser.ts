@@ -1,5 +1,5 @@
 import type { EnergyLevel } from '../types'
-import { nextDateStrN, dayOfWeek as calcDayOfWeek } from '../dateUtils'
+import { nextDateStrN, dayOfWeek as calcDayOfWeek } from '../dateUtils.ts'
 
 export type QuickCreateKind = 'task' | 'note' | 'reminder' | 'project'
 export type QuickCreateRepeat = 'once' | 'daily' | 'weekly' | 'monthly'

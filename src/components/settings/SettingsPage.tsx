@@ -29,7 +29,7 @@ import { useTranslation } from '../../i18n'
 import { generateWeeklyReport, generateMonthlyReport, downloadReport } from '../../utils/reportExport'
 import { durationMinutes, fmtMin, dayNumToDateStr } from '../../utils/format'
 import { useToday } from '../../hooks/useToday'
-import { createDesktopBackup, downloadJsonBackup, getLegacyOrCurrentData, restoreTaskFlowBackup } from '../../utils/desktopBackup'
+import { clearTaskFlowLocalData, createDesktopBackup, downloadJsonBackup, getLegacyOrCurrentData, restoreTaskFlowBackup } from '../../utils/desktopBackup'
 import { buildDataHealthReport } from '../../utils/dataHealth'
 import { WORKSPACE_MODE_OPTIONS, type WorkspaceMode } from '../../utils/workspaceModes'
 import BackupCenter from './BackupCenter'
@@ -101,6 +101,7 @@ export default function SettingsPage() {
   const { todayMidnightMs } = useToday()
   const [activeTab, setActiveTab] = useState<SettingsTabId>('general')
   const [showConfirmClear, setShowConfirmClear] = useState(false)
+  const [dataEpoch, setDataEpoch] = useState(0)
   const [recordingShortcutId, setRecordingShortcutId] = useState<string | null>(null)
   const getAccelerator = useShortcutStore((s) => s.getAccelerator)
   const setAccelerator = useShortcutStore((s) => s.setAccelerator)
@@ -249,6 +250,7 @@ export default function SettingsPage() {
           }
           restoreTaskFlowBackup(json)
           showToast('备份数据已导入', 'success')
+          setDataEpoch((n) => n + 1)
         } else {
           showToast('无效的备份文件', 'error')
         }
@@ -268,6 +270,18 @@ export default function SettingsPage() {
       habits: [],
       activeNoteId: null,
     })
+    clearTaskFlowLocalData()
+    useTaskStore.setState({
+      tasks: [],
+      categories: [],
+      stats: null,
+      selectedIds: new Set(),
+      lastDeletedTasks: [],
+    })
+    void useTaskStore.getState().fetchCategories()
+    void useTaskStore.getState().fetchTasks()
+    void useTaskStore.getState().fetchStats()
+    setDataEpoch((n) => n + 1)
     setShowConfirmClear(false)
     showToast('所有数据已清除', 'info')
   }
@@ -282,6 +296,7 @@ export default function SettingsPage() {
   ], [stats, todos.length, notes.length, t, tWith])
 
   const taskFlowBackups = useMemo(() => {
+    void dataEpoch
     try {
       const raw = localStorage.getItem('taskflow-offline-backups')
       const parsed = raw ? JSON.parse(raw) : []
@@ -289,7 +304,7 @@ export default function SettingsPage() {
     } catch {
       return []
     }
-  }, [])
+  }, [dataEpoch])
 
   const dataHealth = useMemo(() => buildDataHealthReport({
     todos,

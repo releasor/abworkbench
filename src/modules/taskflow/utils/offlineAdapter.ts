@@ -6,6 +6,7 @@ import type { Task, Category, TaskStats, Status, Priority } from '../types'
 import { createCompletionReviewNote, shouldAddCompletionReview, calculateNextDueDate, shouldCreateNextRecurrence } from './taskWorkflow'
 import { safeGet, safeSet } from '../../../utils/safeLocalStorage'
 import { generateId } from '../../../utils/id'
+import { migrateLegacyTaskCategories } from './legacyCategoryMigrate'
 
 const TASKS_KEY = 'taskflow-offline-tasks'
 const CATEGORIES_KEY = 'taskflow-offline-categories'
@@ -20,7 +21,13 @@ interface TaskFlowBackup {
 }
 
 function loadTasks(): Task[] {
-  return safeGet<Task[]>(TASKS_KEY, [])
+  const tasks = safeGet<Task[]>(TASKS_KEY, [])
+  const migrated = migrateLegacyTaskCategories(tasks)
+  if (migrated !== tasks) {
+    // Persist once so orphan category badges disappear after upgrade.
+    safeSet(TASKS_KEY, migrated)
+  }
+  return migrated
 }
 
 function saveTasks(tasks: Task[]): void {
@@ -475,9 +482,11 @@ export const offlineApi = {
           recurring: data.recurring || null,
           linkedNoteIds: data.linkedNoteIds || [],
         }
+        const existingIdx = tasks.findIndex((t) => t.id === task.id)
+        if (existingIdx >= 0) tasks[existingIdx] = task
+        else tasks.push(task)
         imported.push(task)
       }
-      tasks.push(...imported)
       saveTasks(tasks)
       return imported
     },
@@ -704,8 +713,22 @@ export const offlineApi = {
       return cat
     },
     delete: async (id: string): Promise<void> => {
-      const categories = loadCategories().filter(c => c.id !== id)
+      let categories = loadCategories().filter(c => c.id !== id)
+      if (categories.length === 0) {
+        categories = getDefaultCategoriesWithoutPersist()
+      }
+      const fallback = categories[0]?.id || 'cat-work'
       saveCategories(categories)
+      const tasks = loadTasks()
+      let changed = false
+      for (const task of tasks) {
+        if (task.category === id) {
+          task.category = fallback
+          task.updatedAt = new Date().toISOString()
+          changed = true
+        }
+      }
+      if (changed) saveTasks(tasks)
     },
   },
   stats: {

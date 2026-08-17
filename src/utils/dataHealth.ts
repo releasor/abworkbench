@@ -51,7 +51,7 @@ export function buildDataHealthReport(input: DataHealthInput): DataHealthReport 
     titleCounts.set(title, (titleCounts.get(title) || 0) + 1)
   }
   const duplicateTaskCount = [...titleCounts.values()].filter((count) => count > 1).length
-  const emptyNoteCount = input.notes.filter((note) => !note.title.trim() && !note.content.trim() || note.title.trim() && !note.content.trim()).length
+  const emptyNoteCount = input.notes.filter((note) => !note.content.trim()).length
   const lastBackup = input.backups
     .map((backup) => backup.modified)
     .filter(Boolean)

@@ -1,21 +1,19 @@
 import { useEffect, useState, useCallback, useMemo, lazy, Suspense } from 'react'
 import { AlertTriangle, CheckCircle2, ListChecks, Sparkles, Trophy } from 'lucide-react'
 import { useTaskStore } from './hooks/useTaskStore'
-import { useToast } from './hooks/useToast'
 import { useKeyboard } from './hooks/useKeyboard'
 import { safeGetString, safeSetString } from '../../utils/safeLocalStorage'
 import { FilterBar } from './components/FilterBar'
 import { QuickAdd } from './components/QuickAdd'
 import { ProgressBar } from './components/ProgressBar'
 import { SortControl } from './components/SortControl'
-import { Toast } from './components/Toast'
 import { ConfirmDialog } from './components/ConfirmDialog'
 import { TaskFlowToolbar } from './components/TaskFlowToolbar'
 import { TaskFlowView } from './components/TaskFlowView'
 import { ErrorBoundary } from './components/ErrorBoundary'
 import type { Task, ViewMode, Status } from './types'
 import { STATUS_CYCLE } from './types'
-import { onToast } from './utils/toastEvent'
+import { showToast } from './utils/toastEvent'
 import { setSoundEnabled, isSoundEnabled } from './utils/sound'
 import { migrateTodosIfNeeded } from './utils/migrateTodos'
 import { getTaskFlowSummaryStats } from './utils/summaryStats'
@@ -43,14 +41,18 @@ export default function TaskFlowPage() {
   const error = useTaskStore((state) => state.error)
   const clearError = useTaskStore((state) => state.clearError)
   const undoDelete = useTaskStore((state) => state.undoDelete)
-  const lastDeletedTask = useTaskStore((state) => state.lastDeletedTask)
   const updateTask = useTaskStore((state) => state.updateTask)
   const selectAll = useTaskStore((state) => state.selectAll)
   const clearSelection = useTaskStore((state) => state.clearSelection)
   const batchDelete = useTaskStore((state) => state.batchDelete)
   const selectedIds = useTaskStore((state) => state.selectedIds)
   const tasks = useTaskStore((state) => state.tasks)
-  const { toast, success, error: showError, clear } = useToast()
+  const success = useCallback((message: string, action?: { label: string; onClick: () => void }) => {
+    showToast(message, 'success', action)
+  }, [])
+  const showError = useCallback((message: string) => {
+    showToast(message, 'error')
+  }, [])
   const [showStats, setShowStats] = useState(false)
   const [editingTask, setEditingTask] = useState<Task | null>(null)
   const [showCreateModal, setShowCreateModal] = useState(false)
@@ -91,13 +93,6 @@ export default function TaskFlowPage() {
       clearError()
     }
   }, [error, showError, clearError])
-
-  useEffect(() => {
-    return onToast((msg, type, action) => {
-      if (type === 'error') showError(msg)
-      else success(msg, action)
-    })
-  }, [showError, success])
 
   // Listen for macro events from CommandPalette
   useEffect(() => {
@@ -161,10 +156,13 @@ export default function TaskFlowPage() {
     onToggleCompleted: () => setShowCompleted(prev => !prev),
     onSelectAll: () => selectAll(),
     onUndo: async () => {
-      if (lastDeletedTask) {
+      const items = useTaskStore.getState().lastDeletedTasks
+      if (items.length > 0) {
         try {
+          const count = items.length
+          const title = items[0]?.title || ''
           await undoDelete()
-          success(`已恢复任务: ${lastDeletedTask.title}`)
+          success(count > 1 ? `已恢复 ${count} 个任务` : `已恢复任务: ${title}`)
         } catch (err) { console.error('恢复任务失败:', err); showError('恢复任务失败') }
       }
     },
@@ -386,8 +384,6 @@ export default function TaskFlowPage() {
         </Suspense>
       )}
 
-      {toast && <Toast message={toast.message} type={toast.type} action={toast.action} onClose={clear} />}
-
       {showKeyboardHelp && (
         <Suspense fallback={null}>
           <KeyboardHelp onClose={() => setShowKeyboardHelp(false)} />
@@ -437,7 +433,7 @@ export default function TaskFlowPage() {
       {showDeleteConfirm && (
         <ConfirmDialog
           title="删除任务"
-          message={`确定要删除选中的 ${selectedIds.size} 个任务吗？此操作不可撤销。`}
+          message={`确定要删除选中的 ${selectedIds.size} 个任务吗？删除后可用 Ctrl+Z 撤销。`}
           confirmText="删除"
           variant="danger"
           onConfirm={async () => {

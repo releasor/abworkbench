@@ -66,36 +66,41 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
   };
 
   const confirmDelete = async () => {
+    const count = selectedIds.size
     await batchDelete();
-    onSuccess(`已删除 ${selectedIds.size} 个任务`);
+    onSuccess(`已删除 ${count} 个任务`);
     setShowDeleteConfirm(false);
     playClickSound();
   };
 
   const handleStatusChange = async (status: Status) => {
+    const count = selectedIds.size;
     await batchUpdateStatus(status);
-    onSuccess(`已将 ${selectedIds.size} 个任务状态更改为 ${STATUS_CONFIG[status].label}`);
+    onSuccess(`已将 ${count} 个任务状态更改为 ${STATUS_CONFIG[status].label}`);
     if (status === 'done') playCompletionSound(); else playClickSound();
   };
 
   const handlePriorityChange = async (priority: Priority) => {
+    const count = selectedIds.size;
     await batchUpdatePriority(priority);
-    onSuccess(`已将 ${selectedIds.size} 个任务优先级更改为 ${PRIORITY_CONFIG[priority].label}`);
+    onSuccess(`已将 ${count} 个任务优先级更改为 ${PRIORITY_CONFIG[priority].label}`);
     playClickSound();
   };
 
   const handleCategoryChange = async (categoryId: string) => {
+    const count = selectedIds.size;
     await batchUpdateCategory(categoryId);
     const cat = categories.find((c) => c.id === categoryId);
-    onSuccess(`已将 ${selectedIds.size} 个任务分类更改为 ${cat?.name || categoryId}`);
+    onSuccess(`已将 ${count} 个任务分类更改为 ${cat?.name || categoryId}`);
     setShowCategoryMenu(false);
   };
 
   const handleAddTag = async () => {
     const tag = tagInput.trim();
     if (!tag) return;
+    const count = selectedIds.size;
     await batchAddTags([tag]);
-    onSuccess(`已为 ${selectedIds.size} 个任务添加标签 #${tag}`);
+    onSuccess(`已为 ${count} 个任务添加标签 #${tag}`);
     setTagInput('');
     setShowTagInput(false);
   };
@@ -103,46 +108,53 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
   const handleRemoveTag = async () => {
     const tag = tagInput.trim();
     if (!tag) return;
+    const count = selectedIds.size;
     await batchRemoveTags([tag]);
-    onSuccess(`已从 ${selectedIds.size} 个任务移除标签 #${tag}`);
+    onSuccess(`已从 ${count} 个任务移除标签 #${tag}`);
     setTagInput('');
     setShowTagInput(false);
   };
 
   const handleSnooze = async (days: number, label: string) => {
+    const count = selectedIds.size;
     await batchSnooze(days);
-    onSuccess(`已将 ${selectedIds.size} 个任务推迟${label}`);
+    onSuccess(`已将 ${count} 个任务推迟${label}`);
     setShowSnoozeMenu(false);
     playClickSound();
   };
 
   const handleArchive = async () => {
+    const count = selectedIds.size;
     await batchArchive();
-    onSuccess(`已归档 ${selectedIds.size} 个任务`);
+    onSuccess(`已归档 ${count} 个任务`);
     playClickSound();
   };
 
   const handleUnarchive = async () => {
+    const count = selectedIds.size;
     await batchUnarchive();
-    onSuccess(`已取消归档 ${selectedIds.size} 个任务`);
+    onSuccess(`已取消归档 ${count} 个任务`);
     playClickSound();
   };
 
   const handleDuplicate = async () => {
+    const count = selectedIds.size;
     await batchDuplicate();
-    onSuccess(`已复制 ${selectedIds.size} 个任务`);
+    onSuccess(`已复制 ${count} 个任务`);
     playClickSound();
   };
 
   const handlePin = async () => {
+    const count = selectedIds.size;
     await batchPin();
-    onSuccess(`已置顶 ${selectedIds.size} 个任务`);
+    onSuccess(`已置顶 ${count} 个任务`);
     playClickSound();
   };
 
   const handleUnpin = async () => {
+    const count = selectedIds.size;
     await batchUnpin();
-    onSuccess(`已取消置顶 ${selectedIds.size} 个任务`);
+    onSuccess(`已取消置顶 ${count} 个任务`);
     playClickSound();
   };
 
@@ -389,7 +401,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
     {showDeleteConfirm && (
       <ConfirmDialog
         title="删除任务"
-        message={`确定要删除选中的 ${selectedIds.size} 个任务吗？此操作不可撤销。`}
+        message={`确定要删除选中的 ${selectedIds.size} 个任务吗？删除后可用 Ctrl+Z 撤销。`}
         confirmText="删除"
         variant="danger"
         onConfirm={confirmDelete}

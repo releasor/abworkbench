@@ -52,7 +52,7 @@ interface TaskStore {
   selectedIds: Set<string>;
   isLoading: boolean;
   error: string | null;
-  lastDeletedTask: Task | null;
+  lastDeletedTasks: Task[];
 
   fetchTasks: () => Promise<void>;
   fetchCategories: () => Promise<void>;
@@ -196,7 +196,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   selectedIds: new Set(),
   isLoading: false,
   error: null,
-  lastDeletedTask: null,
+  lastDeletedTasks: [],
 
   fetchTasks: async () => {
     set({ isLoading: true, error: null });
@@ -316,7 +316,7 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
       set((state) => ({
         tasks: state.tasks.filter((t) => t.id !== id),
         selectedIds: new Set([...state.selectedIds].filter((sid) => sid !== id)),
-        lastDeletedTask: task || null,
+        lastDeletedTasks: task ? [task] : [],
       }));
       get().fetchStats();
     } catch (err) {
@@ -325,15 +325,16 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   undoDelete: async () => {
-    const { lastDeletedTask } = get();
-    if (!lastDeletedTask) return;
+    const { lastDeletedTasks } = get();
+    if (lastDeletedTasks.length === 0) return;
     try {
-      // Use import (not create) to preserve the original task ID,
+      // Use import (not create) to preserve the original task IDs,
       // so dependency references from other tasks remain valid.
-      const restored = await api.tasks.import([lastDeletedTask]);
+      const restored = await api.tasks.import(lastDeletedTasks);
+      const restoredIds = new Set(restored.map((t) => t.id));
       set((state) => ({
-        tasks: [...state.tasks, ...restored],
-        lastDeletedTask: null,
+        tasks: [...state.tasks.filter((t) => !restoredIds.has(t.id)), ...restored],
+        lastDeletedTasks: [],
       }));
       get().fetchStats();
     } catch (err) {
@@ -401,12 +402,14 @@ export const useTaskStore = create<TaskStore>((set, get) => ({
   },
 
   batchDelete: async () => {
-    const { selectedIds } = get();
+    const { selectedIds, tasks } = get();
+    const deleted = tasks.filter((t) => selectedIds.has(t.id));
     try {
       await api.tasks.batchDelete([...selectedIds]);
       set((state) => ({
         tasks: state.tasks.filter((t) => !selectedIds.has(t.id)),
         selectedIds: new Set(),
+        lastDeletedTasks: deleted,
       }));
       get().fetchStats();
     } catch (err) {

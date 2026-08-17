@@ -102,3 +102,17 @@ export function getLegacyOrCurrentData(raw: unknown): JsonRecord {
   }
   return value && typeof value === 'object' ? { ...(value as JsonRecord) } : {};
 }
+
+/** Wipe TaskFlow localStorage keys (tasks, categories, backups, UI prefs). */
+export function clearTaskFlowLocalData(): void {
+  try {
+    localStorage.removeItem(TASKFLOW_TASKS_KEY);
+    localStorage.removeItem(TASKFLOW_CATEGORIES_KEY);
+    localStorage.removeItem(TASKFLOW_BACKUPS_KEY);
+    for (const key of TASKFLOW_PREFERENCE_KEYS) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Ignore storage failures
+  }
+}

@@ -1,5 +1,5 @@
 import type { Note, RecurringPattern, TaskDependency, TimeEntry } from '../types'
-import { generateId } from '../../../utils/id'
+import { generateId } from '../../../utils/id.ts'
 
 interface WorkflowTask {
   id: string

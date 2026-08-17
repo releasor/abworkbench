@@ -56,7 +56,7 @@ function createInitialTaskForm(task: Task | null, prefillDate?: string | null) {
     description: '',
     status: 'todo' as Status,
     priority: 'medium' as Priority,
-    category: 'work',
+    category: 'cat-work',
     tags: [] as string[],
     dueDate: prefillDate || '',
     tagInput: '',
@@ -305,7 +305,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                     title: template.title || '',
                     description: template.description || '',
                     priority: template.priority || 'medium',
-                    category: template.category || 'work',
+                    category: template.category || 'cat-work',
                     tags: template.tags || [],
                   });
                 }}
