@@ -225,7 +225,7 @@ function recentDir(): string | null {
 function listPrefetchRecent(limit = 40): Array<{ exeName: string; mtime: number }> {
   const dir = 'C:\\Windows\\Prefetch'
   if (!exists(dir)) return []
-  let files: string[] = []
+  let files: string[]
   try {
     files = fs.readdirSync(dir).filter((name) => name.toLowerCase().endsWith('.pf'))
   } catch {
@@ -241,7 +241,7 @@ function listPrefetchRecent(limit = 40): Array<{ exeName: string; mtime: number 
     if (SYSTEM_EXE_SKIP.test(exeName)) continue
     if (SKIP_NAME_RE.test(exeName)) continue
     const full = path.join(dir, name)
-    let mtime = 0
+    let mtime: number
     try {
       mtime = fs.statSync(full).mtimeMs
     } catch {
@@ -408,8 +408,8 @@ export async function listRecentFilesAndFolders(fileLimit = 8, folderLimit = 6):
     if (seen.has(key)) continue
     seen.add(key)
 
-    let isDir = false
-    let mtime = 0
+    let isDir: boolean
+    let mtime: number
     try {
       const st = fs.statSync(target)
       isDir = st.isDirectory()
@@ -498,7 +498,7 @@ export async function listRecentApps(userDataPath: string, limit = 12): Promise<
     const resolved = resolveShortcut(linkPath)
     if (!resolved) continue
     const fromCatalog = byTarget.get(normalizeKey(resolved.target)) || findCatalogByExeName(path.basename(resolved.target))
-    let mtime = 0
+    let mtime: number
     try {
       mtime = fs.statSync(linkPath).mtimeMs
     } catch {

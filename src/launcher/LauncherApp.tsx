@@ -154,6 +154,12 @@ export default function LauncherApp({
   const searchSeq = useRef(0)
   const appSearchSeq = useRef(0)
 
+  useEffect(() => {
+    if (!launchError) return
+    const timer = window.setTimeout(() => setLaunchError(''), 4000)
+    return () => window.clearTimeout(timer)
+  }, [launchError])
+
   const items = useMemo(() => buildLauncherItems(query), [query])
   const everythingQuery = useMemo(() => {
     const entry = items.find((item) => item.kind === 'everything')
@@ -244,6 +250,8 @@ export default function LauncherApp({
     setQuery('')
     setSelectedIndex(0)
     setCopied(false)
+    setLaunchError('')
+    setReaderMenu(null)
     setMatchedApps([])
     setRecentIds(readRecentIds())
     refreshRecentApps()
@@ -256,25 +264,26 @@ export default function LauncherApp({
   // Window mode: reset whenever the floating launcher is summoned.
   useEffect(() => {
     if (variant !== 'window') return
-    resetLauncher()
+    queueMicrotask(() => resetLauncher())
     return window.electronAPI?.onLauncherShown?.(resetLauncher)
   }, [variant, resetLauncher])
 
   // Embedded mode: reset each time the overlay opens.
   useEffect(() => {
     if (variant !== 'embedded' || !isOpen) return
-    resetLauncher()
+    queueMicrotask(() => resetLauncher())
   }, [variant, isOpen, resetLauncher])
 
   useEffect(() => {
     queueMicrotask(() => setSelectedIndex(0))
-  }, [query, matchedApps, everything])
+  }, [query])
 
   const hideLauncher = useCallback(() => {
     if (variant === 'embedded') {
       onClose?.()
       return
     }
+    setReaderMenu(null)
     void window.electronAPI?.hideLauncher?.()
   }, [variant, onClose])
 
@@ -322,19 +331,23 @@ export default function LauncherApp({
   const openApp = useCallback((appEntry: DesktopAppInfo) => {
     setLaunchError('')
     void (async () => {
-      const ok = await window.electronAPI?.openApp?.(appEntry.path)
-      if (ok) {
-        refreshRecentApps()
-        hideLauncher()
-        return
+      try {
+        const ok = await window.electronAPI?.openApp?.(appEntry.path)
+        if (ok) {
+          refreshRecentApps()
+          hideLauncher()
+          return
+        }
+        const fallback = await window.electronAPI?.openTarget?.(appEntry.target)
+        if (fallback) {
+          refreshRecentApps()
+          hideLauncher()
+          return
+        }
+        setLaunchError(`无法打开：${appEntry.name}`)
+      } catch {
+        setLaunchError(`无法打开：${appEntry.name}`)
       }
-      const fallback = await window.electronAPI?.openTarget?.(appEntry.target)
-      if (fallback) {
-        refreshRecentApps()
-        hideLauncher()
-        return
-      }
-      setLaunchError(`无法打开：${appEntry.name}`)
     })()
   }, [hideLauncher, refreshRecentApps])
 
@@ -386,14 +399,54 @@ export default function LauncherApp({
       hideLauncher()
       return
     }
+    if (item.kind === 'reader-url') {
+      setLaunchError('')
+      void (async () => {
+        try {
+          const result = await window.electronAPI?.readerScrapeUrl?.(item.url)
+          if (!result) {
+            setLaunchError('桌面能力不可用')
+            return
+          }
+          if (result.ok === false) {
+            setLaunchError(result.message)
+            return
+          }
+          await window.electronAPI?.openReader?.({ mode: 'reading', bookId: result.book.id })
+          hideLauncher()
+        } catch {
+          setLaunchError('抓取失败')
+        }
+      })()
+      return
+    }
     if (item.kind === 'path') {
       void window.electronAPI?.openTarget?.(item.path)
       hideLauncher()
       return
     }
-    if (item.kind === 'everything' && everything.status === 'ok' && everything.items[0]) {
-      void window.electronAPI?.openTarget?.(everything.items[0].path)
-      hideLauncher()
+    if (item.kind === 'everything') {
+      if (everything.status === 'ok' && everything.items[0]) {
+        void window.electronAPI?.openTarget?.(everything.items[0].path)
+        hideLauncher()
+        return
+      }
+      if (everything.status === 'loading') {
+        setLaunchError('正在搜索文件…')
+        return
+      }
+      if (everything.status === 'unavailable') {
+        setLaunchError(
+          everything.message
+            || (everything.reason === 'not-installed'
+              ? '未检测到 Everything'
+              : everything.reason === 'not-running'
+                ? 'Everything 未运行'
+                : 'Everything 搜索出错'),
+        )
+        return
+      }
+      setLaunchError('未找到匹配文件')
     }
   }, [everything, hideLauncher, runCommand])
 
@@ -434,6 +487,12 @@ export default function LauncherApp({
     }
     return entries
   }, [query, clipboardUrl, recentApps, recentFiles, recentFolders, matchedApps, items, everything])
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      setSelectedIndex((prev) => Math.min(prev, Math.max(0, selectable.length - 1)))
+    })
+  }, [selectable.length])
 
   const handleKeyDown = (event: React.KeyboardEvent) => {
     const cols = 6
@@ -640,11 +699,13 @@ export default function LauncherApp({
         ? Languages
         : item.kind === 'calc'
           ? Calculator
-          : item.kind === 'url' || item.kind === 'websearch'
-            ? Globe
-            : item.kind === 'path'
-              ? (item.pathKind === 'file' ? File : Folder)
-              : FileSearch
+          : item.kind === 'reader-url'
+            ? BookOpen
+            : item.kind === 'url' || item.kind === 'websearch'
+              ? Globe
+              : item.kind === 'path'
+                ? (item.pathKind === 'file' ? File : Folder)
+                : FileSearch
     return (
       <button
         key={item.id}
@@ -724,7 +785,10 @@ export default function LauncherApp({
               ref={inputRef}
               type="text"
               value={query}
-              onChange={(event) => setQuery(event.target.value)}
+              onChange={(event) => {
+                setLaunchError('')
+                setQuery(event.target.value)
+              }}
               onKeyDown={handleKeyDown}
               placeholder="搜索网页 / 软件 / 摸鱼阅读 / 翻译 / 找文件"
               autoFocus
@@ -893,6 +957,9 @@ export default function LauncherApp({
                   {everything.items.map(renderFileRow)}
                 </>
               )}
+              {everything.status === 'ok' && everything.items.length === 0 && everythingQuery.trim().length >= 2 && (
+                <div className="px-3 py-2 text-xs text-text-muted">未找到匹配文件</div>
+              )}
               {everything.status === 'loading' && (
                 <div className="px-3 py-2 text-xs text-text-muted">正在搜索文件…</div>
               )}
@@ -907,7 +974,8 @@ export default function LauncherApp({
                 </div>
               )}
 
-              {items.length === 0 && matchedApps.length === 0 && !appsLoading && everything.status !== 'ok' && (
+              {items.length === 0 && matchedApps.length === 0 && !appsLoading
+                && everything.status !== 'ok' && everything.status !== 'loading' && (
                 <div className="px-3 py-8 text-center text-sm text-text-muted">没有匹配的应用或功能</div>
               )}
             </>

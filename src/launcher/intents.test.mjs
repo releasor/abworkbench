@@ -148,9 +148,11 @@ test('buildLauncherItems offers websearch translate and file search for bare tex
 
 test('buildLauncherItems opens typed urls directly', () => {
   const items = buildLauncherItems('github.com')
-  assert.equal(items.length, 1)
+  assert.equal(items.length, 2)
   assert.equal(items[0].kind, 'url')
   assert.equal(items[0].url, 'https://github.com')
+  assert.equal(items[1].kind, 'reader-url')
+  assert.equal(items[1].url, 'https://github.com')
 })
 
 test('buildLauncherItems explicit prefixes produce explicit intents', () => {

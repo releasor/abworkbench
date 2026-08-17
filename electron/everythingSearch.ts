@@ -149,7 +149,9 @@ async function searchViaHttp(query: string, baseUrl: string, limit: number): Pro
   const timer = setTimeout(() => controller.abort(), 5000)
   try {
     const response = await fetch(`${baseUrl}/?${params.toString()}`, { signal: controller.signal })
-    if (!response.ok) return []
+    if (!response.ok) {
+      throw new Error(`HTTP ${response.status}`)
+    }
     const data = (await response.json()) as { results?: Array<{ type?: string; name?: string; path?: string }> }
     const results = Array.isArray(data.results) ? data.results : []
     return results
@@ -159,8 +161,6 @@ async function searchViaHttp(query: string, baseUrl: string, limit: number): Pro
         const fullPath = dir ? (dir.endsWith('\\') ? `${dir}${entry.name}` : `${dir}\\${entry.name}`) : entry.name!
         return { name: entry.name!, path: fullPath, isDir: entry.type === 'folder' }
       })
-  } catch {
-    return []
   } finally {
     clearTimeout(timer)
   }
@@ -175,12 +175,33 @@ function launchEverything(exePath: string): void {
   }
 }
 
-async function waitForHttp(baseUrl: string, attempts = 10): Promise<boolean> {
+async function waitForHttp(baseUrl: string, attempts = 6): Promise<boolean> {
   for (let i = 0; i < attempts; i++) {
-    if (await probeHttp(baseUrl)) return true
-    await new Promise((resolve) => setTimeout(resolve, 600))
+    if (await probeHttp(baseUrl, 800)) return true
+    await new Promise((resolve) => setTimeout(resolve, 400))
   }
   return false
+}
+
+/** Single-flight launch+wait so concurrent searches don't spawn Everything many times. */
+let httpLaunchInFlight: Promise<boolean> | null = null
+
+async function ensureHttpReady(
+  baseUrl: string,
+  options: EverythingSearchOptions,
+): Promise<boolean> {
+  if (await probeHttp(baseUrl, 800)) return true
+  if (!httpLaunchInFlight) {
+    httpLaunchInFlight = (async () => {
+      const exe = ensurePortableEverything(options.resourcesPath, options.userDataPath, options.appDir)
+      if (!exe) return false
+      launchEverything(exe)
+      return waitForHttp(baseUrl)
+    })().finally(() => {
+      httpLaunchInFlight = null
+    })
+  }
+  return httpLaunchInFlight
 }
 
 // --- CLI mode ---
@@ -239,15 +260,15 @@ export async function searchEverything(query: string, options: EverythingSearchO
   // HTTP mode (portable Everything with its built-in HTTP server).
   const baseUrl = (options.httpUrl || '').replace(/\/+$/, '')
   if (baseUrl) {
-    if (await probeHttp(baseUrl)) {
-      return { ok: true, mode: 'http', items: await searchViaHttp(trimmed, baseUrl, limit) }
+    if (await ensureHttpReady(baseUrl, options)) {
+      try {
+        return { ok: true, mode: 'http', items: await searchViaHttp(trimmed, baseUrl, limit) }
+      } catch {
+        return { ok: false, reason: 'error', message: `Everything HTTP 查询失败：${baseUrl}` }
+      }
     }
     const exe = ensurePortableEverything(options.resourcesPath, options.userDataPath, options.appDir)
     if (exe) {
-      launchEverything(exe)
-      if (await waitForHttp(baseUrl)) {
-        return { ok: true, mode: 'http', items: await searchViaHttp(trimmed, baseUrl, limit) }
-      }
       return { ok: false, reason: 'not-running', message: '已尝试启动 Everything，但 HTTP 服务未就绪' }
     }
     if (esPath) {

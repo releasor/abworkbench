@@ -13,6 +13,7 @@ export type LauncherItem =
   | { id: string; kind: 'translate'; label: string; description: string; text: string; explicit: boolean }
   | { id: string; kind: 'calc'; label: string; description: string; expression: string; result: string }
   | { id: string; kind: 'url'; label: string; description: string; url: string }
+  | { id: string; kind: 'reader-url'; label: string; description: string; url: string }
   | { id: string; kind: 'path'; label: string; description: string; path: string; pathKind: 'file' | 'dir' }
   | { id: string; kind: 'websearch'; label: string; description: string; query: string; url: string; explicit: boolean }
   | { id: string; kind: 'everything'; label: string; description: string; query: string; explicit: boolean }
@@ -97,7 +98,7 @@ export function detectLocalPath(input: string): DetectedLocalPath | null {
   }
 
   const isDrive = /^[A-Za-z]:[\\/]/.test(trimmed)
-  const isUnc = /^\\\\[^\\\/]+[\\/][^\\\/]/.test(trimmed)
+  const isUnc = /^\\\\[^\\/]+[\\/][^\\/]/.test(trimmed)
   if (!isDrive && !isUnc) return null
 
   // Reject newlines / control chars; spaces are allowed (e.g. "Setup 1.0.0.exe").
@@ -128,7 +129,7 @@ export function detectLocalPath(input: string): DetectedLocalPath | null {
 // --- URL detection ---
 /** Extract / normalize a URL from typed text or clipboard content. */
 export function detectUrl(input: string): string | null {
-  const trimmed = input.trim().replace(/^[<"'\[]+|[>"'\],.。，；;]+$/g, '')
+  const trimmed = input.trim().replace(/^[<"'[]+|[>"'\],.。，；;]+$/g, '')
   if (!trimmed || /\s/.test(trimmed)) {
     // Allow a lone URL buried in short clipboard paste with surrounding words? Keep strict for typed.
     // But clipboard often has pure URL — also try extracting first http(s) token.
@@ -376,6 +377,13 @@ export function buildLauncherItems(input: string, commands: LauncherCommandDef[]
     const mostlyUrl = !/\s/.test(t) || /^https?:\/\//i.test(t) || /^www\./i.test(t)
     if (mostlyUrl) {
       items.push({ id: 'url', kind: 'url', label: '打开网址', description: url, url })
+      items.push({
+        id: 'reader-url',
+        kind: 'reader-url',
+        label: '摸鱼阅读此链接',
+        description: '抓取正文并在透明悬浮窗阅读',
+        url,
+      })
       return items
     }
   }
