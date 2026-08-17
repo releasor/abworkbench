@@ -14,7 +14,7 @@ function createStorage() {
 
 test('buildMacroLocalState avoids navigating to removed workspace page', () => {
   assert.deepEqual(buildMacroLocalState('macro-clear-inbox'), { target: 'dashboard', inboxFilter: 'high' })
-  assert.deepEqual(buildMacroLocalState('macro-project-scan'), { target: 'projects', projectScan: true })
+  assert.deepEqual(buildMacroLocalState('macro-project-scan'), { target: 'taskflow', projectScan: true })
 })
 
 test('runLocalMacro writes macro state and DND state', () => {

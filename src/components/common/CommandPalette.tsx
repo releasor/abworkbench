@@ -283,8 +283,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'stealth-reader',
-      label: '打开摸鱼阅读',
-      description: '透明悬浮窗续读或打开书架',
+      label: t('command.openStealthReader'),
+      description: t('command.openStealthReaderDesc'),
       icon: BookOpen,
       action: () => {
         void window.electronAPI?.openReader?.({ mode: 'auto' })

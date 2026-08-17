@@ -10,7 +10,7 @@
     "build": "npm run electron:build",
     "electron:build": "vite build && electron-builder",
     "lint": "eslint .",
-    "test": "node --test electron/reader/*.test.mjs src/launcher/*.test.mjs src/hooks/*.test.mjs",
+    "test": "node --test electron/**/*.test.mjs src/launcher/*.test.mjs src/hooks/*.test.mjs src/components/**/*.test.mjs src/modules/**/*.test.mjs src/utils/*.test.mjs src/shortcuts/*.test.mjs src/navigation/*.test.mjs src/quality/*.test.mjs",
     "typecheck": "tsc -b --noEmit"
   },
   "build": {

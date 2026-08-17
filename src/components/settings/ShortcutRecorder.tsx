@@ -21,7 +21,9 @@ export default function ShortcutRecorder({
   const [draft, setDraft] = useState(value)
 
   useEffect(() => {
-    if (!recording) setDraft(value)
+    if (!recording) {
+      queueMicrotask(() => setDraft(value))
+    }
   }, [recording, value])
 
   useEffect(() => {

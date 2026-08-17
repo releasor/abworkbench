@@ -240,7 +240,13 @@ async function detectCity(): Promise<string | null> {
         const { latitude, longitude } = pos.coords
         try {
           const resp = await fetch(
-            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=zh`
+            `https://nominatim.openstreetmap.org/reverse?format=json&lat=${latitude}&lon=${longitude}&accept-language=zh`,
+            {
+              headers: {
+                Accept: 'application/json',
+                'User-Agent': 'Abworkbench/1.0 (personal desktop weather)',
+              },
+            },
           )
           const data = await resp.json()
           const addr = data.address || {}
