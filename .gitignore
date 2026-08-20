@@ -8,6 +8,9 @@ pnpm-debug.log*
 lerna-debug.log*
 
 node_modules
+vendor/mineradio/node_modules
+# Upstream Mineradio checkout used only to refresh vendor/mineradio
+Mineradio-main/
 dist
 dist-electron
 dist-ssr

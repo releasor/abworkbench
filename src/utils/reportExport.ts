@@ -1,8 +1,9 @@
 import type { Task } from '../modules/taskflow/types'
 import type { PomodoroSession, Habit, Note } from '../store'
+import { dayKeyFromMs } from '../modules/taskflow/dateUtils'
 
 function dayKey(ts: number): string {
-  return new Date(ts).toISOString().slice(0, 10)
+  return dayKeyFromMs(ts)
 }
 
 export function generateWeeklyReport(params: {
@@ -50,7 +51,7 @@ export function generateWeeklyReport(params: {
     const d = new Date(now)
     d.setDate(d.getDate() - i)
     const key = dayKey(d.getTime())
-    const dayDone = completedTasks.filter((t) => t.completedAt!.slice(0, 10) === key).length
+    const dayDone = completedTasks.filter((t) => dayKey(Date.parse(t.completedAt!)) === key).length
     const dayPomodoros = weekPomodoros.filter((s) => dayKey(s.startedAt) === key).length
     const dayHabits = params.habits.filter((h) => h.completedDates.includes(key)).length
     dailyLines.push(`| ${key} | ${dayDone} | ${dayPomodoros} | ${dayHabits}/${params.habits.length} |`)

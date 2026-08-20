@@ -1,11 +1,41 @@
 /**
- * Shared date utilities that operate on ISO date strings (YYYY-MM-DD)
- * without creating Date objects — safe for hot loops.
+ * Shared date utilities.
+ * Product calendar day is Beijing time (Asia/Shanghai) via beijingTime helpers.
  */
 
-/** Get today's date as YYYY-MM-DD string. */
-export function todayStr(): string {
-  return new Date().toISOString().slice(0, 10);
+import { beijingDateTimeMinute, beijingParts, beijingYMD } from '../../utils/beijingTime.ts'
+
+/** Get today's date as YYYY-MM-DD (Beijing calendar). */
+export function todayStr(now: Date = new Date()): string {
+  return beijingYMD(now)
+}
+
+/** Format a Date as local/Beijing YYYY-MM-DD. */
+export function formatLocalYMD(date: Date = new Date()): string {
+  return beijingYMD(date)
+}
+
+/** Day key from epoch ms. */
+export function dayKeyFromMs(ms: number): string {
+  if (!Number.isFinite(ms)) return ''
+  return beijingYMD(new Date(ms))
+}
+
+/** Day key from ISO / datetime string. */
+export function dayKeyFromIso(iso?: string | null): string {
+  if (!iso) return ''
+  const ms = Date.parse(iso)
+  if (!Number.isFinite(ms)) {
+    // Already a date-only string
+    if (/^\d{4}-\d{2}-\d{2}/.test(iso)) return iso.slice(0, 10)
+    return ''
+  }
+  return dayKeyFromMs(ms)
+}
+
+/** Format as YYYY-MM-DDTHH:mm in Beijing wall clock. */
+export function formatLocalDateTimeMinute(date: Date = new Date()): string {
+  return beijingDateTimeMinute(date)
 }
 
 /** Chinese weekday labels indexed 0=Sun, 1=Mon, ..., 6=Sat. */
@@ -102,10 +132,11 @@ export function nextDateStr(dateStr: string): string {
 export function nextDateStrN(dateStr: string, n: number): string {
   let y = +dateStr.slice(0, 4);
   let doy = dayOfYear(dateStr) + n;
-  const daysInYear = isLeap(y) ? 366 : 365;
+  let daysInYear = isLeap(y) ? 366 : 365;
   while (doy > daysInYear) {
     doy -= daysInYear;
     y++;
+    daysInYear = isLeap(y) ? 366 : 365;
   }
   return `${y}-${doyToMonthDay(y, doy)}`;
 }
@@ -123,3 +154,6 @@ export function computeStreak(completionDates: Set<string>, fromDate: string): n
   }
   return streak;
 }
+
+/** Re-export for callers that need wall-clock parts. */
+export { beijingParts }

@@ -1,5 +1,6 @@
 import { useState, useEffect } from 'react'
-import { dayNumToDateStr } from '../utils/format'
+import { prevDateStr, todayStr as beijingTodayStr } from '../modules/taskflow/dateUtils'
+import { beijingWallToMs } from '../utils/beijingTime'
 
 const DAY = 86400000
 
@@ -11,15 +12,15 @@ export interface TodayInfo {
   yesterdayStr: string
 }
 
-function compute(): TodayInfo {
-  const dayNum = Math.floor(Date.now() / DAY)
-  const todayMidnightMs = dayNum * DAY
+function compute(now = new Date()): TodayInfo {
+  const today = beijingTodayStr(now)
+  const todayMidnightMs = beijingWallToMs(`${today}T00:00`)
   return {
-    todayStr: dayNumToDateStr(dayNum),
+    todayStr: today,
     todayMidnightMs,
     tomorrowMidnightMs: todayMidnightMs + DAY,
     yesterdayMidnightMs: todayMidnightMs - DAY,
-    yesterdayStr: dayNumToDateStr(dayNum - 1),
+    yesterdayStr: prevDateStr(today),
   }
 }
 

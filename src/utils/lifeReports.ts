@@ -1,3 +1,5 @@
+import { todayStr } from '../modules/taskflow/dateUtils.ts'
+
 export type LifeReportPeriod = 'weekly' | 'monthly'
 
 export interface LifeReportInput {
@@ -49,7 +51,7 @@ function listLines(items: string[], empty: string): string {
 }
 
 export function buildLifeReport(input: LifeReportInput): LifeReport {
-  const referenceDate = input.referenceDate || new Date().toISOString().slice(0, 10)
+  const referenceDate = input.referenceDate || todayStr()
   const range = rangeFor(input.period, referenceDate)
   const completedTasks = input.tasks.filter((task) => task.status === 'done' && inRangeDay(task.completedAt, range.start, range.end))
   const overdueTasks = input.tasks.filter((task) => task.status !== 'done' && task.dueDate && Date.parse(task.dueDate) < range.end)
