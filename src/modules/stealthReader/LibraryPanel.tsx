@@ -112,6 +112,9 @@ export default function LibraryPanel({
 
   const remove = async (bookId: string, event: { stopPropagation: () => void }) => {
     event.stopPropagation()
+    const book = books.find((b) => b.id === bookId)
+    const ok = window.confirm(`确定从书架移除「${book?.title || '这本书'}」？本地进度也会清除。`)
+    if (!ok) return
     setBusy(true)
     onError('')
     try {

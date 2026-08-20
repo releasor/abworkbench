@@ -1,7 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
-import { BookMarked, ClipboardCopy, List, Minus, Plus, StickyNote, X } from 'lucide-react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { BookMarked, ClipboardCopy, List, Minus, Plus, StickyNote, Undo2, X } from 'lucide-react'
 import type { ReaderUiSettings } from './StealthReaderApp'
 import { useStore } from '../../store'
+import { buildHighlightParts, findTextMatches } from './readingFind'
 
 interface ReadingPanelProps {
   bookId: string
@@ -45,9 +46,20 @@ export default function ReadingPanel({
   const pendingProgress = useRef<{ chapterIndex: number; offset: number } | null>(null)
   const findOpenRef = useRef(false)
   const gotoOpenRef = useRef(false)
+  const chapterIndexRef = useRef(0)
+  const [chapterHistory, setChapterHistory] = useState<Array<{ index: number; offset: number }>>([])
+  const [historyBookId, setHistoryBookId] = useState(bookId)
+  if (historyBookId !== bookId) {
+    setHistoryBookId(bookId)
+    setChapterHistory([])
+  }
+  const historyDepth = chapterHistory.length
+  const findLandedRef = useRef(false)
 
   useEffect(() => { findOpenRef.current = findOpen }, [findOpen])
   useEffect(() => { gotoOpenRef.current = gotoOpen }, [gotoOpen])
+  useEffect(() => { chapterIndexRef.current = chapterIndex }, [chapterIndex])
+  useEffect(() => { findLandedRef.current = false }, [body, chapterIndex])
 
   const flashStatus = useCallback((msg: string, ms = 1800) => {
     setStatusMsg(msg)
@@ -80,6 +92,26 @@ export default function ReadingPanel({
     }
   }, [bumpChrome, bookId])
 
+  const flushProgressNow = useCallback(() => {
+    if (saveTimer.current) {
+      clearTimeout(saveTimer.current)
+      saveTimer.current = null
+    }
+    const liveOffset = scrollRef.current?.scrollTop
+    if (liveOffset != null && chapterIndexRef.current >= 0) {
+      pendingProgress.current = { chapterIndex: chapterIndexRef.current, offset: liveOffset }
+    }
+    const pending = pendingProgress.current
+    pendingProgress.current = null
+    if (!pending) return
+    void window.electronAPI?.readerSetProgress?.({
+      bookId,
+      chapterIndex: pending.chapterIndex,
+      offset: pending.offset,
+      updatedAt: Date.now(),
+    })
+  }, [bookId])
+
   const persistProgress = useCallback((index: number, offset: number) => {
     pendingProgress.current = { chapterIndex: index, offset }
     if (saveTimer.current) clearTimeout(saveTimer.current)
@@ -98,26 +130,28 @@ export default function ReadingPanel({
   }, [bookId])
 
   useEffect(() => () => {
-    if (saveTimer.current) {
-      clearTimeout(saveTimer.current)
-      saveTimer.current = null
+    flushProgressNow()
+  }, [bookId, flushProgressNow])
+
+  // Boss-hide keeps the window mounted — flush before the OS marks us hidden.
+  useEffect(() => {
+    const onHidden = () => {
+      if (document.visibilityState === 'hidden') flushProgressNow()
     }
-    const pending = pendingProgress.current
-    pendingProgress.current = null
-    if (pending) {
-      void window.electronAPI?.readerSetProgress?.({
-        bookId,
-        chapterIndex: pending.chapterIndex,
-        offset: pending.offset,
-        updatedAt: Date.now(),
-      })
+    document.addEventListener('visibilitychange', onHidden)
+    window.addEventListener('pagehide', flushProgressNow)
+    return () => {
+      document.removeEventListener('visibilitychange', onHidden)
+      window.removeEventListener('pagehide', flushProgressNow)
     }
-  }, [bookId])
+  }, [flushProgressNow])
 
   const loadChapter = useCallback(async (
     index: number,
-    opts?: { restoreOffset?: number; isInitial?: boolean },
+    opts?: { restoreOffset?: number; isInitial?: boolean; fromHistory?: boolean },
   ) => {
+    const fromIndex = chapterIndexRef.current
+    const fromOffset = scrollRef.current?.scrollTop ?? 0
     const gen = ++loadGen.current
     onError('')
     setLoading(true)
@@ -158,6 +192,12 @@ export default function ReadingPanel({
       const offsetToApply = matched && opts?.restoreOffset != null ? opts.restoreOffset : 0
       if (matched) {
         persistProgress(result.chapter.chapterIndex, offsetToApply)
+        if (!opts?.isInitial && !opts?.fromHistory && fromIndex !== result.chapter.chapterIndex) {
+          setChapterHistory((prev) => {
+            const next = [...prev, { index: fromIndex, offset: fromOffset }]
+            return next.length > 40 ? next.slice(-40) : next
+          })
+        }
       } else if (opts?.isInitial) {
         onError('目标章节暂不可用，已显示最近可读章节')
       }
@@ -205,10 +245,15 @@ export default function ReadingPanel({
       onError('当前章节为空，无法摘录')
       return
     }
+    const selection = window.getSelection()?.toString().trim() || ''
+    const excerpt = (selection || body).slice(0, 50000)
+    const noteTitle = selection
+      ? `${(title || '摸鱼摘录').slice(0, 36)} · 选段`
+      : (title || '摸鱼摘录').slice(0, 80)
     const note = {
       id: `note-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
-      title: (title || '摸鱼摘录').slice(0, 80),
-      content: `# ${title || '摸鱼摘录'}\n\n${body.slice(0, 50000)}\n\n---\n来自摸鱼阅读 · 第${chapterIndex + 1}章`,
+      title: noteTitle,
+      content: `# ${noteTitle}\n\n${excerpt}\n\n---\n来自摸鱼阅读 · 第${chapterIndex + 1}章${selection ? ' · 选中文本' : ''}`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       color: '#fbbf24',
@@ -235,7 +280,7 @@ export default function ReadingPanel({
       return
     }
     bumpChrome()
-    flashStatus('已摘录到笔记')
+    flashStatus(selection ? '已摘录选中文本到笔记' : '已摘录到笔记')
   }
 
   const copyChapter = async () => {
@@ -243,42 +288,45 @@ export default function ReadingPanel({
       onError('当前章节为空，无法复制')
       return
     }
+    const selection = window.getSelection()?.toString().trim() || ''
+    const text = selection || `${title ? `${title}\n\n` : ''}${body}`
     try {
-      await navigator.clipboard.writeText(`${title ? `${title}\n\n` : ''}${body}`)
+      await navigator.clipboard.writeText(text)
       bumpChrome()
-      flashStatus('已复制本章')
+      flashStatus(selection ? '已复制选中文本' : '已复制本章')
     } catch {
       onError('复制失败')
     }
   }
 
-  const findMatches = (() => {
+  const findMatches = useMemo(
+    () => findTextMatches(body, findQuery),
+    [body, findQuery],
+  )
+
+  const highlightedParts = useMemo(() => {
     const q = findQuery.trim()
-    if (!q || !body) return [] as number[]
-    const lower = body.toLowerCase()
-    const needle = q.toLowerCase()
-    const hits: number[] = []
-    let from = 0
-    while (from < lower.length) {
-      const at = lower.indexOf(needle, from)
-      if (at < 0) break
-      hits.push(at)
-      from = at + Math.max(1, needle.length)
-      if (hits.length >= 200) break
-    }
-    return hits
-  })()
+    if (!findOpen || !q || findMatches.length === 0) return null as Array<{ text: string; hitIndex?: number }> | null
+    return buildHighlightParts(body, findQuery, findMatches)
+  }, [body, findMatches, findOpen, findQuery])
 
   const jumpToFind = useCallback((nextIndex: number) => {
-    if (!scrollRef.current || findMatches.length === 0) return
+    if (findMatches.length === 0) return
     const safe = ((nextIndex % findMatches.length) + findMatches.length) % findMatches.length
     setFindIndex(safe)
-    const pos = findMatches[safe]
-    // Approximate scroll using character ratio in the chapter body.
-    const ratio = pos / Math.max(1, body.length)
-    const el = scrollRef.current
-    el.scrollTop = Math.max(0, ratio * (el.scrollHeight - el.clientHeight) - 40)
     bumpChrome()
+    queueMicrotask(() => {
+      const mark = scrollRef.current?.querySelector(`[data-find-hit="${safe}"]`) as HTMLElement | null
+      if (mark) {
+        mark.scrollIntoView({ block: 'center', behavior: 'auto' })
+        return
+      }
+      if (!scrollRef.current) return
+      const pos = findMatches[safe]
+      const ratio = pos / Math.max(1, body.length)
+      const el = scrollRef.current
+      el.scrollTop = Math.max(0, ratio * (el.scrollHeight - el.clientHeight) - 40)
+    })
   }, [body.length, bumpChrome, findMatches])
 
   const submitGoto = useCallback(() => {
@@ -293,6 +341,21 @@ export default function ReadingPanel({
     void loadChapter(target)
   }, [chapterCount, gotoDraft, loadChapter, onError])
 
+  const historyBack = useCallback(() => {
+    setChapterHistory((prev) => {
+      if (prev.length === 0) {
+        queueMicrotask(() => flashStatus('没有上一浏览记录', 1200))
+        return prev
+      }
+      const entry = prev[prev.length - 1]
+      queueMicrotask(() => {
+        void loadChapter(entry.index, { fromHistory: true, restoreOffset: entry.offset })
+        flashStatus('已返回上一浏览章节', 1200)
+      })
+      return prev.slice(0, -1)
+    })
+  }, [flashStatus, loadChapter])
+
   useEffect(() => {
     const onKey = (e: KeyboardEvent) => {
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'f') {
@@ -302,6 +365,21 @@ export default function ReadingPanel({
         setTocOpen(false)
         bumpChrome()
         queueMicrotask(() => findInputRef.current?.focus())
+        return
+      }
+      if (e.key === 'F3') {
+        e.preventDefault()
+        if (!findOpen) {
+          setFindOpen(true)
+          setGotoOpen(false)
+          setTocOpen(false)
+          bumpChrome()
+          queueMicrotask(() => findInputRef.current?.focus())
+          return
+        }
+        if (findMatches.length === 0) return
+        findLandedRef.current = true
+        jumpToFind(e.shiftKey ? findIndex - 1 : findIndex + 1)
         return
       }
       const openGoto = () => {
@@ -335,6 +413,13 @@ export default function ReadingPanel({
         return
       }
       if (loading) return
+      if (e.key === 'Backspace' || (e.altKey && e.key === 'ArrowLeft')) {
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return
+        e.preventDefault()
+        historyBack()
+        return
+      }
       if (e.key === 'PageDown' || e.key === 'PageUp') {
         if ((e.target as HTMLElement)?.tagName === 'INPUT') return
         e.preventDefault()
@@ -354,11 +439,17 @@ export default function ReadingPanel({
         bumpChrome()
         return
       }
-      if (e.key === 'ArrowLeft') {
+      if (e.key === 'ArrowLeft' || e.key === 'ArrowRight') {
+        const tag = (e.target as HTMLElement)?.tagName
+        if (tag === 'INPUT' || tag === 'TEXTAREA') return
         e.preventDefault()
-        if (chapterIndex > 0) void loadChapter(chapterIndex - 1)
-      } else if (e.key === 'ArrowRight' || e.key === ' ') {
-        if (e.key === ' ' && (e.target as HTMLElement)?.tagName === 'INPUT') return
+        if (e.key === 'ArrowLeft') {
+          if (chapterIndex > 0) void loadChapter(chapterIndex - 1)
+        } else if (hasNext) {
+          void loadChapter(chapterIndex + 1)
+        }
+      } else if (e.key === ' ') {
+        if ((e.target as HTMLElement)?.tagName === 'INPUT') return
         e.preventDefault()
         if (hasNext) void loadChapter(chapterIndex + 1)
       } else if (e.key === '+' || e.key === '=') {
@@ -383,7 +474,7 @@ export default function ReadingPanel({
     }
     window.addEventListener('keydown', onKey, true)
     return () => window.removeEventListener('keydown', onKey, true)
-  }, [bumpChrome, chapterIndex, findOpen, flashStatus, gotoOpen, hasNext, loadChapter, loading, onPatchSettings, settings.fontSize, settings.lineHeight])
+  }, [bumpChrome, chapterIndex, findIndex, findMatches.length, findOpen, flashStatus, gotoOpen, hasNext, historyBack, jumpToFind, loadChapter, loading, onPatchSettings, settings.fontSize, settings.lineHeight])
 
   useEffect(() => {
     const el = scrollRef.current
@@ -427,6 +518,16 @@ export default function ReadingPanel({
         </button>
         <button
           type="button"
+          disabled={historyDepth === 0}
+          className="rounded-md p-1 hover:bg-white/10 disabled:opacity-30"
+          style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
+          onClick={historyBack}
+          title="上一浏览章节 (Backspace)"
+        >
+          <Undo2 size={14} />
+        </button>
+        <button
+          type="button"
           className="rounded-md p-1 hover:bg-white/10"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           onClick={() => void openToc()}
@@ -439,7 +540,7 @@ export default function ReadingPanel({
           className="rounded-md p-1 hover:bg-white/10"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           onClick={exportToNote}
-          title="摘录到笔记"
+          title="摘录到笔记（有选中则只摘录选中）"
         >
           <StickyNote size={14} />
         </button>
@@ -448,7 +549,7 @@ export default function ReadingPanel({
           className="rounded-md p-1 hover:bg-white/10"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
           onClick={() => void copyChapter()}
-          title="复制本章"
+          title="复制（有选中则只复制选中）"
         >
           <ClipboardCopy size={14} />
         </button>
@@ -497,7 +598,10 @@ export default function ReadingPanel({
           type="button"
           className="rounded-md p-1 hover:bg-white/10"
           style={{ WebkitAppRegion: 'no-drag' } as React.CSSProperties}
-          onClick={() => void window.electronAPI?.hideReader?.()}
+          onClick={() => {
+            flushProgressNow()
+            void window.electronAPI?.hideReader?.()
+          }}
         >
           <X size={14} />
         </button>
@@ -538,11 +642,18 @@ export default function ReadingPanel({
             onChange={(e) => {
               setFindQuery(e.target.value)
               setFindIndex(0)
+              findLandedRef.current = false
               bumpChrome()
             }}
             onKeyDown={(e) => {
               if (e.key === 'Enter') {
                 e.preventDefault()
+                if (findMatches.length === 0) return
+                if (!findLandedRef.current) {
+                  findLandedRef.current = true
+                  jumpToFind(findIndex)
+                  return
+                }
                 jumpToFind(e.shiftKey ? findIndex - 1 : findIndex + 1)
               }
             }}
@@ -550,10 +661,18 @@ export default function ReadingPanel({
             className="min-w-0 flex-1 rounded-lg border border-white/10 bg-black/40 px-2 py-1 outline-none"
           />
           <span className="shrink-0 text-zinc-400">
-            {findMatches.length ? `${findIndex + 1}/${findMatches.length}` : '0'}
+            {findMatches.length
+              ? `${findIndex + 1}/${findMatches.length}${findMatches.length >= 200 ? '+' : ''}`
+              : '0'}
           </span>
-          <button type="button" className="rounded px-1.5 py-0.5 hover:bg-white/10" onClick={() => jumpToFind(findIndex - 1)}>↑</button>
-          <button type="button" className="rounded px-1.5 py-0.5 hover:bg-white/10" onClick={() => jumpToFind(findIndex + 1)}>↓</button>
+          <button type="button" className="rounded-md px-1.5 py-0.5 hover:bg-white/10" onClick={() => {
+            findLandedRef.current = true
+            jumpToFind(findIndex - 1)
+          }}>↑</button>
+          <button type="button" className="rounded-md px-1.5 py-0.5 hover:bg-white/10" onClick={() => {
+            findLandedRef.current = true
+            jumpToFind(findIndex + 1)
+          }}>↓</button>
           <button type="button" className="rounded px-1.5 py-0.5 hover:bg-white/10" onClick={() => setFindOpen(false)}>关闭</button>
         </div>
       )}
@@ -601,7 +720,23 @@ export default function ReadingPanel({
           persistProgress(chapterIndex, (e.target as HTMLDivElement).scrollTop)
         }}
       >
-        {body || (loading ? '加载中…' : '（空章节）')}
+        {highlightedParts ? (
+          highlightedParts.map((part, i) => (
+            part.hitIndex == null ? (
+              <span key={i}>{part.text}</span>
+            ) : (
+              <mark
+                key={i}
+                data-find-hit={part.hitIndex}
+                className={part.hitIndex === findIndex ? 'rounded-sm bg-amber-300 px-0.5 text-black' : 'rounded-sm bg-yellow-500/35 px-0.5 text-inherit'}
+              >
+                {part.text}
+              </mark>
+            )
+          ))
+        ) : (
+          body || (loading ? '加载中…' : '（空章节）')
+        )}
       </div>
 
       <div
@@ -632,7 +767,7 @@ export default function ReadingPanel({
             })
           }}
         >
-          {statusMsg || `${chapterIndex + 1} / ${Math.max(chapterCount, chapterIndex + 1)}${loading ? ' · …' : ''}`}
+          {statusMsg || `${chapterIndex + 1} / ${Math.max(chapterCount, chapterIndex + 1)}${chapterCount > 0 ? ` · ${Math.min(100, Math.round(((chapterIndex + 1) / Math.max(chapterCount, chapterIndex + 1)) * 100))}%` : ''}${loading ? ' · …' : ''}`}
         </button>
         <button
           type="button"
