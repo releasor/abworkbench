@@ -213,8 +213,8 @@ export function StatsChart() {
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
         {Array.from({ length: 4 }).map((_, i) => (
           <div key={i} className="card p-4 animate-pulse">
-            <div className="h-4 bg-gray-200 dark:bg-gray-700 rounded w-24 mb-4" />
-            <div className="h-[200px] bg-gray-100 dark:bg-gray-800 rounded" />
+            <div className="h-4 bg-surface-lighter rounded w-24 mb-4" />
+            <div className="h-[200px] bg-surface-lighter rounded" />
           </div>
         ))}
       </div>
@@ -225,7 +225,7 @@ export function StatsChart() {
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4" role="region" aria-label="任务统计图表">
       {/* Status Pie Chart */}
       <div className="card p-4" role="img" aria-label={`状态分布: ${statusData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
-        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">状态分布</h4>
+        <h4 className="text-sm font-medium text-text-muted mb-4">状态分布</h4>
         <ResponsiveContainer width="100%" height={200}>
           <PieChart>
             <Pie
@@ -249,7 +249,7 @@ export function StatsChart() {
 
       {/* Priority Bar Chart */}
       <div className="card p-4" role="img" aria-label={`优先级分布: ${priorityData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
-        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">优先级分布</h4>
+        <h4 className="text-sm font-medium text-text-muted mb-4">优先级分布</h4>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={priorityData}>
             <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -266,7 +266,7 @@ export function StatsChart() {
 
       {/* Completion Trend */}
       <div className="card p-4" role="img" aria-label={`近7天完成趋势: ${last7Days.map(d => `${d.date} ${d.completed}个`).join(', ')}`}>
-        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">近7天完成趋势</h4>
+        <h4 className="text-sm font-medium text-text-muted mb-4">近7天完成趋势</h4>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={last7Days}>
             <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -286,7 +286,7 @@ export function StatsChart() {
       {/* Category Distribution */}
       {categoryData.length > 0 && (
         <div className="card p-4" role="img" aria-label={`分类分布: ${categoryData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">分类分布</h4>
+          <h4 className="text-sm font-medium text-text-muted mb-4">分类分布</h4>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
               <Pie
@@ -311,7 +311,7 @@ export function StatsChart() {
       {/* Day of Week Completions */}
       {hasDayOfWeekData && (
         <div className="card p-4" role="img" aria-label={`按星期统计: ${dayOfWeekData.map(d => `周${d.name} ${d.completed}个`).join(', ')}`}>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">按星期完成统计</h4>
+          <h4 className="text-sm font-medium text-text-muted mb-4">按星期完成统计</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dayOfWeekData}>
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -326,7 +326,7 @@ export function StatsChart() {
       {/* Time Tracking */}
       {timeData.length > 0 && (
         <div className="card p-4 md:col-span-2" role="img" aria-label={`时间统计: ${timeData.map(d => `${d.name} ${d.minutes}分钟`).join(', ')}`}>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">时间统计 (分钟)</h4>
+          <h4 className="text-sm font-medium text-text-muted mb-4">时间统计 (分钟)</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={timeData}>
               <XAxis dataKey="name" tick={{ fontSize: 12 }} />
@@ -341,7 +341,7 @@ export function StatsChart() {
       {/* Daily Time Tracking */}
       {hasDailyTimeData && (
         <div className="card p-4 md:col-span-2" role="img" aria-label={`每日专注时间: ${dailyTimeData.map(d => `${d.date} ${d.minutes}分钟`).join(', ')}`}>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">每日专注时间 (分钟)</h4>
+          <h4 className="text-sm font-medium text-text-muted mb-4">每日专注时间 (分钟)</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dailyTimeData}>
               <XAxis dataKey="date" tick={{ fontSize: 12 }} />
@@ -356,7 +356,7 @@ export function StatsChart() {
       {/* Weekly Completion Trend */}
       {hasWeeklyTrend && (
         <div className="card p-4 md:col-span-2" role="img" aria-label={`周完成趋势: ${weeklyTrend.map(w => `${w.week}周 ${w.completed}个`).join(', ')}`}>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">近8周完成趋势</h4>
+          <h4 className="text-sm font-medium text-text-muted mb-4">近8周完成趋势</h4>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={weeklyTrend}>
               <XAxis dataKey="week" tick={{ fontSize: 12 }} />
@@ -376,13 +376,13 @@ export function StatsChart() {
 
       {/* Productivity Heatmap */}
       <div className="card p-4 md:col-span-2" role="region" aria-label="完成热力图 (近16周)">
-        <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">完成热力图 (近16周)</h4>
+        <h4 className="text-sm font-medium text-text-muted mb-4">完成热力图 (近16周)</h4>
         <div className="flex gap-0.5 overflow-x-auto">
           {/* Day labels */}
           <div className="flex flex-col gap-0.5 mr-1 flex-shrink-0">
             {['日', '一', '二', '三', '四', '五', '六'].map((d, i) => (
               <div key={d} className="flex items-center" style={{ height: 14 }}>
-                {i % 2 === 1 && <span className="text-[10px] text-gray-400 dark:text-gray-500 w-3 text-right">{d}</span>}
+                {i % 2 === 1 && <span className="text-[10px] text-text-muted w-3 text-right">{d}</span>}
               </div>
             ))}
           </div>
@@ -406,7 +406,7 @@ export function StatsChart() {
         </div>
         {/* Legend */}
         <div className="flex items-center gap-1 mt-2 justify-end">
-          <span className="text-[10px] text-gray-400 mr-1">少</span>
+          <span className="text-[10px] text-text-muted mr-1">少</span>
           {(isDark ? HEATMAP_DARK : HEATMAP_LIGHT).map((color, i) => (
             <div
               key={i}
@@ -414,14 +414,14 @@ export function StatsChart() {
               style={{ backgroundColor: color }}
             />
           ))}
-          <span className="text-[10px] text-gray-400 ml-1">多</span>
+          <span className="text-[10px] text-text-muted ml-1">多</span>
         </div>
       </div>
 
       {/* Burndown Chart */}
       {hasBurndownData && (
         <div className="card p-4 md:col-span-2" role="img" aria-label={`任务燃尽图: ${burndownData.map(d => `${d.date} 剩余${d.remaining}个`).join(', ')}`}>
-          <h4 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-4">任务燃尽图 (近30天)</h4>
+          <h4 className="text-sm font-medium text-text-muted mb-4">任务燃尽图 (近30天)</h4>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={burndownData}>
               <XAxis dataKey="date" tick={{ fontSize: 10 }} interval={4} />

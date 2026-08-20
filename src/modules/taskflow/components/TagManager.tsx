@@ -58,33 +58,25 @@ export function TagManager({ onClose }: TagManagerProps) {
         </div>
 
         <div className="mb-4">
-          <p className="text-sm text-gray-500">
+          <p className="text-sm text-text-muted">
             共 {tagStats.length} 个标签，点击标签筛选任务
           </p>
         </div>
 
         {tagStats.length === 0 ? (
-          <p className="text-sm text-gray-400 text-center py-8">暂无标签</p>
+          <p className="text-sm text-text-muted text-center py-8">暂无标签</p>
         ) : (
           <div className="flex flex-wrap gap-2" role="group" aria-label="标签列表">
             {tagStats.map(({ name, count }) => (
               <button
                 key={name}
                 onClick={() => handleTagClick(name)}
-                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors ${
-                  selectedTag === name
-                    ? 'bg-blue-500 text-white'
-                    : 'bg-gray-100 dark:bg-gray-800 text-gray-700 dark:text-gray-300 hover:bg-gray-200 dark:hover:bg-gray-700'
-                }`}
+                className={`inline-flex items-center gap-1.5 px-3 py-1.5 rounded-full text-sm transition-colors ${ selectedTag === name ? 'bg-blue-500 text-white' : 'bg-surface-lighter text-text hover:bg-surface-lighter ' }`}
                 aria-pressed={selectedTag === name}
                 aria-label={`标签 ${name}，${count}个任务`}
               >
                 <span>#{name}</span>
-                <span className={`text-xs px-1.5 py-0.5 rounded-full ${
-                  selectedTag === name
-                    ? 'bg-blue-400 text-white'
-                    : 'bg-gray-200 dark:bg-gray-700 text-gray-500'
-                }`} aria-hidden="true">
+                <span className={`text-xs px-1.5 py-0.5 rounded-full ${ selectedTag === name ? 'bg-blue-400 text-white' : 'bg-surface-lighter text-text-muted' }`} aria-hidden="true">
                   {count}
                 </span>
               </button>
@@ -93,7 +85,7 @@ export function TagManager({ onClose }: TagManagerProps) {
         )}
 
         {selectedTag && (
-          <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
+          <div className="mt-4 pt-4 border-t border-border">
             <button
               onClick={() => {
                 setFilters({ search: '' });

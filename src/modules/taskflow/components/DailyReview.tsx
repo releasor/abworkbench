@@ -106,11 +106,11 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-md w-full mx-4 animate-pulse">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-6"></div>
+        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 animate-pulse">
+          <div className="h-8 bg-surface-lighter rounded w-3/4 mb-6"></div>
           <div className="space-y-4">
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded"></div>
+            <div className="h-24 bg-surface-lighter rounded"></div>
+            <div className="h-24 bg-surface-lighter rounded"></div>
           </div>
         </div>
       </div>
@@ -128,14 +128,14 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
       aria-modal="true"
       aria-label="每日回顾"
     >
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">
+            <h2 className="text-2xl font-bold text-text dark:text-white">
               每日回顾
             </h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <p className="text-sm text-text-muted mt-1">
               {formatDateLong(data.today.date)}
             </p>
           </div>
@@ -143,14 +143,14 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
             <button
               onClick={handleRefresh}
               disabled={refreshing}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors disabled:opacity-50"
+              className="p-2 rounded-lg hover:bg-surface-lighter transition-colors disabled:opacity-50"
               aria-label="刷新数据"
             >
               <Icon name="refresh" className={`w-5 h-5 ${refreshing ? 'animate-spin' : ''}`} />
             </button>
             <button
               onClick={onClose}
-              className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="p-2 rounded-lg hover:bg-surface-lighter transition-colors"
               aria-label="关闭"
             >
               <Icon name="close" className="w-5 h-5" />
@@ -201,30 +201,30 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
         </div>
 
         {/* Insights */}
-        <div className="bg-gray-50 dark:bg-gray-700/50 rounded-xl p-4 mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">📊 洞察分析</h3>
+        <div className="bg-surface-lighter /50 rounded-xl p-4 mb-6">
+          <h3 className="font-semibold text-text dark:text-white mb-3">📊 洞察分析</h3>
           <div className="grid grid-cols-2 gap-3 text-sm">
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">完成率:</span>
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="text-text-muted">完成率:</span>
+              <span className="font-medium text-text dark:text-white">
                 {data.insights.completionRate}%
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">平均任务时长:</span>
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="text-text-muted">平均任务时长:</span>
+              <span className="font-medium text-text dark:text-white">
                 {data.insights.avgTaskTime}分钟
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">最高效时段:</span>
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="text-text-muted">最高效时段:</span>
+              <span className="font-medium text-text dark:text-white">
                 {formatHour(data.insights.mostProductiveHour)}
               </span>
             </div>
             <div className="flex items-center gap-2">
-              <span className="text-gray-500">连续完成天数:</span>
-              <span className="font-medium text-gray-900 dark:text-white">
+              <span className="text-text-muted">连续完成天数:</span>
+              <span className="font-medium text-text dark:text-white">
                 {data.insights.streakDays}天 🔥
               </span>
             </div>
@@ -234,17 +234,17 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
         {/* Top Completed Tasks */}
         {data.today.topTasks.length > 0 && (
           <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">✅ 今日完成的重要任务</h3>
+            <h3 className="font-semibold text-text dark:text-white mb-3">✅ 今日完成的重要任务</h3>
             <div className="space-y-2">
               {data.today.topTasks.map((task) => (
                 <div
                   key={task.id}
-                  className="flex items-center gap-3 p-3 bg-white dark:bg-gray-700 rounded-lg border border-gray-200 dark:border-gray-600 hover:shadow-md transition-shadow cursor-pointer"
+                  className="flex items-center gap-3 p-3 bg-white rounded-lg border border-border hover:shadow-md transition-shadow cursor-pointer"
                   onClick={() => onEditTask(task as unknown as Task)}
                 >
-                  <div className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.priority] || 'bg-gray-500'}`} />
-                  <span className="flex-1 text-gray-900 dark:text-white">{task.title}</span>
-                  <span className="text-xs text-gray-500">
+                  <div className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.priority] || 'bg-surface-lighter'}`} />
+                  <span className="flex-1 text-text dark:text-white">{task.title}</span>
+                  <span className="text-xs text-text-muted">
                     {task.completedAt.slice(11, 16)}
                   </span>
                 </div>
@@ -256,18 +256,18 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
         {/* Category Distribution */}
         {categoryEntries.length > 0 && (
           <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">📁 分类分布</h3>
+            <h3 className="font-semibold text-text dark:text-white mb-3">📁 分类分布</h3>
             <div className="space-y-2">
               {categoryEntries.map(([category, count]) => (
                 <div key={category} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 dark:text-gray-400 w-20 truncate">{category}</span>
-                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-4">
+                  <span className="text-sm text-text-muted w-20 truncate">{category}</span>
+                  <div className="flex-1 bg-surface-lighter rounded-full h-4">
                     <div
                       className="bg-blue-500 rounded-full h-4 transition-all duration-500"
                       style={{ width: `${(count / data.today.completed) * 100}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white w-8 text-right">{count}</span>
+                  <span className="text-sm font-medium text-text dark:text-white w-8 text-right">{count}</span>
                 </div>
               ))}
             </div>
@@ -275,11 +275,11 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
         )}
 
         {/* Tomorrow's Preview */}
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">📅 明日预览</h3>
+        <div className="border-t border-border pt-6">
+          <h3 className="font-semibold text-text dark:text-white mb-3">📅 明日预览</h3>
           <div className="grid grid-cols-2 gap-4">
             <div>
-              <p className="text-sm text-gray-500 mb-2">待办任务 ({data.tomorrow.dueTasks.length})</p>
+              <p className="text-sm text-text-muted mb-2">待办任务 ({data.tomorrow.dueTasks.length})</p>
               {data.tomorrow.dueTasks.length > 0 ? (
                 <div className="space-y-2">
                   {data.tomorrow.dueTasks.slice(0, 3).map((task) => (
@@ -287,20 +287,20 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
                       key={task.id}
                       className="flex items-center gap-2 p-2 bg-yellow-50 dark:bg-yellow-900/20 rounded-lg text-sm"
                     >
-                      <div className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.priority] || 'bg-gray-500'}`} />
-                      <span className="truncate text-gray-900 dark:text-white">{task.title}</span>
+                      <div className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.priority] || 'bg-surface-lighter'}`} />
+                      <span className="truncate text-text dark:text-white">{task.title}</span>
                     </div>
                   ))}
                   {data.tomorrow.dueTasks.length > 3 && (
-                    <p className="text-xs text-gray-500">还有 {data.tomorrow.dueTasks.length - 3} 个任务...</p>
+                    <p className="text-xs text-text-muted">还有 {data.tomorrow.dueTasks.length - 3} 个任务...</p>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">没有待办任务</p>
+                <p className="text-sm text-text-muted">没有待办任务</p>
               )}
             </div>
             <div>
-              <p className="text-sm text-gray-500 mb-2">进行中 ({data.tomorrow.inProgress.length})</p>
+              <p className="text-sm text-text-muted mb-2">进行中 ({data.tomorrow.inProgress.length})</p>
               {data.tomorrow.inProgress.length > 0 ? (
                 <div className="space-y-2">
                   {data.tomorrow.inProgress.slice(0, 3).map((task) => (
@@ -308,16 +308,16 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
                       key={task.id}
                       className="flex items-center gap-2 p-2 bg-blue-50 dark:bg-blue-900/20 rounded-lg text-sm"
                     >
-                      <div className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.priority] || 'bg-gray-500'}`} />
-                      <span className="truncate text-gray-900 dark:text-white">{task.title}</span>
+                      <div className={`w-2 h-2 rounded-full ${PRIORITY_DOT[task.priority] || 'bg-surface-lighter'}`} />
+                      <span className="truncate text-text dark:text-white">{task.title}</span>
                     </div>
                   ))}
                   {data.tomorrow.inProgress.length > 3 && (
-                    <p className="text-xs text-gray-500">还有 {data.tomorrow.inProgress.length - 3} 个任务...</p>
+                    <p className="text-xs text-text-muted">还有 {data.tomorrow.inProgress.length - 3} 个任务...</p>
                   )}
                 </div>
               ) : (
-                <p className="text-sm text-gray-400">没有进行中的任务</p>
+                <p className="text-sm text-text-muted">没有进行中的任务</p>
               )}
             </div>
           </div>
@@ -325,7 +325,7 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
 
         {/* Motivational Message */}
         <div className="mt-6 text-center">
-          <p className="text-lg text-gray-600 dark:text-gray-400">
+          <p className="text-lg text-text-muted">
             {data.insights.productivityScore >= 80
               ? '太棒了！你今天表现非常出色！继续保持！'
               : data.insights.productivityScore >= 60

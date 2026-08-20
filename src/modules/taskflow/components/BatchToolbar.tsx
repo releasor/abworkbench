@@ -166,18 +166,18 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
       aria-label="批量操作工具栏"
     >
       <div className="flex items-center gap-3">
-        <span className="text-sm font-medium text-gray-700 dark:text-gray-300">
+        <span className="text-sm font-medium text-text">
           已选 {selectedIds.size} 项
         </span>
 
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+        <div className="h-4 w-px bg-surface-lighter" aria-hidden="true" />
 
         <div className="flex items-center gap-1" role="group" aria-label="更改状态">
           {ALL_STATUSES.map((status) => (
             <button
               key={status}
               onClick={() => handleStatusChange(status)}
-              className="text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+              className="text-xs px-2 py-1 rounded hover:bg-surface-lighter transition-colors"
               title={`标记为${STATUS_CONFIG[status].label}`}
               aria-label={`将选中任务标记为${STATUS_CONFIG[status].label}`}
             >
@@ -186,14 +186,14 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
           ))}
         </div>
 
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+        <div className="h-4 w-px bg-surface-lighter" aria-hidden="true" />
 
         <div className="flex items-center gap-1" role="group" aria-label="更改优先级">
           {ALL_PRIORITIES.map((priority) => (
             <button
               key={priority}
               onClick={() => handlePriorityChange(priority)}
-              className="text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+              className="text-xs px-2 py-1 rounded hover:bg-surface-lighter transition-colors flex items-center gap-1"
               title={`设置为${PRIORITY_CONFIG[priority].label}优先级`}
               aria-label={`将选中任务设置为${PRIORITY_CONFIG[priority].label}优先级`}
             >
@@ -207,7 +207,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
           ))}
         </div>
 
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+        <div className="h-4 w-px bg-surface-lighter" aria-hidden="true" />
 
         <div className="relative" ref={categoryRef}>
           <button
@@ -221,16 +221,16 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
             分类
           </button>
           {showCategoryMenu && (
-            <div className="absolute bottom-full left-1/2 z-50 mb-2 w-72 -translate-x-1/2 rounded-3xl border border-gray-200 bg-white p-2 shadow-2xl shadow-black/15 dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
+            <div className="absolute bottom-full left-1/2 z-50 mb-2 w-72 -translate-x-1/2 rounded-3xl border border-border bg-white p-2 shadow-2xl shadow-black/15 dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
               {categories.map((cat) => (
                 <button
                   key={cat.id}
                   onClick={() => handleCategoryChange(cat.id)}
-                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-gray-100 dark:hover:bg-white/10"
+                  className="flex w-full items-center gap-3 rounded-2xl px-3 py-2.5 text-left transition hover:bg-surface-lighter dark:hover:bg-white/10"
                   aria-label={`分类为 ${cat.name}`}
                 >
                   <CategoryIcon category={cat} className="h-8 w-8 rounded-xl" />
-                  <span className="min-w-0 flex-1 text-sm font-semibold text-gray-900 dark:text-gray-100">{cat.name}</span>
+                  <span className="min-w-0 flex-1 text-sm font-semibold text-text">{cat.name}</span>
                   <CategoryPill category={cat} compact />
                 </button>
               ))}
@@ -238,12 +238,12 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
           )}
         </div>
 
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+        <div className="h-4 w-px bg-surface-lighter" aria-hidden="true" />
 
         <div className="relative" ref={tagRef}>
           <button
             onClick={() => setShowTagInput(!showTagInput)}
-            className="text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="text-xs px-2 py-1 rounded hover:bg-surface-lighter transition-colors"
             title="批量标签操作"
             aria-label="批量添加或移除标签"
             aria-expanded={showTagInput}
@@ -286,12 +286,12 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
           )}
         </div>
 
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+        <div className="h-4 w-px bg-surface-lighter" aria-hidden="true" />
 
         <div className="relative" ref={snoozeRef}>
           <button
             onClick={() => setShowSnoozeMenu(!showSnoozeMenu)}
-            className="text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-1"
+            className="text-xs px-2 py-1 rounded hover:bg-surface-lighter transition-colors flex items-center gap-1"
             title="批量推迟任务"
             aria-label="批量推迟选中任务"
             aria-expanded={showSnoozeMenu}
@@ -302,7 +302,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
           {showSnoozeMenu && (
             <div className="absolute bottom-full left-1/2 -translate-x-1/2 mb-1 card p-1 shadow-lg z-50 min-w-[100px]">
               {SNOOZE_PRESETS.map((p) => (
-                <button key={p.days} onClick={() => handleSnooze(p.days, p.label)} className="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-gray-100 dark:hover:bg-gray-700 text-gray-700 dark:text-gray-300">
+                <button key={p.days} onClick={() => handleSnooze(p.days, p.label)} className="w-full text-left px-3 py-1.5 text-xs rounded hover:bg-surface-lighter text-text">
                   {p.label}
                 </button>
               ))}
@@ -310,11 +310,11 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
           )}
         </div>
 
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+        <div className="h-4 w-px bg-surface-lighter" aria-hidden="true" />
 
         <button
           onClick={handleDuplicate}
-          className="text-xs px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex items-center gap-1"
+          className="text-xs px-2 py-1 hover:bg-surface-lighter rounded transition-colors flex items-center gap-1"
           title="复制选中任务"
           aria-label={`复制选中的${selectedIds.size}个任务`}
         >
@@ -325,7 +325,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
         {hasUnpinned && (
           <button
             onClick={handlePin}
-            className="text-xs px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex items-center gap-1"
+            className="text-xs px-2 py-1 hover:bg-surface-lighter rounded transition-colors flex items-center gap-1"
             title="置顶选中任务"
             aria-label={`置顶选中的${selectedIds.size}个任务`}
           >
@@ -337,11 +337,11 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
         {hasPinned && (
           <button
             onClick={handleUnpin}
-            className="text-xs px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex items-center gap-1"
+            className="text-xs px-2 py-1 hover:bg-surface-lighter rounded transition-colors flex items-center gap-1"
             title="取消置顶选中任务"
             aria-label={`取消置顶选中的${selectedIds.size}个任务`}
           >
-            <Icon name="pin" className="w-3 h-3 text-gray-400" />
+            <Icon name="pin" className="w-3 h-3 text-text-muted" />
             取消置顶
           </button>
         )}
@@ -349,7 +349,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
         {hasUnarchived && (
           <button
             onClick={handleArchive}
-            className="text-xs px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex items-center gap-1"
+            className="text-xs px-2 py-1 hover:bg-surface-lighter rounded transition-colors flex items-center gap-1"
             title="归档选中任务"
             aria-label={`归档选中的${selectedIds.size}个任务`}
           >
@@ -361,7 +361,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
         {hasArchived && (
           <button
             onClick={handleUnarchive}
-            className="text-xs px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors flex items-center gap-1"
+            className="text-xs px-2 py-1 hover:bg-surface-lighter rounded transition-colors flex items-center gap-1"
             title="取消归档选中任务"
             aria-label={`取消归档选中的${selectedIds.size}个任务`}
           >
@@ -370,7 +370,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
           </button>
         )}
 
-        <div className="h-4 w-px bg-gray-300 dark:bg-gray-600" aria-hidden="true" />
+        <div className="h-4 w-px bg-surface-lighter" aria-hidden="true" />
 
         <button
           onClick={handleDelete}
@@ -382,7 +382,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
 
         <button
           onClick={selectAll}
-          className="text-xs px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          className="text-xs px-2 py-1 hover:bg-surface-lighter rounded transition-colors"
           aria-label="全选所有任务"
         >
           全选
@@ -390,7 +390,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
 
         <button
           onClick={clearSelection}
-          className="text-xs px-2 py-1 hover:bg-gray-100 dark:hover:bg-gray-700 rounded transition-colors"
+          className="text-xs px-2 py-1 hover:bg-surface-lighter rounded transition-colors"
           aria-label="取消所有选择"
         >
           取消选择

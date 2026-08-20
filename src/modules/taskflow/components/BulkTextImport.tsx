@@ -67,33 +67,33 @@ export function BulkTextImport({ onClose, onSuccess }: BulkTextImportProps) {
       aria-modal="true"
       aria-label="批量文本导入"
     >
-      <div className="bg-white dark:bg-gray-800 rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 animate-slide-in">
-        <h2 className="text-lg font-semibold text-gray-800 dark:text-gray-200 mb-4">
+      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 animate-slide-in">
+        <h2 className="text-lg font-semibold text-text mb-4">
           批量文本导入
         </h2>
 
-        <p className="text-sm text-gray-500 dark:text-gray-400 mb-3">
-          每行将创建一个任务。支持 <code className="px-1 py-0.5 bg-gray-100 dark:bg-gray-700 rounded text-xs">#标签</code>、优先级关键词（紧急/高/低）和日期关键词（明天/后天/下周）。
+        <p className="text-sm text-text-muted mb-3">
+          每行将创建一个任务。支持 <code className="px-1 py-0.5 bg-surface-lighter rounded text-xs">#标签</code>、优先级关键词（紧急/高/低）和日期关键词（明天/后天/下周）。
         </p>
 
         <textarea
           ref={textareaRef}
           value={text}
           onChange={(e) => setText(e.target.value)}
-          className="w-full h-48 p-3 bg-gray-50 dark:bg-gray-900 border border-gray-200 dark:border-gray-700 rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
+          className="w-full h-48 p-3 bg-surface-lighter border border-border rounded-lg text-sm resize-none focus:outline-none focus:ring-2 focus:ring-blue-500"
           placeholder={'买菜 #个人 低\n完成报告 #工作 紧急 明天\n学习 TypeScript #学习 下周'}
           autoFocus
           aria-label="批量任务文本"
         />
 
         <div className="flex items-center justify-between mt-4">
-          <span className="text-sm text-gray-500 dark:text-gray-400">
+          <span className="text-sm text-text-muted">
             {count > 0 ? `将创建 ${count} 个任务` : '输入内容开始创建'}
           </span>
           <div className="flex gap-2">
             <button
               onClick={onClose}
-              className="px-4 py-2 text-sm text-gray-600 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+              className="px-4 py-2 text-sm text-text-muted hover:bg-surface-lighter rounded-lg transition-colors"
             >
               取消
             </button>

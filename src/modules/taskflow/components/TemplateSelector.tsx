@@ -37,7 +37,7 @@ export function TemplateSelector({ onSelect }: TemplateSelectorProps) {
             <button
               key={template.id}
               onClick={() => handleSelect(template)}
-              className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+              className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors flex items-center gap-2"
               role="option"
               aria-selected={false}
             >

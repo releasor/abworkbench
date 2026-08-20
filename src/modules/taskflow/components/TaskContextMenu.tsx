@@ -73,7 +73,7 @@ export function TaskContextMenu({
   return (
     <div
       ref={ref}
-      className="fixed z-[60] bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-1.5 min-w-[180px] animate-fade-in"
+      className="fixed z-[60] bg-white rounded-lg shadow-xl border border-border py-1.5 min-w-[180px] animate-fade-in"
       style={{ left: pos.x, top: pos.y }}
       role="menu"
       aria-label="任务操作菜单"
@@ -157,17 +157,13 @@ function MenuItem({ iconName, label, shortcut, danger, filled, onClick }: {
   return (
     <button
       onClick={onClick}
-      className={`w-full flex items-center gap-2.5 px-3 py-1.5 text-sm transition-colors ${
-        danger
-          ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20'
-          : 'text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700'
-      }`}
+      className={`w-full flex items-center gap-2.5 px-3 py-1.5 text-sm transition-colors ${ danger ? 'text-red-600 dark:text-red-400 hover:bg-red-50 dark:hover:bg-red-900/20' : 'text-text hover:bg-surface-lighter ' }`}
       role="menuitem"
     >
       <Icon name={iconName} className="w-4 h-4 flex-shrink-0" filled={filled} />
       <span className="flex-1 text-left">{label}</span>
       {shortcut && (
-        <kbd className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-400 dark:text-gray-500 rounded font-mono">
+        <kbd className="text-[10px] px-1.5 py-0.5 bg-surface-lighter text-text-muted rounded font-mono">
           {shortcut}
         </kbd>
       )}
@@ -187,17 +183,17 @@ function SnoozeSubmenu({ onSnooze }: { onSnooze: (days: number) => void }) {
       onMouseLeave={() => setOpen(false)}
     >
       <button
-        className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+        className="w-full flex items-center gap-2.5 px-3 py-1.5 text-sm text-text hover:bg-surface-lighter transition-colors"
         role="menuitem"
         aria-haspopup="true"
         aria-expanded={open}
       >
         <Icon name="clock" className="w-4 h-4 flex-shrink-0" />
         <span className="flex-1 text-left">推迟</span>
-        <Icon name="chevron-right" className="w-3 h-3 text-gray-400" />
+        <Icon name="chevron-right" className="w-3 h-3 text-text-muted" />
       </button>
       {open && (
-        <div className="absolute left-full top-0 ml-0.5 bg-white dark:bg-gray-800 rounded-lg shadow-xl border border-gray-200 dark:border-gray-700 py-1 min-w-[120px]">
+        <div className="absolute left-full top-0 ml-0.5 bg-white rounded-lg shadow-xl border border-border py-1 min-w-[120px]">
           {SNOOZE_PRESETS.map((p) => (
             <SnoozeOption key={p.days} label={p.label} onClick={() => onSnooze(p.days)} />
           ))}
@@ -211,7 +207,7 @@ function SnoozeOption({ label, onClick }: { label: string; onClick: () => void }
   return (
     <button
       onClick={onClick}
-      className="w-full text-left px-3 py-1.5 text-sm text-gray-700 dark:text-gray-300 hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+      className="w-full text-left px-3 py-1.5 text-sm text-text hover:bg-surface-lighter transition-colors"
       role="menuitem"
     >
       {label}
@@ -220,5 +216,5 @@ function SnoozeOption({ label, onClick }: { label: string; onClick: () => void }
 }
 
 function Divider() {
-  return <div className="my-1 border-t border-gray-100 dark:border-gray-700" role="separator" />;
+  return <div className="my-1 border-t border-border" role="separator" />;
 }

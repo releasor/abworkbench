@@ -6,7 +6,7 @@ import tseslint from 'typescript-eslint'
 import { defineConfig, globalIgnores } from 'eslint/config'
 
 export default defineConfig([
-  globalIgnores(['dist']),
+  globalIgnores(['dist', 'dist-electron', 'release', 'Mineradio-main', 'vendor/mineradio', 'Everything-1.4.1.1032.x64']),
   {
     files: ['**/*.{ts,tsx}'],
     extends: [

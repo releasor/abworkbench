@@ -69,13 +69,13 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
   return (
     <div ref={trapRef} className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="分类管理">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-fade-in" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-gray-200 bg-white shadow-2xl shadow-black/20 animate-bounce-in dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
-        <div className="flex items-center justify-between border-b border-gray-200 px-6 py-5 dark:border-white/10">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-white shadow-2xl shadow-black/20 animate-bounce-in dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
+        <div className="flex items-center justify-between border-b border-border px-6 py-5 dark:border-white/10">
           <div>
-            <h2 className="text-xl font-black text-gray-950 dark:text-white">分类管理</h2>
-            <p className="mt-1 text-sm text-gray-500 dark:text-gray-400">用颜色和分组让任务空间更清晰。</p>
+            <h2 className="text-xl font-black text-text dark:text-white">分类管理</h2>
+            <p className="mt-1 text-sm text-text-muted">用颜色和分组让任务空间更清晰。</p>
           </div>
-          <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-2xl text-gray-500 transition hover:bg-gray-100 hover:text-gray-900 dark:hover:bg-white/10 dark:hover:text-white" aria-label="关闭分类管理">
+          <button onClick={onClose} className="grid h-10 w-10 place-items-center rounded-2xl text-text-muted transition hover:bg-surface-lighter hover:text-text dark:hover:bg-white/10 dark:hover:text-white" aria-label="关闭分类管理">
             <Icon name="close" className="h-5 w-5" />
           </button>
         </div>
@@ -83,7 +83,7 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
         <div className="max-h-[70vh] overflow-y-auto p-5">
           <div className="grid gap-3">
             {categories.map((category) => (
-              <div key={category.id} className="rounded-3xl border border-gray-200 bg-gray-50/70 p-4 transition hover:border-blue-300 hover:bg-white hover:shadow-lg hover:shadow-black/5 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/50 dark:hover:bg-white/[0.05]">
+              <div key={category.id} className="rounded-3xl border border-border bg-surface-lighter/70 p-4 transition hover:border-blue-300 hover:bg-white hover:shadow-lg hover:shadow-black/5 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/50 dark:hover:bg-white/[0.05]">
                 {editingId === category.id ? (
                   <div className="flex flex-wrap items-center gap-3">
                     <input type="color" value={editColor} onChange={(event) => setEditColor(event.target.value)} className="h-11 w-11 cursor-pointer rounded-2xl border-0 bg-transparent" aria-label="选择颜色" />
@@ -92,11 +92,11 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
                       value={editName}
                       onChange={(event) => setEditName(event.target.value)}
                       onKeyDown={(event) => { if (event.key === 'Enter') void saveEdit(); if (event.key === 'Escape') setEditingId(null); }}
-                      className="min-w-0 flex-1 rounded-2xl border border-blue-400/60 bg-white px-4 py-3 text-sm text-gray-900 outline-none ring-4 ring-blue-500/10 dark:bg-gray-950 dark:text-white"
+                      className="min-w-0 flex-1 rounded-2xl border border-blue-400/60 bg-white px-4 py-3 text-sm text-text outline-none ring-4 ring-blue-500/10 bg-surface dark:text-white"
                       aria-label="分类名称"
                     />
                     <button onClick={saveEdit} className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-600" aria-label="保存">保存</button>
-                    <button onClick={() => setEditingId(null)} className="rounded-2xl px-4 py-2 text-sm font-semibold text-gray-500 transition hover:bg-gray-100 dark:hover:bg-white/10" aria-label="取消">取消</button>
+                    <button onClick={() => setEditingId(null)} className="rounded-2xl px-4 py-2 text-sm font-semibold text-text-muted transition hover:bg-surface-lighter dark:hover:bg-white/10" aria-label="取消">取消</button>
                   </div>
                 ) : (
                   <div className="flex items-center gap-4">
@@ -105,7 +105,7 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
                       <div className="flex flex-wrap items-center gap-2">
                         <CategoryPill category={category} count={categoryCounts.get(category.id) || 0} />
                       </div>
-                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+                      <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-lighter dark:bg-white/10">
                         <div
                           className="h-full rounded-full transition-all"
                           style={{
@@ -122,10 +122,10 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
                     >
                       筛选
                     </button>
-                    <button onClick={() => startEdit(category.id, category.name, category.color)} className="grid h-9 w-9 place-items-center rounded-xl text-gray-400 transition hover:bg-gray-100 hover:text-blue-500 dark:hover:bg-white/10" aria-label={`编辑 ${category.name}`}>
+                    <button onClick={() => startEdit(category.id, category.name, category.color)} className="grid h-9 w-9 place-items-center rounded-xl text-text-muted transition hover:bg-surface-lighter hover:text-blue-500 dark:hover:bg-white/10" aria-label={`编辑 ${category.name}`}>
                       <Icon name="edit" className="h-4 w-4" />
                     </button>
-                    <button onClick={() => handleDelete(category.id)} className="grid h-9 w-9 place-items-center rounded-xl text-gray-400 transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10" aria-label={`删除 ${category.name}`}>
+                    <button onClick={() => handleDelete(category.id)} className="grid h-9 w-9 place-items-center rounded-xl text-text-muted transition hover:bg-red-50 hover:text-red-500 dark:hover:bg-red-500/10" aria-label={`删除 ${category.name}`}>
                       <Icon name="trash" className="h-4 w-4" />
                     </button>
                   </div>
@@ -145,18 +145,18 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
                   onChange={(event) => setNewName(event.target.value)}
                   onKeyDown={(event) => { if (event.key === 'Enter') void handleAdd(); if (event.key === 'Escape') setShowAdd(false); }}
                   placeholder="分类名称"
-                  className="min-w-0 flex-1 rounded-2xl border border-blue-400/60 bg-white px-4 py-3 text-sm text-gray-900 outline-none ring-4 ring-blue-500/10 dark:bg-gray-950 dark:text-white"
+                  className="min-w-0 flex-1 rounded-2xl border border-blue-400/60 bg-white px-4 py-3 text-sm text-text outline-none ring-4 ring-blue-500/10 bg-surface dark:text-white"
                   aria-label="新分类名称"
                 />
                 <button onClick={handleAdd} className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-600" aria-label="添加分类">添加</button>
-                <button onClick={() => setShowAdd(false)} className="rounded-2xl px-4 py-2 text-sm font-semibold text-gray-500 transition hover:bg-white/70 dark:hover:bg-white/10" aria-label="取消添加">取消</button>
+                <button onClick={() => setShowAdd(false)} className="rounded-2xl px-4 py-2 text-sm font-semibold text-text-muted transition hover:bg-white/70 dark:hover:bg-white/10" aria-label="取消添加">取消</button>
               </div>
               <div className="mt-3 flex flex-wrap gap-2">
                 {PRESET_COLORS.map((color) => (
                   <button
                     key={color}
                     onClick={() => setNewColor(color)}
-                    className={`h-7 w-7 rounded-full border-2 transition ${newColor === color ? 'scale-110 border-gray-900 dark:border-white' : 'border-transparent'}`}
+                    className={`h-7 w-7 rounded-full border-2 transition ${newColor === color ? 'scale-110 border-border dark:border-white' : 'border-transparent'}`}
                     style={{ backgroundColor: color }}
                     aria-label={`选择颜色 ${color}`}
                   />
@@ -166,7 +166,7 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
           ) : (
             <button
               onClick={() => setShowAdd(true)}
-              className="mt-5 flex w-full items-center justify-center gap-2 rounded-3xl border border-dashed border-gray-300 bg-gray-50/70 px-4 py-4 text-sm font-semibold text-gray-500 transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/60 dark:hover:bg-blue-500/10 dark:hover:text-blue-200"
+              className="mt-5 flex w-full items-center justify-center gap-2 rounded-3xl border border-dashed border-border bg-surface-lighter/70 px-4 py-4 text-sm font-semibold text-text-muted transition hover:border-blue-400 hover:bg-blue-50 hover:text-blue-600 dark:border-white/10 dark:bg-white/[0.03] dark:hover:border-blue-500/60 dark:hover:bg-blue-500/10 dark:hover:text-blue-200"
               aria-label="添加新分类"
             >
               <Icon name="plus" className="h-4 w-4" />

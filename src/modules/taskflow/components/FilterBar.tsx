@@ -135,18 +135,14 @@ export function FilterBar() {
       {/* No Due Date Filter */}
       <button
         onClick={() => { setFilters({ noDueDate: !filters.noDueDate }); playClickSound(); }}
-        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${
-          filters.noDueDate
-            ? 'bg-gray-200 dark:bg-gray-600 text-gray-700 dark:text-gray-300'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-gray-200 dark:hover:bg-gray-700'
-        }`}
+        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${ filters.noDueDate ? 'bg-surface-lighter text-text ' : 'bg-surface-lighter text-text-muted hover:bg-surface-lighter ' }`}
         aria-label={t('taskflow.filter.noDueDate')}
         aria-pressed={filters.noDueDate}
       >
         <Icon name="calendar" className="w-3 h-3" />
         {t('taskflow.filter.noDueDate')}
         {noDueDateCount > 0 && (
-          <span className="px-1.5 py-0.5 bg-gray-300 dark:bg-gray-700 rounded-full text-[10px]">{noDueDateCount}</span>
+          <span className="px-1.5 py-0.5 bg-surface-lighter rounded-full text-[10px]">{noDueDateCount}</span>
         )}
       </button>
 
@@ -154,7 +150,7 @@ export function FilterBar() {
       <select
         value={filters.status}
         onChange={(e) => setFilters({ status: e.target.value as Status | 'all' })}
-        className="rounded-2xl border border-gray-200 bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm outline-none transition hover:border-blue-300 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200"
+        className="rounded-2xl border border-border bg-white/70 px-4 py-2 text-sm font-semibold text-text shadow-sm outline-none transition hover:border-blue-300 dark:border-white/10 dark:bg-white/[0.03]"
         aria-label={tWith('taskflow.filter.allStatus', tasks.length)}
       >
         <option value="all">{tWith('taskflow.filter.allStatus', tasks.length)}</option>
@@ -167,7 +163,7 @@ export function FilterBar() {
       <select
         value={filters.priority}
         onChange={(e) => setFilters({ priority: e.target.value as Priority | 'all' })}
-        className="rounded-2xl border border-gray-200 bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm outline-none transition hover:border-blue-300 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200"
+        className="rounded-2xl border border-border bg-white/70 px-4 py-2 text-sm font-semibold text-text shadow-sm outline-none transition hover:border-blue-300 dark:border-white/10 dark:bg-white/[0.03]"
         aria-label={tWith('taskflow.filter.allPriority', tasks.length)}
       >
         <option value="all">{tWith('taskflow.filter.allPriority', tasks.length)}</option>
@@ -190,7 +186,7 @@ export function FilterBar() {
       <select
         value={filters.energyLevel}
         onChange={(e) => setFilters({ energyLevel: e.target.value as 'all' | 'low' | 'medium' | 'high' })}
-        className="rounded-2xl border border-gray-200 bg-white/70 px-4 py-2 text-sm font-semibold text-gray-700 shadow-sm outline-none transition hover:border-blue-300 dark:border-white/10 dark:bg-white/[0.03] dark:text-gray-200"
+        className="rounded-2xl border border-border bg-white/70 px-4 py-2 text-sm font-semibold text-text shadow-sm outline-none transition hover:border-blue-300 dark:border-white/10 dark:bg-white/[0.03]"
         aria-label={t('taskflow.filter.energyLevel')}
       >
         <option value="all">{t('taskflow.filter.allEnergy')}</option>
@@ -202,7 +198,7 @@ export function FilterBar() {
       {/* Tags Filter */}
       {allTags.length > 0 && (
         <div className="flex items-center gap-1.5">
-          <span className="text-xs text-gray-500 dark:text-gray-400">{t('taskflow.filter.tags')}:</span>
+          <span className="text-xs text-text-muted">{t('taskflow.filter.tags')}:</span>
           <div className="flex flex-wrap gap-1">
             {allTags.slice(0, 8).map((tag) => {
               const active = filters.tags.includes(tag);
@@ -216,11 +212,7 @@ export function FilterBar() {
                     setFilters({ tags: next });
                     playClickSound();
                   }}
-                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${
-                    active
-                      ? 'bg-blue-500 text-white'
-                      : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/30'
-                  }`}
+                  className={`rounded-full px-2 py-0.5 text-[11px] font-medium transition-colors ${ active ? 'bg-blue-500 text-white' : 'bg-surface-lighter text-text-muted hover:bg-blue-50 dark:hover:bg-blue-900/30' }`}
                   aria-pressed={active}
                   aria-label={`${active ? '取消筛选' : '筛选'}标签: ${tag}`}
                 >
@@ -229,7 +221,7 @@ export function FilterBar() {
               );
             })}
             {allTags.length > 8 && (
-              <span className="text-[11px] text-gray-400">+{allTags.length - 8}</span>
+              <span className="text-[11px] text-text-muted">+{allTags.length - 8}</span>
             )}
           </div>
         </div>
@@ -244,11 +236,7 @@ export function FilterBar() {
       {/* Tracking Filter */}
       <button
         onClick={() => { setFilters({ tracking: filters.tracking === 'active' ? 'all' : 'active' }); playClickSound(); }}
-        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${
-          filters.tracking === 'active'
-            ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-purple-50 dark:hover:bg-purple-900/30'
-        }`}
+        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${ filters.tracking === 'active' ? 'bg-purple-100 dark:bg-purple-900/50 text-purple-700 dark:text-purple-300' : 'bg-surface-lighter text-text-muted hover:bg-purple-50 dark:hover:bg-purple-900/30' }`}
         aria-label={t('taskflow.filter.tracking')}
         aria-pressed={filters.tracking === 'active'}
       >
@@ -259,11 +247,7 @@ export function FilterBar() {
       {/* Pinned Filter */}
       <button
         onClick={() => { setFilters({ pinned: !filters.pinned }); playClickSound(); }}
-        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${
-          filters.pinned
-            ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-amber-50 dark:hover:bg-amber-900/30'
-        }`}
+        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${ filters.pinned ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300' : 'bg-surface-lighter text-text-muted hover:bg-amber-50 dark:hover:bg-amber-900/30' }`}
         aria-label={t('taskflow.filter.pinned')}
         aria-pressed={filters.pinned}
       >
@@ -277,11 +261,7 @@ export function FilterBar() {
       {/* Archived Filter */}
       <button
         onClick={() => { setFilters({ archived: !filters.archived }); playClickSound(); }}
-        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${
-          filters.archived
-            ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-amber-50 dark:hover:bg-amber-900/30'
-        }`}
+        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${ filters.archived ? 'bg-amber-100 dark:bg-amber-900/50 text-amber-700 dark:text-amber-300' : 'bg-surface-lighter text-text-muted hover:bg-amber-50 dark:hover:bg-amber-900/30' }`}
         aria-label={t('taskflow.filter.archived')}
         aria-pressed={filters.archived}
       >
@@ -295,11 +275,7 @@ export function FilterBar() {
       {/* Quick Win Filter */}
       <button
         onClick={() => { setFilters({ quickWin: !filters.quickWin }); playClickSound(); }}
-        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${
-          filters.quickWin
-            ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-green-50 dark:hover:bg-green-900/30'
-        }`}
+        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${ filters.quickWin ? 'bg-green-100 dark:bg-green-900/50 text-green-700 dark:text-green-300' : 'bg-surface-lighter text-text-muted hover:bg-green-50 dark:hover:bg-green-900/30' }`}
         aria-label={t('taskflow.filter.quickWin')}
         aria-pressed={filters.quickWin}
       >
@@ -313,11 +289,7 @@ export function FilterBar() {
       {/* Stale Filter */}
       <button
         onClick={() => { setFilters({ stale: !filters.stale }); playClickSound(); }}
-        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${
-          filters.stale
-            ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300'
-            : 'bg-gray-100 dark:bg-gray-800 text-gray-600 dark:text-gray-400 hover:bg-orange-50 dark:hover:bg-orange-900/30'
-        }`}
+        className={`flex items-center gap-1 rounded-2xl px-3 py-2 text-xs font-semibold shadow-sm transition-colors ${ filters.stale ? 'bg-orange-100 dark:bg-orange-900/50 text-orange-700 dark:text-orange-300' : 'bg-surface-lighter text-text-muted hover:bg-orange-50 dark:hover:bg-orange-900/30' }`}
         aria-label={t('taskflow.filter.stale')}
         aria-pressed={filters.stale}
       >

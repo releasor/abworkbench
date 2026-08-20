@@ -55,11 +55,11 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="bg-white dark:bg-gray-800 rounded-2xl p-8 max-w-lg w-full mx-4 animate-pulse">
-          <div className="h-8 bg-gray-200 dark:bg-gray-700 rounded w-3/4 mb-6" />
+        <div className="bg-white rounded-2xl p-8 max-w-lg w-full mx-4 animate-pulse">
+          <div className="h-8 bg-surface-lighter rounded w-3/4 mb-6" />
           <div className="space-y-4">
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded" />
-            <div className="h-24 bg-gray-200 dark:bg-gray-700 rounded" />
+            <div className="h-24 bg-surface-lighter rounded" />
+            <div className="h-24 bg-surface-lighter rounded" />
           </div>
         </div>
       </div>
@@ -71,7 +71,7 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
   const { summary, dailyBreakdown, comparison, topCategories, topTags, streakDays } = data;
   const maxCompleted = Math.max(...dailyBreakdown.map(d => d.completed), 1);
   const trendArrow = comparison.trend === 'up' ? '↑' : comparison.trend === 'down' ? '↓' : '→';
-  const trendColor = comparison.trend === 'up' ? 'text-green-500' : comparison.trend === 'down' ? 'text-red-500' : 'text-gray-400';
+  const trendColor = comparison.trend === 'up' ? 'text-green-500' : comparison.trend === 'down' ? 'text-red-500' : 'text-text-muted';
 
   return (
     <div
@@ -82,18 +82,18 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
       aria-modal="true"
       aria-label="周报"
     >
-      <div className="bg-white dark:bg-gray-800 rounded-2xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="bg-white rounded-2xl p-6 max-w-lg w-full mx-4 max-h-[90vh] overflow-y-auto">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>
-            <h2 className="text-2xl font-bold text-gray-900 dark:text-white">周报</h2>
-            <p className="text-sm text-gray-500 dark:text-gray-400 mt-1">
+            <h2 className="text-2xl font-bold text-text dark:text-white">周报</h2>
+            <p className="text-sm text-text-muted mt-1">
               {data.weekStart} ~ {data.weekEnd}
             </p>
           </div>
           <button
             onClick={onClose}
-            className="p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="p-2 rounded-lg hover:bg-surface-lighter transition-colors"
             aria-label="关闭"
           >
             <Icon name="close" className="w-5 h-5" />
@@ -144,22 +144,20 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
 
         {/* Daily Breakdown Chart */}
         <div className="mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">每日完成</h3>
+          <h3 className="font-semibold text-text dark:text-white mb-3">每日完成</h3>
           <div className="flex items-end gap-2 h-32">
             {dailyBreakdown.map((day, i) => {
               const height = maxCompleted > 0 ? (day.completed / maxCompleted) * 100 : 0;
               return (
                 <div key={day.date} className="flex-1 flex flex-col items-center gap-1">
-                  <span className="text-xs text-gray-500">{day.completed > 0 ? day.completed : ''}</span>
+                  <span className="text-xs text-text-muted">{day.completed > 0 ? day.completed : ''}</span>
                   <div className="w-full flex-1 flex items-end">
                     <div
-                      className={`w-full rounded-t transition-all duration-500 ${
-                        day.completed > 0 ? 'bg-blue-500' : 'bg-gray-200 dark:bg-gray-700'
-                      }`}
+                      className={`w-full rounded-t transition-all duration-500 ${ day.completed > 0 ? 'bg-blue-500' : 'bg-surface-lighter ' }`}
                       style={{ height: `${Math.max(height, 4)}%` }}
                     />
                   </div>
-                  <span className="text-[10px] text-gray-400">{DAY_NAMES[i]}</span>
+                  <span className="text-[10px] text-text-muted">{DAY_NAMES[i]}</span>
                 </div>
               );
             })}
@@ -168,23 +166,19 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
 
         {/* Daily Scores */}
         <div className="mb-6">
-          <h3 className="font-semibold text-gray-900 dark:text-white mb-3">每日评分</h3>
+          <h3 className="font-semibold text-text dark:text-white mb-3">每日评分</h3>
           <div className="flex items-center gap-2">
             {dailyBreakdown.map((day, i) => (
               <div key={day.date} className="flex-1 text-center">
-                <div className={`text-lg font-bold ${
-                  day.score >= 60 ? 'text-green-600 dark:text-green-400' :
-                  day.score >= 40 ? 'text-yellow-600 dark:text-yellow-400' :
-                  'text-red-600 dark:text-red-400'
-                }`}>
+                <div className={`text-lg font-bold ${ day.score >= 60 ? 'text-green-600 dark:text-green-400' : day.score >= 40 ? 'text-yellow-600 dark:text-yellow-400' : 'text-red-600 dark:text-red-400' }`}>
                   {day.score}
                 </div>
-                <div className="text-[10px] text-gray-400">{DAY_NAMES[i]}</div>
+                <div className="text-[10px] text-text-muted">{DAY_NAMES[i]}</div>
               </div>
             ))}
           </div>
           <div className="mt-2 text-center">
-            <span className="text-sm text-gray-500">平均分: </span>
+            <span className="text-sm text-text-muted">平均分: </span>
             <span className="text-lg font-bold text-blue-600 dark:text-blue-400">{summary.avgDailyScore}</span>
           </div>
         </div>
@@ -192,18 +186,18 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
         {/* Top Categories */}
         {topCategories.length > 0 && (
           <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">热门分类</h3>
+            <h3 className="font-semibold text-text dark:text-white mb-3">热门分类</h3>
             <div className="space-y-2">
               {topCategories.map((cat) => (
                 <div key={cat.name} className="flex items-center gap-3">
-                  <span className="text-sm text-gray-600 dark:text-gray-400 flex-1">{cat.name}</span>
-                  <div className="flex-1 bg-gray-200 dark:bg-gray-700 rounded-full h-3">
+                  <span className="text-sm text-text-muted flex-1">{cat.name}</span>
+                  <div className="flex-1 bg-surface-lighter rounded-full h-3">
                     <div
                       className="bg-blue-500 rounded-full h-3 transition-all duration-500"
                       style={{ width: `${(cat.count / summary.completed) * 100}%` }}
                     />
                   </div>
-                  <span className="text-sm font-medium text-gray-900 dark:text-white w-8 text-right">{cat.count}</span>
+                  <span className="text-sm font-medium text-text dark:text-white w-8 text-right">{cat.count}</span>
                 </div>
               ))}
             </div>
@@ -213,14 +207,14 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
         {/* Top Tags */}
         {topTags.length > 0 && (
           <div className="mb-6">
-            <h3 className="font-semibold text-gray-900 dark:text-white mb-3">热门标签</h3>
+            <h3 className="font-semibold text-text dark:text-white mb-3">热门标签</h3>
             <div className="flex flex-wrap gap-2">
               {topTags.map((tag) => (
                 <span
                   key={tag.name}
-                  className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-700 rounded-full"
+                  className="text-xs px-2 py-1 bg-surface-lighter rounded-full"
                 >
-                  #{tag.name} <span className="text-gray-400">({tag.count})</span>
+                  #{tag.name} <span className="text-text-muted">({tag.count})</span>
                 </span>
               ))}
             </div>
@@ -228,13 +222,13 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
         )}
 
         {/* Comparison with previous week */}
-        <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+        <div className="border-t border-border pt-4">
           <div className="flex items-center justify-between text-sm">
-            <span className="text-gray-500">上周完成</span>
-            <span className="font-medium text-gray-900 dark:text-white">{comparison.prevWeekCompleted} 个</span>
+            <span className="text-text-muted">上周完成</span>
+            <span className="font-medium text-text dark:text-white">{comparison.prevWeekCompleted} 个</span>
           </div>
           <div className="flex items-center justify-between text-sm mt-1">
-            <span className="text-gray-500">变化</span>
+            <span className="text-text-muted">变化</span>
             <span className={`font-medium ${trendColor}`}>
               {trendArrow} {Math.abs(comparison.change)} 个
             </span>

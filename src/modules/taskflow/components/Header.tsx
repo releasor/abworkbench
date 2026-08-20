@@ -123,7 +123,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
   }, [filters.search, tasks, categoryNameMap]);
 
   return (
-    <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/80 dark:bg-gray-900/80 border-b border-gray-200 dark:border-gray-700" role="banner">
+    <header className="sticky top-0 z-40 backdrop-blur-lg bg-white/80 /80 border-b border-border" role="banner">
       <div className="max-w-[1600px] mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex items-center justify-between h-16 gap-2 sm:gap-4">
           {/* Logo */}
@@ -145,7 +145,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
 
           {/* Search */}
           <div ref={searchRef} className={`relative flex-1 max-w-md transition-all duration-300 ${searchFocused ? 'max-w-lg' : ''}`} role="search" aria-label="任务搜索">
-            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-gray-400" />
+            <Icon name="search" className="absolute left-3 top-1/2 -translate-y-1/2 w-4 h-4 text-text-muted" />
             <label htmlFor="task-search" className="sr-only">搜索任务</label>
             <input
               id="task-search"
@@ -200,7 +200,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
                   setSelectedSuggestionIndex(-1);
                 }
               }}
-              className="w-full pl-10 pr-4 py-2 bg-gray-100 dark:bg-gray-800 border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
+              className="w-full pl-10 pr-4 py-2 bg-surface-lighter border-0 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 transition-all"
               aria-label="搜索任务"
               aria-expanded={showSuggestions && hasSuggestions}
               aria-controls="search-suggestions"
@@ -208,7 +208,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
             />
             {filters.search && (
               <div className="absolute right-2 top-1/2 -translate-y-1/2 flex items-center gap-1">
-                <span className="text-[10px] px-1.5 py-0.5 bg-gray-200 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded-full" aria-live="polite">
+                <span className="text-[10px] px-1.5 py-0.5 bg-surface-lighter text-text-muted rounded-full" aria-live="polite">
                   {searchResultCount}
                 </span>
                 <button
@@ -217,7 +217,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
                     setShowSuggestions(false);
                     setSelectedSuggestionIndex(-1);
                   }}
-                  className="p-0.5 rounded-full hover:bg-gray-200 dark:hover:bg-gray-600 transition-colors text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                  className="p-0.5 rounded-full hover:bg-surface-lighter transition-colors text-text-muted hover:text-text"
                   aria-label="清除搜索"
                 >
                   <Icon name="close" className="w-3 h-3" />
@@ -229,20 +229,20 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
             {showSuggestions && hasSuggestions && (
               <div
                 id="search-suggestions"
-                className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-50 overflow-hidden"
+                className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-border z-50 overflow-hidden"
                 role="listbox"
                 aria-label="搜索建议"
               >
                 {suggestions.recent.length > 0 && (
                   <div>
-                    <div className="px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400 flex items-center justify-between">
+                    <div className="px-3 py-1.5 text-xs text-text-muted flex items-center justify-between">
                       <span>最近搜索</span>
                       <button
                         onClick={(e) => {
                           e.stopPropagation();
                           clearHistory();
                         }}
-                        className="text-xs text-gray-400 hover:text-gray-600 dark:hover:text-gray-300"
+                        className="text-xs text-text-muted hover:text-text"
                         aria-label="清除搜索历史"
                       >
                         清除
@@ -251,7 +251,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
                     {suggestions.recent.map((item, i) => (
                       <button
                         key={item}
-                        className={`w-full px-3 py-2 text-sm text-left flex items-center gap-2 group ${selectedSuggestionIndex === i ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                        className={`w-full px-3 py-2 text-sm text-left flex items-center gap-2 group ${selectedSuggestionIndex === i ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-surface-lighter '}`}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           setFilters({ search: item });
@@ -261,17 +261,17 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
                         role="option"
                         aria-selected={false}
                       >
-                        <Icon name="clock" className="w-4 h-4 text-gray-400 flex-shrink-0" />
+                        <Icon name="clock" className="w-4 h-4 text-text-muted flex-shrink-0" />
                         <span className="flex-1 truncate">{item}</span>
                         <button
                           onClick={(e) => {
                             e.stopPropagation();
                             removeFromHistory(item);
                           }}
-                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-gray-200 dark:hover:bg-gray-600 rounded"
+                          className="opacity-0 group-hover:opacity-100 p-1 hover:bg-surface-lighter rounded"
                           aria-label={`移除搜索记录: ${item}`}
                         >
-                          <Icon name="close" className="w-3 h-3 text-gray-400" />
+                          <Icon name="close" className="w-3 h-3 text-text-muted" />
                         </button>
                       </button>
                     ))}
@@ -280,13 +280,13 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
 
                 {suggestions.tags.length > 0 && (
                   <div>
-                    <div className="px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="px-3 py-1.5 text-xs text-text-muted">
                       标签
                     </div>
                     {suggestions.tags.map((tag, i) => (
                       <button
                         key={tag}
-                        className={`w-full px-3 py-2 text-sm text-left flex items-center gap-2 ${selectedSuggestionIndex === suggestions.recent.length + i ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                        className={`w-full px-3 py-2 text-sm text-left flex items-center gap-2 ${selectedSuggestionIndex === suggestions.recent.length + i ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-surface-lighter '}`}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           setFilters({ search: `#${tag}` });
@@ -295,7 +295,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
                         role="option"
                         aria-selected={false}
                       >
-                        <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                        <span className="text-xs px-1.5 py-0.5 bg-surface-lighter text-text-muted rounded">
                           #{tag}
                         </span>
                       </button>
@@ -305,13 +305,13 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
 
                 {suggestions.categories.length > 0 && (
                   <div>
-                    <div className="px-3 py-1.5 text-xs text-gray-500 dark:text-gray-400">
+                    <div className="px-3 py-1.5 text-xs text-text-muted">
                       分类
                     </div>
                     {suggestions.categories.map((cat, i) => (
                       <button
                         key={cat.id}
-                        className={`w-full px-3 py-2 text-sm text-left flex items-center gap-2 ${selectedSuggestionIndex === suggestions.recent.length + suggestions.tags.length + i ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-gray-50 dark:hover:bg-gray-700'}`}
+                        className={`w-full px-3 py-2 text-sm text-left flex items-center gap-2 ${selectedSuggestionIndex === suggestions.recent.length + suggestions.tags.length + i ? 'bg-blue-50 dark:bg-blue-900/30' : 'hover:bg-surface-lighter '}`}
                         onMouseDown={(e) => {
                           e.preventDefault();
                           setFilters({ search: cat.name });
@@ -321,7 +321,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
                         aria-selected={false}
                       >
                         <span className="w-2 h-2 rounded-full flex-shrink-0" style={{ backgroundColor: cat.color }} aria-hidden="true" />
-                        <span className="text-sm text-gray-600 dark:text-gray-400">{cat.name}</span>
+                        <span className="text-sm text-text-muted">{cat.name}</span>
                       </button>
                     ))}
                   </div>
@@ -346,10 +346,10 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
           {/* Actions */}
           <div className="flex items-center gap-0.5 sm:gap-1 flex-shrink-0" role="toolbar" aria-label="视图和操作">
             {/* View Mode Toggle - Hidden on mobile */}
-            <div className="hidden sm:flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5" role="group" aria-label="视图切换">
+            <div className="hidden sm:flex items-center bg-surface-lighter rounded-lg p-0.5" role="group" aria-label="视图切换">
               <button
                 onClick={() => onChangeViewMode('board')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'board' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'board' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="看板视图"
                 aria-label="切换到看板视图"
                 aria-pressed={viewMode === 'board'}
@@ -358,7 +358,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('list')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="列表视图"
                 aria-label="切换到列表视图"
                 aria-pressed={viewMode === 'list'}
@@ -367,7 +367,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('calendar')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="日历视图"
                 aria-label="切换到日历视图"
                 aria-pressed={viewMode === 'calendar'}
@@ -376,7 +376,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('archive')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="归档视图"
                 aria-label="切换到归档视图"
                 aria-pressed={viewMode === 'archive'}
@@ -385,7 +385,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('matrix')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="四象限视图"
                 aria-label="切换到四象限视图"
                 aria-pressed={viewMode === 'matrix'}
@@ -521,13 +521,13 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
 
       {/* Mobile Menu */}
       {showMobileMenu && (
-        <div className="md:hidden border-t border-gray-200 dark:border-gray-700 py-2" role="navigation" aria-label="移动菜单">
+        <div className="md:hidden border-t border-border py-2" role="navigation" aria-label="移动菜单">
           <div className="flex flex-wrap gap-2 px-4">
             {/* View Mode Toggle */}
-            <div className="flex items-center bg-gray-100 dark:bg-gray-800 rounded-lg p-0.5 w-full" role="group" aria-label="视图切换">
+            <div className="flex items-center bg-surface-lighter rounded-lg p-0.5 w-full" role="group" aria-label="视图切换">
               <button
                 onClick={() => { onChangeViewMode('board'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'board' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'board' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="看板视图"
                 aria-pressed={viewMode === 'board'}
               >
@@ -535,7 +535,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('list'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="列表视图"
                 aria-pressed={viewMode === 'list'}
               >
@@ -543,7 +543,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('calendar'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="日历视图"
                 aria-pressed={viewMode === 'calendar'}
               >
@@ -551,7 +551,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('archive'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="归档视图"
                 aria-pressed={viewMode === 'archive'}
               >
@@ -559,7 +559,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('matrix'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-white dark:bg-gray-700 shadow-sm' : 'hover:bg-gray-200 dark:hover:bg-gray-700'}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="四象限视图"
                 aria-pressed={viewMode === 'matrix'}
               >

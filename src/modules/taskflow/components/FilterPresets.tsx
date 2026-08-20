@@ -59,10 +59,10 @@ export function FilterPresets() {
   return (
     <div className="flex items-center gap-2" role="toolbar" aria-label="筛选预设">
       {presets.map((preset) => (
-        <div key={preset.id} className="group flex items-center rounded-2xl border border-gray-200 bg-white/70 p-1 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
+        <div key={preset.id} className="group flex items-center rounded-2xl border border-border bg-white/70 p-1 shadow-sm dark:border-white/10 dark:bg-white/[0.03]">
           <button
             onClick={() => handleLoad(preset)}
-            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-gray-600 transition hover:bg-blue-50 hover:text-blue-600 dark:text-gray-300 dark:hover:bg-blue-500/10 dark:hover:text-blue-200"
+            className="flex items-center gap-1.5 rounded-xl px-2.5 py-1.5 text-xs font-semibold text-text-muted transition hover:bg-blue-50 hover:text-blue-600 dark:hover:bg-blue-500/10 dark:hover:text-blue-200"
             aria-label={`加载筛选预设 ${preset.name}`}
           >
             <Icon name="filter" className="h-3.5 w-3.5" />
@@ -70,7 +70,7 @@ export function FilterPresets() {
           </button>
           <button
             onClick={() => handleDelete(preset.id)}
-            className="grid h-7 w-7 place-items-center rounded-xl text-gray-400 opacity-0 transition hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
+            className="grid h-7 w-7 place-items-center rounded-xl text-text-muted opacity-0 transition hover:bg-red-50 hover:text-red-500 group-hover:opacity-100 dark:hover:bg-red-500/10"
             title="删除预设"
             aria-label={`删除筛选预设 ${preset.name}`}
           >
@@ -99,14 +99,14 @@ export function FilterPresets() {
           aria-label="保存筛选预设"
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowSaveDialog(false)} aria-hidden="true" />
-          <div className="relative w-full max-w-sm rounded-3xl border border-gray-200 bg-white p-5 shadow-2xl shadow-black/20 animate-bounce-in dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
+          <div className="relative w-full max-w-sm rounded-3xl border border-border bg-white p-5 shadow-2xl shadow-black/20 animate-bounce-in dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
             <div className="mb-4 flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-500/10 text-blue-500">
                 <Icon name="filter" className="h-4 w-4" />
               </span>
               <div>
-                <h3 className="text-base font-black text-gray-950 dark:text-white" id="save-preset-title">保存筛选预设</h3>
-                <p className="text-xs text-gray-500 dark:text-gray-400">下次一键恢复这组筛选条件。</p>
+                <h3 className="text-base font-black text-text dark:text-white" id="save-preset-title">保存筛选预设</h3>
+                <p className="text-xs text-text-muted">下次一键恢复这组筛选条件。</p>
               </div>
             </div>
             <label htmlFor="preset-name" className="sr-only">预设名称</label>
@@ -118,13 +118,13 @@ export function FilterPresets() {
               onKeyDown={(event) => {
                 if (event.key === 'Enter') handleSave();
               }}
-              className="mb-4 w-full rounded-2xl border border-blue-400/60 bg-white px-4 py-3 text-sm text-gray-900 outline-none ring-4 ring-blue-500/10 placeholder:text-gray-400 dark:bg-gray-950 dark:text-white"
+              className="mb-4 w-full rounded-2xl border border-blue-400/60 bg-white px-4 py-3 text-sm text-text outline-none ring-4 ring-blue-500/10 placeholder:text-text-muted bg-surface dark:text-white"
               placeholder="输入预设名称..."
               autoFocus
               aria-required="true"
             />
             <div className="flex justify-end gap-2">
-              <button onClick={() => setShowSaveDialog(false)} className="rounded-2xl px-4 py-2 text-sm font-semibold text-gray-500 transition hover:bg-gray-100 dark:hover:bg-white/10">
+              <button onClick={() => setShowSaveDialog(false)} className="rounded-2xl px-4 py-2 text-sm font-semibold text-text-muted transition hover:bg-surface-lighter dark:hover:bg-white/10">
                 取消
               </button>
               <button onClick={handleSave} className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white shadow-lg shadow-blue-500/25 transition hover:bg-blue-600 disabled:cursor-not-allowed disabled:opacity-50" disabled={!presetName.trim()}>

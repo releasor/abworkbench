@@ -255,7 +255,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
             handleEdit();
           }
         }}
-        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-gray-200 bg-white/80 p-3.5 shadow-lg shadow-black/5 transition-all before:absolute before:inset-y-4 before:left-0 before:w-1 before:rounded-r-full hover:-translate-y-0.5 hover:border-blue-300/70 hover:shadow-xl hover:shadow-blue-500/10 active:scale-[0.98] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-black/30 dark:hover:border-blue-500/50 ${PRIORITY_BORDER[task.priority]} ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
+        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-border bg-white/80 p-3.5 shadow-lg shadow-black/5 transition-all before:absolute before:inset-y-4 before:left-0 before:w-1 before:rounded-r-full hover:-translate-y-0.5 hover:border-blue-300/70 hover:shadow-xl hover:shadow-blue-500/10 active:scale-[0.98] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-black/30 dark:hover:border-blue-500/50 ${PRIORITY_BORDER[task.priority]} ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
       >
         {/* Priority & Category */}
         <div className="flex items-center justify-between mb-2">
@@ -284,7 +284,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
               </span>
             )}
           </div>
-          <div className="flex items-center gap-0.5 rounded-xl border border-gray-200 bg-white/80 p-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 dark:border-white/10 dark:bg-gray-950/80">
+          <div className="flex items-center gap-0.5 rounded-xl border border-border bg-white/80 p-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 dark:border-white/10 bg-surface/80">
             <button
               onClick={handleCycleStatus}
               className="rounded-lg p-1 transition hover:bg-blue-100 dark:hover:bg-blue-900/30"
@@ -312,11 +312,11 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
               </button>
               {showSnooze && (
                 <div
-                  className="absolute right-0 top-7 z-10 min-w-[140px] rounded-2xl border border-gray-200 bg-white p-1.5 shadow-2xl shadow-black/10 dark:border-white/10 dark:bg-gray-950 dark:shadow-black/40"
+                  className="absolute right-0 top-7 z-10 min-w-[140px] rounded-2xl border border-border bg-white p-1.5 shadow-2xl shadow-black/10 dark:border-white/10 bg-surface dark:shadow-black/40"
                   onClick={(e) => e.stopPropagation()}
                 >
                   {SNOOZE_PRESETS.map((p) => (
-                    <button key={p.days} onClick={() => handleSnooze(p.days)} className="w-full rounded-xl px-3 py-2 text-left text-xs text-gray-700 transition hover:bg-gray-100 dark:text-gray-300 dark:hover:bg-white/10">
+                    <button key={p.days} onClick={() => handleSnooze(p.days)} className="w-full rounded-xl px-3 py-2 text-left text-xs text-text transition hover:bg-surface-lighter dark:hover:bg-white/10">
                       {p.label}
                     </button>
                   ))}
@@ -325,18 +325,18 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
             </div>
             <button
               onClick={handleTogglePin}
-              className={`rounded-lg p-1 transition ${task.pinned ? 'hover:bg-amber-100 dark:hover:bg-amber-900/30' : 'hover:bg-gray-100 dark:hover:bg-white/10'}`}
+              className={`rounded-lg p-1 transition ${task.pinned ? 'hover:bg-amber-100 dark:hover:bg-amber-900/30' : 'hover:bg-surface-lighter dark:hover:bg-white/10'}`}
               aria-label={task.pinned ? t('taskflow.task.unpin') : t('taskflow.filter.pinned')}
               title={task.pinned ? t('taskflow.task.unpin') : t('taskflow.filter.pinned')}
             >
-              <Icon name="pin" className={`w-3.5 h-3.5 ${task.pinned ? 'text-amber-500' : 'text-gray-400'}`} filled={task.pinned} />
+              <Icon name="pin" className={`w-3.5 h-3.5 ${task.pinned ? 'text-amber-500' : 'text-text-muted'}`} filled={task.pinned} />
             </button>
             <button
               onClick={handleDuplicate}
-              className="rounded-lg p-1 transition hover:bg-gray-100 dark:hover:bg-white/10"
+              className="rounded-lg p-1 transition hover:bg-surface-lighter dark:hover:bg-white/10"
               aria-label={`复制任务: ${task.title}`}
             >
-              <Icon name="duplicate" className="w-3.5 h-3.5 text-gray-500" />
+              <Icon name="duplicate" className="w-3.5 h-3.5 text-text-muted" />
             </button>
             {onFocus && (
               <button
@@ -365,13 +365,13 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
         </div>
 
         {/* Title */}
-        <h4 className={`mb-1 line-clamp-2 text-sm font-bold leading-snug ${task.status === 'done' ? 'line-through text-gray-500 dark:text-gray-400' : 'text-gray-900 dark:text-gray-100'}`}>
+        <h4 className={`mb-1 line-clamp-2 text-sm font-bold leading-snug ${task.status === 'done' ? 'line-through text-text-muted ' : 'text-text '}`}>
           {searchQuery ? highlightText(task.title, searchQuery) : task.title}
         </h4>
 
         {/* Description */}
         {task.description && (
-          <p className="text-xs text-gray-500 dark:text-gray-400 mb-2 line-clamp-2">
+          <p className="text-xs text-text-muted mb-2 line-clamp-2">
             {searchQuery ? highlightText(task.description, searchQuery) : task.description}
           </p>
         )}
@@ -407,7 +407,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
                   e.stopPropagation();
                   setFilters({ search: `#${tag}` });
                 }}
-                className="rounded-full bg-gray-100 px-2 py-1 text-[10px] font-medium text-gray-600 transition-colors hover:bg-blue-100 hover:text-blue-600 dark:bg-white/10 dark:text-gray-400 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
+                className="rounded-full bg-surface-lighter px-2 py-1 text-[10px] font-medium text-text-muted transition-colors hover:bg-blue-100 hover:text-blue-600 dark:bg-white/10 dark:hover:bg-blue-900/30 dark:hover:text-blue-400"
                 aria-label={`筛选标签: ${tag}`}
               >
                 #{tag}
@@ -419,7 +419,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
         {/* Subtask Progress */}
         {subtaskProgress && (
           <div className="flex items-center gap-2 mb-2">
-            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+            <div className="h-1.5 flex-1 overflow-hidden rounded-full bg-surface-lighter dark:bg-white/10">
               <div
                 className="h-full rounded-full transition-all duration-300"
                 style={{
@@ -428,7 +428,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
                 }}
               />
             </div>
-            <span className="text-[10px] text-gray-500 flex-shrink-0">
+            <span className="text-[10px] text-text-muted flex-shrink-0">
               {subtaskProgress.completed}/{subtaskProgress.total}
             </span>
           </div>
@@ -438,8 +438,8 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
         {task.estimatedMinutes && (
           <div className="mb-2">
             <div className="flex items-center gap-2">
-              <Icon name="clock" className="w-3 h-3 text-gray-400" />
-              <span className="text-[10px] text-gray-500">
+              <Icon name="clock" className="w-3 h-3 text-text-muted" />
+              <span className="text-[10px] text-text-muted">
                 {t('taskflow.sort.estimated')} {task.estimatedMinutes} {t('settings.minutes')}
                 {timeSpentMinutes > 0 && (
                   <span className="ml-1">
@@ -449,7 +449,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
               </span>
             </div>
             {timeSpentMinutes > 0 && (
-              <div className="mt-1 h-1 overflow-hidden rounded-full bg-gray-200 dark:bg-white/10">
+              <div className="mt-1 h-1 overflow-hidden rounded-full bg-surface-lighter dark:bg-white/10">
                 <div
                   className="h-full rounded-full transition-all duration-300"
                   style={{
@@ -474,7 +474,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
         )}
 
         {/* Footer */}
-        <div className="mt-3 flex items-center justify-between border-t border-gray-100 pt-2.5 text-xs text-gray-400 dark:border-white/10 dark:text-gray-500">
+        <div className="mt-3 flex items-center justify-between border-t border-border pt-2.5 text-xs text-text-muted dark:border-white/10">
           {task.dueDate && (
             <div
               className={`flex items-center gap-1 ${isOverdue ? 'text-red-500 font-medium' : ''} ${isDueSoon ? 'text-yellow-600 font-medium' : ''} cursor-help`}
@@ -491,11 +491,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
                 e.stopPropagation();
                 handleToggleTimer();
               }}
-              className={`p-0.5 rounded transition-colors ${
-                isTracking
-                  ? 'text-purple-500 hover:bg-purple-100 dark:hover:bg-purple-900/30'
-                  : 'text-gray-400 hover:text-purple-500 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
+              className={`p-0.5 rounded transition-colors ${ isTracking ? 'text-purple-500 hover:bg-purple-100 dark:hover:bg-purple-900/30' : 'text-text-muted hover:text-purple-500 hover:bg-surface-lighter ' }`}
               aria-label={isTracking ? t('taskflow.task.stopTimer') : t('taskflow.task.startTimer')}
               title={isTracking ? t('taskflow.task.stopTimer') : t('taskflow.task.startTimer')}
             >

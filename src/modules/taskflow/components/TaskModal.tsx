@@ -323,14 +323,10 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
 
         {/* Tabs (only show when editing) */}
         {isEditing && (
-          <div className="flex gap-4 border-b border-gray-200 dark:border-gray-700 mb-4" role="tablist" aria-label="任务信息选项卡">
+          <div className="flex gap-4 border-b border-border mb-4" role="tablist" aria-label="任务信息选项卡">
             <button
               onClick={() => setActiveTab('details')}
-              className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'details'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+              className={`pb-2 text-sm font-medium border-b-2 transition-colors ${ activeTab === 'details' ? 'border-blue-500 text-blue-600' : 'border-transparent text-text-muted hover:text-text' }`}
               role="tab"
               aria-selected={activeTab === 'details'}
               aria-controls="tab-details"
@@ -340,11 +336,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
             </button>
             <button
               onClick={() => setActiveTab('activity')}
-              className={`pb-2 text-sm font-medium border-b-2 transition-colors ${
-                activeTab === 'activity'
-                  ? 'border-blue-500 text-blue-600'
-                  : 'border-transparent text-gray-500 hover:text-gray-700'
-              }`}
+              className={`pb-2 text-sm font-medium border-b-2 transition-colors ${ activeTab === 'activity' ? 'border-blue-500 text-blue-600' : 'border-transparent text-text-muted hover:text-text' }`}
               role="tab"
               aria-selected={activeTab === 'activity'}
               aria-controls="tab-activity"
@@ -392,8 +384,8 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
             <div className="rounded-xl border border-blue-500/20 bg-blue-500/5 p-3">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div>
-                  <div className="text-sm font-semibold text-gray-900 dark:text-gray-100">智能规划</div>
-                  <div className="text-xs text-gray-500 dark:text-gray-400">生成下一步行动、精力等级、预计耗时和可执行子任务</div>
+                  <div className="text-sm font-semibold text-text">智能规划</div>
+                  <div className="text-xs text-text-muted">生成下一步行动、精力等级、预计耗时和可执行子任务</div>
                 </div>
                 <button
                   type="button"
@@ -405,7 +397,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
               </div>
               <div className="grid grid-cols-1 md:grid-cols-[1fr_130px_130px] gap-3">
                 <div>
-                  <label htmlFor="task-next-action" className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">下一步行动</label>
+                  <label htmlFor="task-next-action" className="block text-xs font-medium mb-1 text-text-muted">下一步行动</label>
                   <input
                     id="task-next-action"
                     type="text"
@@ -416,7 +408,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                   />
                 </div>
                 <div>
-                  <label htmlFor="task-energy" className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">精力等级</label>
+                  <label htmlFor="task-energy" className="block text-xs font-medium mb-1 text-text-muted">精力等级</label>
                   <select
                     id="task-energy"
                     value={form.energyLevel}
@@ -429,7 +421,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                   </select>
                 </div>
                 <div>
-                  <label htmlFor="task-estimated-smart" className="block text-xs font-medium mb-1 text-gray-600 dark:text-gray-300">预计耗时</label>
+                  <label htmlFor="task-estimated-smart" className="block text-xs font-medium mb-1 text-text-muted">预计耗时</label>
                   <input
                     id="task-estimated-smart"
                     type="number"
@@ -444,10 +436,10 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
               </div>
               {!isEditing && form.plannedSubtasks.length > 0 && (
                 <div className="mt-3">
-                  <div className="mb-1 text-xs font-medium text-gray-600 dark:text-gray-300">保存时创建的子任务</div>
+                  <div className="mb-1 text-xs font-medium text-text-muted">保存时创建的子任务</div>
                   <div className="space-y-1">
                     {form.plannedSubtasks.map((title, index) => (
-                      <div key={`${title}-${index}`} className="flex items-center gap-2 text-xs text-gray-600 dark:text-gray-300">
+                      <div key={`${title}-${index}`} className="flex items-center gap-2 text-xs text-text-muted">
                         <span className="grid h-4 w-4 place-items-center rounded-full bg-blue-500/15 text-[10px] text-blue-600 dark:text-blue-300">{index + 1}</span>
                         <span>{title}</span>
                       </div>
@@ -459,7 +451,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
 
             {/* Blocker reason */}
             <div className="rounded-xl border border-amber-500/20 bg-amber-500/5 p-3">
-              <label htmlFor="task-blocker-reason" className="block text-sm font-semibold text-gray-900 dark:text-gray-100">
+              <label htmlFor="task-blocker-reason" className="block text-sm font-semibold text-text">
                 阻塞原因
               </label>
               <textarea
@@ -470,7 +462,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                 rows={2}
                 placeholder="例如：等待设计稿确认、接口还没准备好、需要他人反馈"
               />
-              <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">
+              <p className="mt-1 text-xs text-text-muted">
                 有阻塞时写一句原因，任务卡片和专注模式会优先提示。
               </p>
             </div>
@@ -533,7 +525,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                   type="checkbox"
                   checked={form.pinned}
                   onChange={(e) => setForm({ ...form, pinned: e.target.checked })}
-                  className="rounded border-gray-300 dark:border-gray-600 text-amber-500 focus:ring-amber-500"
+                  className="rounded border-border text-amber-500 focus:ring-amber-500"
                 />
                 <label htmlFor="task-pinned" className="text-sm font-medium flex items-center gap-1.5">
                   <Icon name="pin" className="w-4 h-4 text-amber-500" filled={form.pinned} />
@@ -584,7 +576,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                 {tagSuggestions.length > 0 && (
                   <div
                     id="tag-suggestions"
-                    className="absolute top-full left-0 right-0 mt-1 bg-white dark:bg-gray-800 rounded-lg shadow-lg border border-gray-200 dark:border-gray-700 z-10 py-1"
+                    className="absolute top-full left-0 right-0 mt-1 bg-white rounded-lg shadow-lg border border-border z-10 py-1"
                     role="listbox"
                     aria-label="标签建议"
                   >
@@ -596,11 +588,11 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                           setForm({ ...form, tags: [...form.tags, tag], tagInput: '' });
                           tagInputRef.current?.focus();
                         }}
-                        className="w-full px-3 py-1.5 text-sm text-left hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+                        className="w-full px-3 py-1.5 text-sm text-left hover:bg-surface-lighter transition-colors flex items-center gap-2"
                         role="option"
                         aria-selected={false}
                       >
-                        <span className="text-xs px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded">
+                        <span className="text-xs px-1.5 py-0.5 bg-surface-lighter text-text-muted rounded">
                           #{tag}
                         </span>
                       </button>
@@ -608,7 +600,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                   </div>
                 )}
               </div>
-              <p id="tags-help" className="text-xs text-gray-500 mt-1">
+              <p id="tags-help" className="text-xs text-text-muted mt-1">
                 输入标签后按回车键或点击添加按钮，支持自动补全
               </p>
               {form.tags.length > 0 && (
@@ -634,7 +626,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
 
             {/* Subtasks (only when editing) */}
             {isEditing && currentTask && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="border-t border-border pt-4">
                 <SubtaskList
                   taskId={currentTask.id}
                   subtasks={currentTask.subtasks || []}
@@ -645,7 +637,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
 
             {/* Notes (only when editing) */}
             {isEditing && currentTask && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="border-t border-border pt-4">
                 <NoteList
                   taskId={currentTask.id}
                   notes={currentTask.notes || []}
@@ -656,8 +648,8 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
 
             {/* Linked Global Notes (only when editing) */}
             {isEditing && currentTask && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
-                <h4 className="text-sm font-semibold text-gray-700 dark:text-gray-300 mb-2 flex items-center gap-2">
+              <div className="border-t border-border pt-4">
+                <h4 className="text-sm font-semibold text-text mb-2 flex items-center gap-2">
                   <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round"><path d="M10 13a5 5 0 0 0 7.54.54l3-3a5 5 0 0 0-7.07-7.07l-1.72 1.71" /><path d="M14 11a5 5 0 0 0-7.54-.54l-3 3a5 5 0 0 0 7.07 7.07l1.71-1.71" /></svg>
                   关联笔记
                   {linkedNotes.length > 0 && (
@@ -685,13 +677,13 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                 {/* Suggested notes */}
                 {suggestedNotes.length > 0 && (
                   <div>
-                    <p className="text-[11px] text-gray-400 dark:text-gray-500 mb-1">可能相关的笔记：</p>
+                    <p className="text-[11px] text-text-muted mb-1">可能相关的笔记：</p>
                     <div className="flex flex-wrap gap-1.5">
                       {suggestedNotes.map((note) => (
                         <button
                           key={note.id}
                           onClick={() => toggleLinkedNote(note.id)}
-                          className="inline-flex items-center gap-1 rounded-lg bg-gray-50 dark:bg-gray-800 border border-gray-200 dark:border-gray-700 px-2 py-1 text-xs text-gray-500 dark:text-gray-400 hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 hover:text-blue-600 dark:hover:text-blue-400 transition"
+                          className="inline-flex items-center gap-1 rounded-lg bg-surface-lighter border border-border px-2 py-1 text-xs text-text-muted hover:bg-blue-50 dark:hover:bg-blue-900/20 hover:border-blue-200 dark:hover:border-blue-800 hover:text-blue-600 dark:hover:text-blue-400 transition"
                           title="点击关联"
                         >
                           <span className="max-w-[120px] truncate">{note.title || '无标题'}</span>
@@ -703,14 +695,14 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
                 )}
 
                 {linkedNotes.length === 0 && suggestedNotes.length === 0 && (
-                  <p className="text-xs text-gray-400 dark:text-gray-500">暂无关联笔记。在笔记中使用 #标签 或 [[任务名]] 可自动匹配。</p>
+                  <p className="text-xs text-text-muted">暂无关联笔记。在笔记中使用 #标签 或 [[任务名]] 可自动匹配。</p>
                 )}
               </div>
             )}
 
             {/* Time Tracking (only when editing) */}
             {isEditing && currentTask && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="border-t border-border pt-4">
                 <TimeTracker
                   taskId={currentTask.id}
                   timeEntries={currentTask.timeEntries || []}
@@ -722,7 +714,7 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
 
             {/* Dependencies (only when editing) */}
             {isEditing && currentTask && (
-              <div className="border-t border-gray-200 dark:border-gray-700 pt-4">
+              <div className="border-t border-border pt-4">
                 <TaskDependency
                   taskId={currentTask.id}
                   dependencies={currentTask.dependencies || []}
@@ -745,15 +737,15 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
           /* Activity Log Tab */
           <div className="space-y-3 max-h-[60vh] overflow-y-auto" role="tabpanel" id="tab-activity" aria-labelledby="tab-btn-activity">
             {activityLog.length === 0 ? (
-              <p className="text-sm text-gray-500 text-center py-8">暂无活动记录</p>
+              <p className="text-sm text-text-muted text-center py-8">暂无活动记录</p>
             ) : (
               reversedActivityLog.map((entry) => (
                   <div key={entry.id} className="flex gap-3 text-sm">
                     <div className="w-2 h-2 rounded-full bg-blue-500 mt-2 flex-shrink-0" aria-hidden="true" />
                     <div className="flex-1">
-                      <p className="text-gray-700 dark:text-gray-300">{entry.details}</p>
+                      <p className="text-text">{entry.details}</p>
                       <p
-                        className="text-xs text-gray-400 mt-0.5 cursor-help"
+                        className="text-xs text-text-muted mt-0.5 cursor-help"
                         title={entry.timestamp.replace('T', ' ').slice(0, 19)}
                       >
                         {entry.relative}

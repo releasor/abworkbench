@@ -78,7 +78,7 @@ export function TaskDependency({ taskId, dependencies, onUpdate }: TaskDependenc
   return (
     <div role="group" aria-label="任务依赖关系">
       <div className="flex items-center justify-between mb-2">
-        <h4 className="text-sm font-medium text-gray-700 dark:text-gray-300">依赖关系</h4>
+        <h4 className="text-sm font-medium text-text">依赖关系</h4>
         <button
           onClick={() => setShowAdd(!showAdd)}
           className="text-xs text-blue-600 hover:text-blue-800 dark:text-blue-400"
@@ -91,7 +91,7 @@ export function TaskDependency({ taskId, dependencies, onUpdate }: TaskDependenc
 
       {/* Add dependency form */}
       {showAdd && (
-        <div className="mb-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg" role="form" aria-label="添加依赖关系">
+        <div className="mb-3 p-3 bg-surface-lighter rounded-lg" role="form" aria-label="添加依赖关系">
           <div className="flex gap-2 mb-2">
             <label htmlFor="dep-type" className="sr-only">依赖类型</label>
             <select
@@ -135,7 +135,7 @@ export function TaskDependency({ taskId, dependencies, onUpdate }: TaskDependenc
       {/* Blocking tasks */}
       {blocking.length > 0 && (
         <div className="mb-2" role="group" aria-label="阻塞的任务">
-          <p className="text-xs text-gray-500 mb-1">阻塞以下任务:</p>
+          <p className="text-xs text-text-muted mb-1">阻塞以下任务:</p>
           {blocking.map((task) => {
             const dep = depMap.get(task.id);
             return (
@@ -166,7 +166,7 @@ export function TaskDependency({ taskId, dependencies, onUpdate }: TaskDependenc
       {/* Blocked by tasks */}
       {blockedBy.length > 0 && (
         <div role="group" aria-label="被阻塞的任务">
-          <p className="text-xs text-gray-500 mb-1">被以下任务阻塞:</p>
+          <p className="text-xs text-text-muted mb-1">被以下任务阻塞:</p>
           {blockedBy.map((task) => {
             const dep = depMap.get(task.id);
             return (
@@ -196,7 +196,7 @@ export function TaskDependency({ taskId, dependencies, onUpdate }: TaskDependenc
 
       {/* Empty state */}
       {blocking.length === 0 && blockedBy.length === 0 && !showAdd && (
-        <p className="text-xs text-gray-400 italic">暂无依赖关系</p>
+        <p className="text-xs text-text-muted italic">暂无依赖关系</p>
       )}
     </div>
   );

@@ -128,11 +128,7 @@ export function ThemeCustomizer({ onClose, onSuccess, onError, onRestore }: Them
               <button
                 key={color.value}
                 onClick={() => setAccentColor(color.value)}
-                className={`group flex items-center gap-3 rounded-2xl border p-3 text-left transition ${
-                  accentColor === color.value
-                    ? 'border-blue-400/70 bg-blue-500/10'
-                    : 'border-white/10 bg-black/20 hover:bg-white/[0.06]'
-                }`}
+                className={`group flex items-center gap-3 rounded-2xl border p-3 text-left transition ${ accentColor === color.value ? 'border-blue-400/70 bg-blue-500/10' : 'border-white/10 bg-black/20 hover:bg-white/[0.06]' }`}
                 role="radio"
                 aria-checked={accentColor === color.value}
                 aria-label={color.name}
@@ -194,11 +190,7 @@ export function ThemeCustomizer({ onClose, onSuccess, onError, onRestore }: Them
               {backups.length > 0 ? backups.map((backup) => (
                 <label
                   key={backup.index}
-                  className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition ${
-                    selectedBackup === backup.index
-                      ? 'border-blue-400/70 bg-blue-500/10'
-                      : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]'
-                  }`}
+                  className={`flex cursor-pointer items-center gap-3 rounded-2xl border p-3 transition ${ selectedBackup === backup.index ? 'border-blue-400/70 bg-blue-500/10' : 'border-white/10 bg-white/[0.03] hover:bg-white/[0.06]' }`}
                 >
                   <input
                     type="radio"

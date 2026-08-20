@@ -36,7 +36,7 @@ export function TaskFlowSummary({ stats }: TaskFlowSummaryProps) {
     <>
       <div className="grid grid-cols-3 gap-3">
         {summaryCards.map((card) => (
-          <div key={card.label} className="group relative overflow-hidden rounded-3xl border border-gray-200 bg-white/70 p-4 text-left shadow-xl shadow-black/5 transition hover:-translate-y-0.5 hover:shadow-2xl dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/25">
+          <div key={card.label} className="group relative overflow-hidden rounded-3xl border border-border bg-white/70 p-4 text-left shadow-xl shadow-black/5 transition hover:-translate-y-0.5 hover:shadow-2xl dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/25">
             <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${card.accent}`} />
             <div className="mb-3 flex items-center justify-between">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">{card.label}</div>
@@ -52,7 +52,7 @@ export function TaskFlowSummary({ stats }: TaskFlowSummaryProps) {
       </div>
 
       {stats.total > 0 && (
-        <div className="rounded-3xl border border-gray-200 bg-white/70 p-5 shadow-xl shadow-black/5 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/25">
+        <div className="rounded-3xl border border-border bg-white/70 p-5 shadow-xl shadow-black/5 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/25">
           <div className="flex items-center justify-between mb-2">
             <span className="text-sm text-text">{t('taskflow.summary.progress')}</span>
             <span className={`text-sm font-medium ${stats.active === 0 ? 'text-success' : 'text-primary'}`}>

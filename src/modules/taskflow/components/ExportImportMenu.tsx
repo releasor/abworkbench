@@ -104,7 +104,7 @@ export function ExportImportMenu({ onSuccess, onError }: ExportImportMenuProps) 
         <div className="absolute right-0 top-full mt-1 w-48 card p-1 shadow-lg animate-slide-in z-50" role="menu" aria-label="导出导入选项">
           {hasSelection && (
             <>
-              <div className="px-3 py-1.5 text-xs text-gray-500 font-medium">
+              <div className="px-3 py-1.5 text-xs text-text-muted font-medium">
                 导出选中 ({selectedIds.size})
               </div>
               {([
@@ -122,12 +122,12 @@ export function ExportImportMenu({ onSuccess, onError }: ExportImportMenuProps) 
                   选中 → {label}
                 </button>
               ))}
-              <div className="border-t border-gray-200 dark:border-gray-700 my-1" aria-hidden="true" />
+              <div className="border-t border-border my-1" aria-hidden="true" />
             </>
           )}
           {isFilteredSubset && (
             <>
-              <div className="px-3 py-1.5 text-xs text-gray-500 font-medium">
+              <div className="px-3 py-1.5 text-xs text-text-muted font-medium">
                 导出筛选结果 ({filteredTasks.length})
               </div>
               {([
@@ -144,58 +144,58 @@ export function ExportImportMenu({ onSuccess, onError }: ExportImportMenuProps) 
                   筛选 → {label}
                 </button>
               ))}
-              <div className="border-t border-gray-200 dark:border-gray-700 my-1" aria-hidden="true" />
+              <div className="border-t border-border my-1" aria-hidden="true" />
             </>
           )}
-          <div className="px-3 py-1.5 text-xs text-gray-500 font-medium">
+          <div className="px-3 py-1.5 text-xs text-text-muted font-medium">
             导出全部
           </div>
           <button
             onClick={handleExportJSON}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             导出为 JSON
           </button>
           <button
             onClick={handleExportCSV}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             导出为 CSV
           </button>
           <button
             onClick={handleExportHTML}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             导出为 HTML/PDF
           </button>
           <button
             onClick={handleExportMarkdown}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             导出为 Markdown
           </button>
           <button
             onClick={handleExportExcel}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             导出为 Excel
           </button>
           <button
             onClick={handleExportICS}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             导出为 iCalendar
           </button>
-          <div className="border-t border-gray-200 dark:border-gray-700 my-1" aria-hidden="true" />
+          <div className="border-t border-border my-1" aria-hidden="true" />
           <button
             onClick={() => fileRef.current?.click()}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             从 JSON 导入
@@ -210,7 +210,7 @@ export function ExportImportMenu({ onSuccess, onError }: ExportImportMenuProps) 
           />
           <button
             onClick={() => csvFileRef.current?.click()}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             从 CSV 导入
@@ -225,7 +225,7 @@ export function ExportImportMenu({ onSuccess, onError }: ExportImportMenuProps) 
           />
           <button
             onClick={() => trelloFileRef.current?.click()}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
             role="menuitem"
           >
             从 Trello 导入
@@ -238,13 +238,13 @@ export function ExportImportMenu({ onSuccess, onError }: ExportImportMenuProps) 
             className="hidden"
             aria-label="选择Trello JSON文件导入"
           />
-          <div className="border-t border-gray-200 dark:border-gray-700 my-1" aria-hidden="true" />
+          <div className="border-t border-border my-1" aria-hidden="true" />
           <button
             onClick={() => { setShowBulkImport(true); setOpen(false); }}
-            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors flex items-center gap-2"
+            className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors flex items-center gap-2"
             role="menuitem"
           >
-            <Icon name="document-text" className="w-4 h-4 text-gray-400" />
+            <Icon name="document-text" className="w-4 h-4 text-text-muted" />
             批量文本导入
           </button>
         </div>

@@ -3,7 +3,7 @@ import React from 'react';
 export const Skeleton = React.memo(function Skeleton({ className = '' }: { className?: string }) {
   return (
     <div
-      className={`animate-pulse bg-gray-200 dark:bg-gray-700 rounded ${className}`}
+      className={`animate-pulse bg-surface-lighter rounded ${className}`}
       aria-hidden="true"
       role="presentation"
     />
@@ -24,7 +24,7 @@ export function TaskCardSkeleton() {
         <Skeleton className="w-12 h-5 rounded" />
         <Skeleton className="w-16 h-5 rounded" />
       </div>
-      <div className="flex justify-between pt-2 border-t border-gray-100 dark:border-gray-700">
+      <div className="flex justify-between pt-2 border-t border-border">
         <Skeleton className="w-16 h-3" />
         <Skeleton className="w-20 h-3" />
       </div>
@@ -49,7 +49,7 @@ export function KanbanColumnSkeleton() {
 
 export function ListRowSkeleton() {
   return (
-    <tr className="border-b border-gray-100 dark:border-gray-800">
+    <tr className="border-b border-border">
       <td className="py-3 px-2">
         <Skeleton className="w-4 h-4 rounded" />
       </td>

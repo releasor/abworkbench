@@ -25,7 +25,7 @@ export function ProgressBar() {
   return (
     <div className="flex items-center gap-4 py-2" role="progressbar" aria-valuenow={stats.percentage} aria-valuemin={0} aria-valuemax={100} aria-label={`任务完成进度 ${stats.percentage}%`}>
       <div className="flex-1">
-        <div className="h-2 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden">
+        <div className="h-2 bg-surface-lighter rounded-full overflow-hidden">
           <div
             className="h-full bg-gradient-to-r from-blue-500 to-green-500 rounded-full transition-all duration-500"
             style={{ width: `${stats.percentage}%` }}
@@ -45,7 +45,7 @@ export function ProgressBar() {
             {stats.inProgress} 进行中
           </span>
         )}
-        <span className="text-gray-500 dark:text-gray-400">
+        <span className="text-text-muted">
           {stats.done}/{stats.total} 已完成
         </span>
         <span className="font-semibold text-blue-600 dark:text-blue-400">

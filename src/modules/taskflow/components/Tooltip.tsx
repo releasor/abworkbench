@@ -42,7 +42,7 @@ export function Tooltip({ content, children, position = 'top' }: TooltipProps) {
       {children}
       {isVisible && (
         <div
-          className={`absolute z-50 px-2 py-1 text-xs font-medium text-white bg-gray-900 dark:bg-gray-700 rounded shadow-lg whitespace-nowrap ${POSITION_CLASSES[position]}`}
+          className={`absolute z-50 px-2 py-1 text-xs font-medium text-white bg-surface rounded shadow-lg whitespace-nowrap ${POSITION_CLASSES[position]}`}
           role="tooltip"
           aria-hidden="true"
         >

@@ -283,7 +283,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
     return (
       <tr
         key={task.id}
-        className={`hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors ${selectedIds.has(task.id) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
+        className={`hover:bg-surface-lighter /50 transition-colors ${selectedIds.has(task.id) ? 'bg-blue-50/50 dark:bg-blue-900/10' : ''}`}
         role="row"
         aria-label={`任务: ${task.title}`}
         onContextMenu={(e) => handleRowContextMenu(e, task)}
@@ -311,7 +311,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 lastClickedId.current = task.id;
               }}
               onClick={(e) => e.stopPropagation()}
-              className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+              className="rounded border-border text-blue-600 focus:ring-blue-500"
             />
           </label>
         </td>
@@ -339,12 +339,12 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                     e.stopPropagation();
                   }}
                   onClick={(e) => e.stopPropagation()}
-                  className="text-sm font-medium bg-white dark:bg-gray-800 border border-blue-400 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500 w-full max-w-[300px]"
+                  className="text-sm font-medium bg-white border border-blue-400 rounded px-1 py-0.5 focus:outline-none focus:ring-1 focus:ring-blue-500 w-full max-w-[300px]"
                   aria-label="编辑任务标题"
                 />
               ) : (
                 <span
-                  className={`text-sm font-medium ${task.status === 'done' ? 'line-through text-gray-500' : 'text-gray-900 dark:text-gray-100'} cursor-text`}
+                  className={`text-sm font-medium ${task.status === 'done' ? 'line-through text-text-muted' : 'text-text '} cursor-text`}
                   onDoubleClick={(e) => { e.stopPropagation(); startEditing(task); }}
                   title="双击编辑标题"
                 >
@@ -354,17 +354,17 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
               {compact && task.tags.length > 0 && (
                 <div className="flex gap-1">
                   {task.tags.slice(0, 2).map((tag) => (
-                    <span key={tag} className="text-[10px] px-1 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-500 dark:text-gray-400 rounded">#{tag}</span>
+                    <span key={tag} className="text-[10px] px-1 py-0.5 bg-surface-lighter text-text-muted rounded">#{tag}</span>
                   ))}
-                  {task.tags.length > 2 && <span className="text-[10px] text-gray-400">+{task.tags.length - 2}</span>}
+                  {task.tags.length > 2 && <span className="text-[10px] text-text-muted">+{task.tags.length - 2}</span>}
                 </div>
               )}
               {compact && task.subtasks && task.subtasks.length > 0 && (
-                <span className="text-[10px] text-gray-400">{countCompleted(task.subtasks)}/{task.subtasks.length}</span>
+                <span className="text-[10px] text-text-muted">{countCompleted(task.subtasks)}/{task.subtasks.length}</span>
               )}
             </div>
             {!compact && task.description && (
-              <span className="text-xs text-gray-500 dark:text-gray-400 line-clamp-1 mt-0.5">
+              <span className="text-xs text-text-muted line-clamp-1 mt-0.5">
                 {searchQuery ? highlightText(task.description, searchQuery) : task.description}
               </span>
             )}
@@ -375,12 +375,12 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                     {task.tags.slice(0, 3).map((tag) => (
                       <span
                         key={tag}
-                        className="text-[10px] px-1.5 py-0.5 bg-gray-100 dark:bg-gray-700 text-gray-600 dark:text-gray-400 rounded cursor-pointer hover:bg-gray-200 dark:hover:bg-gray-600"
+                        className="text-[10px] px-1.5 py-0.5 bg-surface-lighter text-text-muted rounded cursor-pointer hover:bg-surface-lighter"
                         onClick={(e) => { e.stopPropagation(); setFilters({ search: `#${tag}` }); }}
                         title={`筛选标签: ${tag}`}
                       >#{tag}</span>
                     ))}
-                    {task.tags.length > 3 && <span className="text-[10px] text-gray-500">+{task.tags.length - 3}</span>}
+                    {task.tags.length > 3 && <span className="text-[10px] text-text-muted">+{task.tags.length - 3}</span>}
                   </div>
                 )}
                 {task.subtasks && task.subtasks.length > 0 && (() => {
@@ -388,14 +388,14 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                   const allDone = completedCount === task.subtasks.length;
                   return (
                     <div className="flex items-center gap-1.5">
-                      <div className="flex-1 h-1 bg-gray-200 dark:bg-gray-700 rounded-full overflow-hidden max-w-[60px]">
+                      <div className="flex-1 h-1 bg-surface-lighter rounded-full overflow-hidden max-w-[60px]">
                         <div
                           className="h-full rounded-full transition-all duration-300"
                           style={{ width: `${Math.round((completedCount / task.subtasks.length) * 100)}%`, backgroundColor: allDone ? '#10b981' : '#3b82f6' }}
                           aria-hidden="true"
                         />
                       </div>
-                      <span className="text-[10px] text-gray-500">{completedCount}/{task.subtasks.length}</span>
+                      <span className="text-[10px] text-text-muted">{completedCount}/{task.subtasks.length}</span>
                     </div>
                   );
                 })()}
@@ -409,7 +409,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
             onChange={(e) => { e.stopPropagation(); moveTask(task.id, e.target.value as Status); }}
             onClick={(e) => e.stopPropagation()}
             aria-label={`任务状态: ${task.title}`}
-            className="text-xs px-2 py-1 bg-gray-100 dark:bg-gray-800 border-0 rounded-lg focus:ring-2 focus:ring-blue-500"
+            className="text-xs px-2 py-1 bg-surface-lighter border-0 rounded-lg focus:ring-2 focus:ring-blue-500"
           >
             {ALL_STATUSES.map((s) => (
               <option key={s} value={s}>{STATUS_CONFIG[s].label}</option>
@@ -427,30 +427,30 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
         </td>
         <td className={`${cellPadding} cursor-pointer`} onClick={() => onEditTask(task)}>
           {task.dueDate && (
-            <span className={`text-xs ${isOverdue ? 'text-red-500 font-medium' : 'text-gray-500'}`}>
+            <span className={`text-xs ${isOverdue ? 'text-red-500 font-medium' : 'text-text-muted'}`}>
               {task.dueDate.slice(5, 7)}/{task.dueDate.slice(8, 10)}
             </span>
           )}
         </td>
         <td className={`${cellPadding} cursor-pointer`} onClick={() => onEditTask(task)}>
-          {task.estimatedMinutes && <span className="text-xs text-gray-500">{task.estimatedMinutes}分钟</span>}
+          {task.estimatedMinutes && <span className="text-xs text-text-muted">{task.estimatedMinutes}分钟</span>}
         </td>
         <td className={`${cellPadding} cursor-pointer`} onClick={() => onEditTask(task)}>
           {(() => {
             const seconds = timeSpentMap.get(task.id) || 0;
             if (seconds === 0) return null;
-            return <span className="text-xs text-gray-500">{formatDurationCompact(seconds)}</span>;
+            return <span className="text-xs text-text-muted">{formatDurationCompact(seconds)}</span>;
           })()}
         </td>
         <td className={`${cellPadding} cursor-pointer`} onClick={() => onEditTask(task)}>
-          <span className="text-xs text-gray-500">{task.createdAt.slice(5, 7)}/{task.createdAt.slice(8, 10)}</span>
+          <span className="text-xs text-text-muted">{task.createdAt.slice(5, 7)}/{task.createdAt.slice(8, 10)}</span>
         </td>
         <td className={cellPadding}>
           <div className="flex items-center gap-1">
             {onFocusTask && (
               <button
                 onClick={(e) => { e.stopPropagation(); onFocusTask(task); }}
-                className="p-1 text-gray-400 hover:text-blue-500 dark:hover:text-blue-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+                className="p-1 text-text-muted hover:text-blue-500 dark:hover:text-blue-400 transition-colors rounded hover:bg-surface-lighter"
                 aria-label={`专注模式: ${task.title}`}
                 title="专注模式"
               >
@@ -459,7 +459,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
             )}
             <button
               onClick={(e) => { e.stopPropagation(); duplicateTask(task.id); }}
-              className="p-1 text-gray-400 hover:text-green-500 dark:hover:text-green-400 transition-colors rounded hover:bg-gray-100 dark:hover:bg-gray-800"
+              className="p-1 text-text-muted hover:text-green-500 dark:hover:text-green-400 transition-colors rounded hover:bg-surface-lighter"
               aria-label={`复制任务: ${task.title}`}
               title="复制"
             >
@@ -473,18 +473,18 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
 
   return (
     <div className="card overflow-hidden mt-4" role="region" aria-label="任务列表视图">
-      <div className="flex items-center justify-between px-4 py-2 border-b border-gray-200 dark:border-gray-700">
+      <div className="flex items-center justify-between px-4 py-2 border-b border-border">
         <div className="flex items-center gap-3">
-          <span className="text-xs text-gray-500">
+          <span className="text-xs text-text-muted">
             {sortedTasks.length} 个任务
           </span>
           {totalEstimatedMinutes > 0 && (
-            <span className="text-xs text-gray-400" title={`总计预计时长: ${totalEstimatedMinutes}分钟`}>
+            <span className="text-xs text-text-muted" title={`总计预计时长: ${totalEstimatedMinutes}分钟`}>
               预计 {Math.floor(totalEstimatedMinutes / 60) > 0 ? `${Math.floor(totalEstimatedMinutes / 60)}小时` : ''}{totalEstimatedMinutes % 60 > 0 ? `${totalEstimatedMinutes % 60}分钟` : ''}
             </span>
           )}
           {totalTimeSpentMinutes > 0 && (
-            <span className="text-xs text-gray-400" title={`总计已用时长: ${totalTimeSpentMinutes}分钟`}>
+            <span className="text-xs text-text-muted" title={`总计已用时长: ${totalTimeSpentMinutes}分钟`}>
               已用 {Math.floor(totalTimeSpentMinutes / 60) > 0 ? `${Math.floor(totalTimeSpentMinutes / 60)}小时` : ''}{totalTimeSpentMinutes % 60 > 0 ? `${totalTimeSpentMinutes % 60}分钟` : ''}
             </span>
           )}
@@ -495,7 +495,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
             id="group-by"
             value={groupBy}
             onChange={(e) => { const v = e.target.value as GroupBy; setGroupBy(v); setCollapsedGroups(new Set()); safeSetString('taskflow-list-groupBy', v); }}
-            className="text-xs px-2 py-1 rounded border border-gray-200 dark:border-gray-600 bg-white dark:bg-gray-800 text-gray-600 dark:text-gray-400"
+            className="text-xs px-2 py-1 rounded border border-border bg-white text-text-muted"
             aria-label="分组方式"
           >
             <option value="none">不分组</option>
@@ -505,7 +505,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
           </select>
           <button
             onClick={() => { const next = !compact; setCompact(next); setBool('taskflow-list-compact', next); }}
-            className="text-xs px-2 py-1 rounded hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-500 dark:text-gray-400"
+            className="text-xs px-2 py-1 rounded hover:bg-surface-lighter transition-colors text-text-muted"
             aria-label={compact ? '切换到详细视图' : '切换到紧凑视图'}
             title={compact ? '详细视图' : '紧凑视图'}
           >
@@ -516,7 +516,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
       <div className="overflow-x-auto">
         <table className="w-full" role="table" aria-label="任务列表">
           <thead>
-            <tr className="border-b border-gray-200 dark:border-gray-700">
+            <tr className="border-b border-border">
               <th className={`text-left ${headerPadding} w-10`} scope="col">
                 <label className="flex items-center justify-center" aria-label={allSelected ? '取消全选' : '全选所有任务'}>
                   <input
@@ -526,13 +526,13 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                       if (el) el.indeterminate = someSelected && !allSelected;
                     }}
                     onChange={handleSelectAll}
-                    className="rounded border-gray-300 dark:border-gray-600 text-blue-600 focus:ring-blue-500"
+                    className="rounded border-border text-blue-600 focus:ring-blue-500"
                     aria-label={allSelected ? '取消全选' : '全选所有任务'}
                   />
                 </label>
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('title')}
                 aria-sort={sortField === 'title' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -540,7 +540,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 任务{sortIndicator('title')}
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('status')}
                 aria-sort={sortField === 'status' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -548,7 +548,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 状态{sortIndicator('status')}
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('priority')}
                 aria-sort={sortField === 'priority' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -556,7 +556,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 优先级{sortIndicator('priority')}
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('category')}
                 aria-sort={sortField === 'category' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -564,7 +564,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 分类{sortIndicator('category')}
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('dueDate')}
                 aria-sort={sortField === 'dueDate' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -572,7 +572,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 截止日期{sortIndicator('dueDate')}
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('estimated')}
                 aria-sort={sortField === 'estimated' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -580,7 +580,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 预计{sortIndicator('estimated')}
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('timeSpent')}
                 aria-sort={sortField === 'timeSpent' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -588,7 +588,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
                 已用{sortIndicator('timeSpent')}
               </th>
               <th
-                className={`text-left ${headerPadding} text-xs font-medium text-gray-500 uppercase cursor-pointer hover:text-gray-700 dark:hover:text-gray-300 select-none`}
+                className={`text-left ${headerPadding} text-xs font-medium text-text-muted uppercase cursor-pointer hover:text-text select-none`}
                 scope="col"
                 onClick={() => handleSort('created')}
                 aria-sort={sortField === 'created' ? (sortDirection === 'asc' ? 'ascending' : 'descending') : 'none'}
@@ -600,7 +600,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
               </th>
             </tr>
           </thead>
-          <tbody className="divide-y divide-gray-100 dark:divide-gray-800">
+          <tbody className="divide-y divide-border">
             {isLoading ? (
               <>
                 <ListRowSkeleton />
@@ -612,16 +612,16 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
             ) : groupedTasks ? (
               groupedTasks.map(group => (
                 collapsedGroups.has(group.name) ? (
-                  <tr key={`group-${group.name}`} className="bg-gray-50 dark:bg-gray-800/50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-inset" onClick={() => toggleGroup(group.name)} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.name); } }} role="button" aria-label={`${group.name} (${group.tasks.length} 个任务)`} aria-expanded={false}>
-                    <td colSpan={10} className={`${headerPadding} text-xs font-medium text-gray-600 dark:text-gray-400`}>
+                  <tr key={`group-${group.name}`} className="bg-surface-lighter cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-inset" onClick={() => toggleGroup(group.name)} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.name); } }} role="button" aria-label={`${group.name} (${group.tasks.length} 个任务)`} aria-expanded={false}>
+                    <td colSpan={10} className={`${headerPadding} text-xs font-medium text-text-muted`}>
                       <span className="mr-2" aria-hidden="true">&#9654;</span>
                       {group.name} ({group.tasks.length})
                     </td>
                   </tr>
                 ) : (
                   <Fragment key={`group-${group.name}`}>
-                    <tr key={`group-${group.name}`} className="bg-gray-50 dark:bg-gray-800/50 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-inset" onClick={() => toggleGroup(group.name)} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.name); } }} role="button" aria-label={`${group.name} (${group.tasks.length} 个任务)`} aria-expanded={true}>
-                      <td colSpan={10} className={`${headerPadding} text-xs font-medium text-gray-600 dark:text-gray-400`}>
+                    <tr key={`group-${group.name}`} className="bg-surface-lighter cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50 focus:ring-inset" onClick={() => toggleGroup(group.name)} tabIndex={0} onKeyDown={(e) => { if (e.key === 'Enter' || e.key === ' ') { e.preventDefault(); toggleGroup(group.name); } }} role="button" aria-label={`${group.name} (${group.tasks.length} 个任务)`} aria-expanded={true}>
+                      <td colSpan={10} className={`${headerPadding} text-xs font-medium text-text-muted`}>
                         <span className="mr-2" aria-hidden="true">&#9660;</span>
                         {group.name} ({group.tasks.length})
                       </td>
@@ -637,12 +637,12 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
         </table>
 
         {tasks.length === 0 && (
-          <div className="flex flex-col items-center justify-center h-32 text-gray-400 dark:text-gray-500">
-            <Icon name="clipboard" className="w-10 h-10 mb-2 text-gray-300 dark:text-gray-600" />
+          <div className="flex flex-col items-center justify-center h-32 text-text-muted">
+            <Icon name="clipboard" className="w-10 h-10 mb-2 text-text-muted" />
             {filters.search ? (
               <>
                 <p className="text-sm">
-                  没有找到匹配「<span className="font-medium text-gray-600 dark:text-gray-300">{highlightText(filters.search, filters.search)}</span>」的任务
+                  没有找到匹配「<span className="font-medium text-text-muted">{highlightText(filters.search, filters.search)}</span>」的任务
                 </p>
                 <button
                   onClick={() => createTask({ title: filters.search })}

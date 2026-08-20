@@ -43,10 +43,10 @@ const ACTION_COLORS: Record<string, string> = {
   tags_changed: 'bg-yellow-100 dark:bg-yellow-900/30 text-yellow-600 dark:text-yellow-400',
   title_changed: 'bg-indigo-100 dark:bg-indigo-900/30 text-indigo-600 dark:text-indigo-400',
   dueDate_changed: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-  archived: 'bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400',
+  archived: 'bg-surface-lighter /30 text-text-muted ',
   unarchived: 'bg-teal-100 dark:bg-teal-900/30 text-teal-600 dark:text-teal-400',
   pinned: 'bg-amber-100 dark:bg-amber-900/30 text-amber-600 dark:text-amber-400',
-  unpinned: 'bg-gray-100 dark:bg-gray-900/30 text-gray-600 dark:text-gray-400',
+  unpinned: 'bg-surface-lighter /30 text-text-muted ',
 };
 
 interface ActivityTimelineProps {
@@ -122,7 +122,7 @@ export function ActivityTimeline({ onClose, onEditTask }: ActivityTimelineProps)
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold">活动时间线</h2>
-            <p className="text-sm text-gray-500">最近 {activities.length} 条活动记录</p>
+            <p className="text-sm text-text-muted">最近 {activities.length} 条活动记录</p>
           </div>
           <button onClick={onClose} className="btn btn-ghost p-1.5" aria-label="关闭">
             <Icon name="close" className="w-5 h-5" />
@@ -131,24 +131,24 @@ export function ActivityTimeline({ onClose, onEditTask }: ActivityTimelineProps)
 
         {activities.length === 0 ? (
           <div className="text-center py-12">
-            <Icon name="clock" className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <p className="text-gray-400">暂无活动记录</p>
+            <Icon name="clock" className="w-16 h-16 mx-auto text-text-muted mb-4" />
+            <p className="text-text-muted">暂无活动记录</p>
           </div>
         ) : (
           <div className="space-y-6">
             {grouped.map(([date, dateActivities, header]) => (
               <div key={date}>
-                <h3 className="text-xs font-medium text-gray-500 dark:text-gray-400 mb-3 sticky top-0 bg-white dark:bg-gray-800 py-1">
+                <h3 className="text-xs font-medium text-text-muted mb-3 sticky top-0 bg-white py-1">
                   {header}
                 </h3>
                 <div className="relative pl-6">
                   {/* Timeline line */}
-                  <div className="absolute left-2 top-0 bottom-0 w-px bg-gray-200 dark:bg-gray-700" aria-hidden="true" />
+                  <div className="absolute left-2 top-0 bottom-0 w-px bg-surface-lighter" aria-hidden="true" />
 
                   <div className="space-y-3">
                     {dateActivities.map((act) => {
                       const icon = ACTION_ICONS[act.action] || '📋';
-                      const colorClass = ACTION_COLORS[act.action] || 'bg-gray-100 dark:bg-gray-800 text-gray-500';
+                      const colorClass = ACTION_COLORS[act.action] || 'bg-surface-lighter  text-text-muted';
 
                       return (
                         <div key={act.logId} className="relative flex items-start gap-3">
@@ -171,10 +171,10 @@ export function ActivityTimeline({ onClose, onEditTask }: ActivityTimelineProps)
                               }}
                               className="text-left w-full group"
                             >
-                              <p className="text-sm text-gray-700 dark:text-gray-300 group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
+                              <p className="text-sm text-text group-hover:text-blue-600 dark:group-hover:text-blue-400 transition-colors">
                                 {act.details}
                               </p>
-                              <p className="text-xs text-gray-400 mt-0.5">
+                              <p className="text-xs text-text-muted mt-0.5">
                                 <span className="font-medium">{act.taskTitle}</span>
                                 {' · '}
                                 {act.relative}

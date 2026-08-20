@@ -201,11 +201,7 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
         return (
           <div
             key={status}
-            className={`relative flex flex-col overflow-hidden rounded-[30px] border shadow-2xl shadow-black/5 transition-all duration-200 dark:shadow-black/25 ${
-              isOver
-                ? 'border-blue-400 bg-blue-50/70 ring-4 ring-blue-500/10 dark:border-blue-500/70 dark:bg-blue-500/10'
-                : 'border-gray-200 bg-white/80 dark:border-white/10 dark:bg-white/[0.035]'
-            } ${isCollapsed ? 'min-h-[360px] w-16 min-w-0 xl:w-auto' : 'min-h-[420px]'}`}
+            className={`relative flex flex-col overflow-hidden rounded-[30px] border shadow-2xl shadow-black/5 transition-all duration-200 dark:shadow-black/25 ${ isOver ? 'border-blue-400 bg-blue-50/70 ring-4 ring-blue-500/10 dark:border-blue-500/70 dark:bg-blue-500/10' : 'border-border bg-white/80 dark:border-white/10 dark:bg-white/[0.035]' } ${isCollapsed ? 'min-h-[360px] w-16 min-w-0 xl:w-auto' : 'min-h-[420px]'}`}
             role="region"
             aria-label={tWith('taskflow.board.columnLabel', statusLabel, columnTasks.length)}
             onDragOver={(e) => handleDragOver(e, status)}
@@ -218,15 +214,15 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
               aria-hidden="true"
             />
             {/* Column Header */}
-            <div className={`flex items-center justify-between border-b border-gray-100/80 px-4 pb-3 pt-4 dark:border-white/10 ${isCollapsed ? 'flex-col gap-2' : ''}`}>
+            <div className={`flex items-center justify-between border-b border-border/80 px-4 pb-3 pt-4 dark:border-white/10 ${isCollapsed ? 'flex-col gap-2' : ''}`}>
               <div className={`flex items-center gap-2 ${isCollapsed ? 'flex-col' : ''}`}>
                 <button
                   onClick={() => toggleCollapse(status)}
-                  className="rounded-lg p-1 text-gray-400 transition-colors hover:bg-gray-100 hover:text-gray-700 dark:hover:bg-white/10 dark:hover:text-gray-200"
+                  className="rounded-lg p-1 text-text-muted transition-colors hover:bg-surface-lighter hover:text-text dark:hover:bg-white/10"
                   aria-label={isCollapsed ? `${t('sidebar.expand')} ${statusLabel}` : `${t('sidebar.collapse')} ${statusLabel}`}
                   aria-expanded={!isCollapsed}
                 >
-                  <Icon name="chevron-down" className={`w-3.5 h-3.5 text-gray-400 transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
+                  <Icon name="chevron-down" className={`w-3.5 h-3.5 text-text-muted transition-transform ${isCollapsed ? 'rotate-180' : ''}`} />
                 </button>
                 <div
                   className="h-3 w-3 rounded-full shadow-sm"
@@ -235,11 +231,11 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
                 />
                 {!isCollapsed && (
                   <>
-                    <h3 className="text-sm font-black tracking-tight text-gray-800 dark:text-gray-100">
+                    <h3 className="text-sm font-black tracking-tight text-text">
                       {statusLabel}
                     </h3>
                     <span
-                      className="rounded-full bg-gray-100 px-2.5 py-1 text-xs font-bold text-gray-500 dark:bg-white/10 dark:text-gray-300"
+                      className="rounded-full bg-surface-lighter px-2.5 py-1 text-xs font-bold text-text-muted dark:bg-white/10"
                       aria-label={`${columnTasks.length} ${t('todo.task')}`}
                     >
                       {columnTasks.length}
@@ -247,7 +243,7 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
                   </>
                 )}
                 {isCollapsed && (
-                  <span className="text-[10px] text-gray-500 font-medium">{columnTasks.length}</span>
+                  <span className="text-[10px] text-text-muted font-medium">{columnTasks.length}</span>
                 )}
               </div>
               {!isCollapsed && (
@@ -261,7 +257,7 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
                       <div className="h-1.5 w-1.5 rounded-full bg-orange-500 shadow-sm shadow-orange-500/40" title={`${highCount} 个高优先级`} />
                     )}
                     {estimatedMinutes > 0 && (
-                      <span className="ml-1 rounded-full bg-gray-100 px-1.5 py-0.5 text-[10px] font-medium text-gray-500 dark:bg-white/10 dark:text-gray-300" title={`预计 ${estimatedMinutes} 分钟`}>
+                      <span className="ml-1 rounded-full bg-surface-lighter px-1.5 py-0.5 text-[10px] font-medium text-text-muted dark:bg-white/10" title={`预计 ${estimatedMinutes} 分钟`}>
                         {formatDurationCompact(estimatedMinutes * 60)}
                       </span>
                     )}
@@ -311,11 +307,11 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
 
               {columnTasks.length === 0 && (
                 <div
-                  className="flex h-40 items-center justify-center rounded-[24px] border border-dashed border-gray-200 bg-gray-50/70 text-sm text-gray-400 dark:border-white/10 dark:bg-white/[0.025] dark:text-gray-500"
+                  className="flex h-40 items-center justify-center rounded-[24px] border border-dashed border-border bg-surface-lighter/70 text-sm text-text-muted dark:border-white/10 dark:bg-white/[0.025]"
                   aria-label={t('taskflow.board.empty')}
                 >
                   <div className="text-center">
-                    <Icon name="plus" className="mx-auto mb-2 h-8 w-8 text-gray-300 dark:text-gray-600" />
+                    <Icon name="plus" className="mx-auto mb-2 h-8 w-8 text-text-muted" />
                     <span>{t('taskflow.board.empty')}</span>
                   </div>
                 </div>
@@ -334,7 +330,7 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
                       if (e.key === 'Escape') { setQuickAddStatus(null); setQuickAddTitle(''); }
                     }}
                     onBlur={() => { setQuickAddStatus(null); setQuickAddTitle(''); }}
-                    className="w-full rounded-2xl border border-blue-400/70 bg-white px-4 py-3 text-sm text-gray-900 shadow-lg shadow-blue-500/10 outline-none ring-4 ring-blue-500/10 dark:bg-gray-950 dark:text-gray-100"
+                    className="w-full rounded-2xl border border-blue-400/70 bg-white px-4 py-3 text-sm text-text shadow-lg shadow-blue-500/10 outline-none ring-4 ring-blue-500/10 bg-surface"
                     placeholder={t('taskflow.quickAdd.inputPlaceholder')}
                     aria-label={`${t('taskflow.quickAdd.label')} ${statusLabel}`}
                   />
@@ -342,7 +338,7 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
               ) : (
                 <button
                   onClick={() => startQuickAdd(status)}
-                  className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-gray-200 bg-gray-50/60 p-3 text-xs font-semibold text-gray-400 transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-blue-500/50 dark:hover:bg-blue-500/10 dark:hover:text-blue-200"
+                  className="flex w-full items-center justify-center gap-1.5 rounded-2xl border border-dashed border-border bg-surface-lighter/60 p-3 text-xs font-semibold text-text-muted transition hover:border-blue-300 hover:bg-blue-50 hover:text-blue-600 dark:border-white/10 dark:bg-white/[0.02] dark:hover:border-blue-500/50 dark:hover:bg-blue-500/10 dark:hover:text-blue-200"
                   aria-label={`${t('taskflow.board.addTask')} ${statusLabel}`}
                 >
                   <Icon name="plus" className="w-4 h-4" />
@@ -356,14 +352,14 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
       })}
     </div>
     {totalTasks === 0 && (
-      <div className="mx-auto mt-8 flex max-w-md flex-col items-center justify-center rounded-3xl border border-gray-200 bg-white/70 px-8 py-10 text-center shadow-xl shadow-black/5 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/30">
+      <div className="mx-auto mt-8 flex max-w-md flex-col items-center justify-center rounded-3xl border border-border bg-white/70 px-8 py-10 text-center shadow-xl shadow-black/5 dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/30">
         <div className="mb-4 grid h-14 w-14 place-items-center rounded-2xl bg-blue-500/10 text-blue-500">
           <Icon name="clipboard" className="w-7 h-7" />
         </div>
         {filters.search ? (
           <>
-            <p className="text-sm text-gray-500 dark:text-gray-400">
-              没有找到匹配「<span className="font-semibold text-gray-800 dark:text-gray-100">{highlightText(filters.search, filters.search)}</span>」的任务
+            <p className="text-sm text-text-muted">
+              没有找到匹配「<span className="font-semibold text-text">{highlightText(filters.search, filters.search)}</span>」的任务
             </p>
             <button
               onClick={() => createTask({ title: filters.search })}
@@ -375,8 +371,8 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
           </>
         ) : (
           <>
-            <p className="text-sm font-semibold text-gray-800 dark:text-gray-100">{t('taskflow.board.empty')}</p>
-            <p className="mt-1 text-xs text-gray-500 dark:text-gray-400">{t('taskflow.board.emptyHint')}</p>
+            <p className="text-sm font-semibold text-text">{t('taskflow.board.empty')}</p>
+            <p className="mt-1 text-xs text-text-muted">{t('taskflow.board.emptyHint')}</p>
           </>
         )}
       </div>

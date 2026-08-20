@@ -50,32 +50,28 @@ export function RecurringTaskEditor({ value, onChange }: RecurringTaskEditorProp
   return (
     <div role="group" aria-label="重复任务设置">
       <div className="flex items-center justify-between mb-2">
-        <label className="text-sm font-medium text-gray-700 dark:text-gray-300" id="recurring-label">
+        <label className="text-sm font-medium text-text" id="recurring-label">
           重复任务
         </label>
         <button
           type="button"
           onClick={handleToggle}
-          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${
-            enabled ? 'bg-blue-600' : 'bg-gray-300 dark:bg-gray-600'
-          }`}
+          className={`relative inline-flex h-5 w-9 items-center rounded-full transition-colors ${ enabled ? 'bg-blue-600' : 'bg-surface-lighter ' }`}
           role="switch"
           aria-checked={enabled}
           aria-labelledby="recurring-label"
         >
           <span
-            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${
-              enabled ? 'translate-x-4' : 'translate-x-0.5'
-            }`}
+            className={`inline-block h-3.5 w-3.5 transform rounded-full bg-white transition-transform ${ enabled ? 'translate-x-4' : 'translate-x-0.5' }`}
             aria-hidden="true"
           />
         </button>
       </div>
 
       {enabled && (
-        <div className="space-y-3 p-3 bg-gray-50 dark:bg-gray-800 rounded-lg" aria-label="重复模式配置">
+        <div className="space-y-3 p-3 bg-surface-lighter rounded-lg" aria-label="重复模式配置">
           <div className="flex gap-2">
-            <span className="text-sm text-gray-600 dark:text-gray-400 py-2">每</span>
+            <span className="text-sm text-text-muted py-2">每</span>
             <label htmlFor="recurring-interval" className="sr-only">间隔数量</label>
             <input
               id="recurring-interval"
@@ -106,18 +102,14 @@ export function RecurringTaskEditor({ value, onChange }: RecurringTaskEditorProp
           {/* Weekly: select days */}
           {pattern.frequency === 'weekly' && (
             <div role="group" aria-label="选择星期">
-              <p className="text-xs text-gray-500 mb-2">选择星期:</p>
+              <p className="text-xs text-text-muted mb-2">选择星期:</p>
               <div className="flex gap-1">
                 {WEEKDAYS.map((name, index) => (
                   <button
                     key={index}
                     type="button"
                     onClick={() => toggleDayOfWeek(index)}
-                    className={`w-8 h-8 rounded-full text-xs font-medium transition-colors ${
-                      pattern.daysOfWeek?.includes(index)
-                        ? 'bg-blue-600 text-white'
-                        : 'bg-gray-200 dark:bg-gray-700 text-gray-700 dark:text-gray-300 hover:bg-gray-300 dark:hover:bg-gray-600'
-                    }`}
+                    className={`w-8 h-8 rounded-full text-xs font-medium transition-colors ${ pattern.daysOfWeek?.includes(index) ? 'bg-blue-600 text-white' : 'bg-surface-lighter text-text hover:bg-surface-lighter ' }`}
                     aria-pressed={pattern.daysOfWeek?.includes(index)}
                     aria-label={`星期${name}`}
                   >
@@ -131,7 +123,7 @@ export function RecurringTaskEditor({ value, onChange }: RecurringTaskEditorProp
           {/* Monthly: select day of month */}
           {pattern.frequency === 'monthly' && (
             <div className="flex items-center gap-2">
-              <span className="text-sm text-gray-600 dark:text-gray-400">每月第</span>
+              <span className="text-sm text-text-muted">每月第</span>
               <label htmlFor="recurring-day" className="sr-only">每月第几天</label>
               <input
                 id="recurring-day"
@@ -143,7 +135,7 @@ export function RecurringTaskEditor({ value, onChange }: RecurringTaskEditorProp
                 className="input w-16 text-center text-sm"
                 aria-label="每月第几天"
               />
-              <span className="text-sm text-gray-600 dark:text-gray-400">天</span>
+              <span className="text-sm text-text-muted">天</span>
             </div>
           )}
 
@@ -157,7 +149,7 @@ export function RecurringTaskEditor({ value, onChange }: RecurringTaskEditorProp
                 className="rounded"
                 aria-label="启用结束日期"
               />
-              <span className="text-sm text-gray-600 dark:text-gray-400">设置结束日期</span>
+              <span className="text-sm text-text-muted">设置结束日期</span>
             </label>
             {pattern.endDate && (
               <>

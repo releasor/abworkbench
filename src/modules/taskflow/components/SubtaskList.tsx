@@ -65,7 +65,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">子任务</span>
           {subtasks.length > 0 && (
-            <span className="text-xs text-gray-500">
+            <span className="text-xs text-text-muted">
               {completedCount}/{subtasks.length}
             </span>
           )}
@@ -83,7 +83,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
 
       {/* Progress bar */}
       {subtasks.length > 0 && (
-        <div className="w-full h-1.5 bg-gray-200 dark:bg-gray-700 rounded-full mb-3" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`子任务完成进度 ${progress}%`}>
+        <div className="w-full h-1.5 bg-surface-lighter rounded-full mb-3" role="progressbar" aria-valuenow={progress} aria-valuemin={0} aria-valuemax={100} aria-label={`子任务完成进度 ${progress}%`}>
           <div
             className="h-full rounded-full transition-all duration-300"
             style={{
@@ -130,7 +130,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
         {subtasks.map((subtask) => (
           <div
             key={subtask.id}
-            className="flex items-center gap-2 group py-1.5 px-2 rounded hover:bg-gray-50 dark:hover:bg-gray-800/50 transition-colors"
+            className="flex items-center gap-2 group py-1.5 px-2 rounded hover:bg-surface-lighter /50 transition-colors"
             role="listitem"
           >
             <button
@@ -142,11 +142,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
               aria-label={`${subtask.completed ? '已完成' : '未完成'}: ${subtask.title}`}
             >
               <div
-                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${
-                  subtask.completed
-                    ? 'bg-green-500 border-green-500'
-                    : 'border-gray-300 dark:border-gray-600 hover:border-blue-500'
-                }`}
+                className={`w-4 h-4 rounded border-2 flex items-center justify-center transition-colors ${ subtask.completed ? 'bg-green-500 border-green-500' : 'border-border hover:border-blue-500' }`}
                 aria-hidden="true"
               >
                 {subtask.completed && (
@@ -155,11 +151,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
               </div>
             </button>
             <span
-              className={`flex-1 text-sm ${
-                subtask.completed
-                  ? 'line-through text-gray-400 dark:text-gray-500'
-                  : 'text-gray-700 dark:text-gray-300'
-              }`}
+              className={`flex-1 text-sm ${ subtask.completed ? 'line-through text-text-muted ' : 'text-text ' }`}
             >
               {subtask.title}
             </span>
@@ -176,7 +168,7 @@ export function SubtaskList({ taskId, subtasks, onUpdate }: SubtaskListProps) {
       </div>
 
       {subtasks.length === 0 && !isAdding && (
-        <p className="text-xs text-gray-400 text-center py-2">暂无子任务</p>
+        <p className="text-xs text-text-muted text-center py-2">暂无子任务</p>
       )}
     </div>
   );

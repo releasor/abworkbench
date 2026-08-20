@@ -62,11 +62,7 @@ export function ConfirmDialog({
           </button>
           <button
             onClick={onConfirm}
-            className={`rounded-2xl px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition ${
-              isDanger
-                ? 'bg-red-500 shadow-red-500/20 hover:bg-red-400'
-                : 'bg-blue-500 shadow-blue-500/20 hover:bg-blue-400'
-            }`}
+            className={`rounded-2xl px-4 py-2.5 text-sm font-semibold text-white shadow-lg transition ${ isDanger ? 'bg-red-500 shadow-red-500/20 hover:bg-red-400' : 'bg-blue-500 shadow-blue-500/20 hover:bg-blue-400' }`}
             autoFocus
           >
             {confirmText}

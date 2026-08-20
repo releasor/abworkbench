@@ -141,9 +141,9 @@ export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewPr
 
       {/* Weekday Headers */}
       <div className="grid grid-cols-[2rem_1fr_1fr_1fr_1fr_1fr_1fr] gap-1 mb-1" role="row">
-        <div className="text-center text-[10px] text-gray-400 py-2" role="columnheader" aria-hidden="true">周</div>
+        <div className="text-center text-[10px] text-text-muted py-2" role="columnheader" aria-hidden="true">周</div>
         {['一', '二', '三', '四', '五', '六', '日'].map((day) => (
-          <div key={day} className="text-center text-xs font-medium text-gray-500 py-2" role="columnheader">
+          <div key={day} className="text-center text-xs font-medium text-text-muted py-2" role="columnheader">
             {day}
           </div>
         ))}
@@ -178,7 +178,7 @@ export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewPr
             const week1 = new Date(d.getFullYear(), 0, 4);
             const weekNum = 1 + Math.round(((d.getTime() - week1.getTime()) / 86400000 - 3 + ((week1.getDay() + 6) % 7)) / 7);
             return (
-              <div className="flex items-center justify-center text-[10px] text-gray-400 dark:text-gray-600" aria-label={`第${weekNum}周`}>
+              <div className="flex items-center justify-center text-[10px] text-text-muted" aria-label={`第${weekNum}周`}>
                 {weekNum}
               </div>
             );
@@ -190,20 +190,14 @@ export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewPr
               <div
                 className={`min-h-[100px] p-1.5 rounded-lg border transition-colors relative ${
                   isCurrentMonth
-                    ? `bg-white dark:bg-gray-800 border-gray-200 dark:border-gray-700 cursor-pointer hover:border-blue-300 dark:hover:border-blue-600${dayCompletionRate === 1 && dayTasks.length > 0 ? ' bg-green-50/50 dark:bg-green-900/10' : ''}`
-                    : 'bg-gray-50 dark:bg-gray-900 border-gray-100 dark:border-gray-800'
+                    ? `bg-white  border-border  cursor-pointer hover:border-blue-300 dark:hover:border-blue-600${dayCompletionRate === 1 && dayTasks.length > 0 ? ' bg-green-50/50 dark:bg-green-900/10' : ''}`
+                    : 'bg-surface-lighter  border-border '
                 } ${isCurrentDay ? 'ring-2 ring-blue-500' : ''}`}
                 role="gridcell"
                 aria-label={`${monthLabel}${dayTasks.length > 0 ? `，${dayTasks.length}个任务，完成${dayDoneCount}个` : ''}`}
                 onClick={() => isCurrentMonth && onCreateTaskForDate?.(dateKey)}
               >
-                <div className={`text-xs font-medium mb-1 ${
-                  isCurrentDay
-                    ? 'text-blue-600 dark:text-blue-400'
-                    : isCurrentMonth
-                      ? 'text-gray-700 dark:text-gray-300'
-                      : 'text-gray-400 dark:text-gray-600'
-                }`}>
+                <div className={`text-xs font-medium mb-1 ${ isCurrentDay ? 'text-blue-600 dark:text-blue-400' : isCurrentMonth ? 'text-text ' : 'text-text-muted ' }`}>
                   {dayNum}
                 </div>
                 <div className="space-y-0.5">
@@ -223,14 +217,14 @@ export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewPr
                     );
                   })}
                   {dayTasks.length > 3 && (
-                    <div className="text-[10px] text-gray-500 text-center" aria-label={`还有${dayTasks.length - 3}个任务`}>
+                    <div className="text-[10px] text-text-muted text-center" aria-label={`还有${dayTasks.length - 3}个任务`}>
                       +{dayTasks.length - 3} 更多
                     </div>
                   )}
                 </div>
                 {/* Day completion indicator */}
                 {dayTasks.length > 0 && dayCompletionRate > 0 && (
-                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-gray-200 dark:bg-gray-700 rounded-b-lg overflow-hidden" aria-hidden="true">
+                  <div className="absolute bottom-0 left-0 right-0 h-0.5 bg-surface-lighter rounded-b-lg overflow-hidden" aria-hidden="true">
                     <div
                       className="h-full bg-green-500 transition-all duration-300"
                       style={{ width: `${Math.round(dayCompletionRate * 100)}%` }}
@@ -245,8 +239,8 @@ export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewPr
 
       {/* Month Summary */}
       {tasks.length > 0 && (
-        <div className="mt-4 pt-4 border-t border-gray-200 dark:border-gray-700">
-          <div className="flex items-center justify-between text-xs text-gray-500">
+        <div className="mt-4 pt-4 border-t border-border">
+          <div className="flex items-center justify-between text-xs text-text-muted">
             <span>本月共 {monthStats.total} 个任务</span>
             <div className="flex items-center gap-3">
               <span className="flex items-center gap-1">
@@ -263,20 +257,20 @@ export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewPr
       )}
 
       {/* Keyboard hints */}
-      <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-gray-400">
-        <span><kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">←</kbd> 上月</span>
-        <span><kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">→</kbd> 下月</span>
-        <span><kbd className="px-1.5 py-0.5 bg-gray-100 dark:bg-gray-800 rounded">T</kbd> 今天</span>
+      <div className="mt-3 flex items-center justify-center gap-4 text-[10px] text-text-muted">
+        <span><kbd className="px-1.5 py-0.5 bg-surface-lighter rounded">←</kbd> 上月</span>
+        <span><kbd className="px-1.5 py-0.5 bg-surface-lighter rounded">→</kbd> 下月</span>
+        <span><kbd className="px-1.5 py-0.5 bg-surface-lighter rounded">T</kbd> 今天</span>
       </div>
 
       {/* No tasks message */}
       {tasks.length === 0 && (
         <div className="mt-4 text-center py-8">
-          <Icon name="calendar" className="w-12 h-12 mx-auto mb-3 text-gray-300 dark:text-gray-600" />
+          <Icon name="calendar" className="w-12 h-12 mx-auto mb-3 text-text-muted" />
           {filters.search ? (
             <>
-              <p className="text-sm text-gray-500 dark:text-gray-400">
-                没有找到匹配「<span className="font-medium text-gray-600 dark:text-gray-300">{highlightText(filters.search, filters.search)}</span>」的任务
+              <p className="text-sm text-text-muted">
+                没有找到匹配「<span className="font-medium text-text-muted">{highlightText(filters.search, filters.search)}</span>」的任务
               </p>
               <button
                 onClick={() => { createTask({ title: filters.search }); playClickSound(); }}
@@ -288,8 +282,8 @@ export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewPr
             </>
           ) : (
             <>
-              <p className="text-sm text-gray-500 dark:text-gray-400">暂无任务</p>
-              <p className="text-xs text-gray-400 dark:text-gray-500 mt-1">创建新任务开始管理您的日程</p>
+              <p className="text-sm text-text-muted">暂无任务</p>
+              <p className="text-xs text-text-muted mt-1">创建新任务开始管理您的日程</p>
             </>
           )}
         </div>

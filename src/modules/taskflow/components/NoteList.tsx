@@ -85,7 +85,7 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
         <div className="flex items-center gap-2">
           <span className="text-sm font-medium">备注</span>
           {notes.length > 0 && (
-            <span className="text-xs text-gray-500" aria-label={`${notes.length}条备注`}>{notes.length}</span>
+            <span className="text-xs text-text-muted" aria-label={`${notes.length}条备注`}>{notes.length}</span>
           )}
         </div>
         <button
@@ -107,18 +107,18 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
             <button
               type="button"
               onClick={() => setAddShowPreview(!addShowPreview)}
-              className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+              className="text-xs text-text-muted hover:text-text"
               aria-label={addShowPreview ? '切换到编辑模式' : '切换到预览模式'}
             >
               {addShowPreview ? '编辑' : '预览'}
             </button>
           </div>
           {addShowPreview ? (
-            <div className="min-h-[76px] p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
+            <div className="min-h-[76px] p-3 bg-surface-lighter rounded-lg">
               {newContent ? (
-                <MarkdownView content={newContent} className="text-sm text-gray-700 dark:text-gray-300" />
+                <MarkdownView content={newContent} className="text-sm text-text" />
               ) : (
-                <p className="text-sm text-gray-400">暂无内容</p>
+                <p className="text-sm text-text-muted">暂无内容</p>
               )}
             </div>
           ) : (
@@ -135,10 +135,10 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
           )}
           {!addShowPreview && (
             <div className="flex items-center justify-between mt-1">
-              <p className="text-[10px] text-gray-400">
+              <p className="text-[10px] text-text-muted">
                 支持: **粗体**, *斜体*, `代码`, - 列表
               </p>
-              <span className="text-[10px] text-gray-400">
+              <span className="text-[10px] text-text-muted">
                 {newContent.length} 字符
               </span>
             </div>
@@ -171,7 +171,7 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
         {notes.map((note) => (
           <div
             key={note.id}
-            className="group p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg"
+            className="group p-3 bg-surface-lighter rounded-lg"
             role="listitem"
             aria-label={`备注: ${note.content.slice(0, 30)}...`}
           >
@@ -182,15 +182,15 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
                   <button
                     type="button"
                     onClick={() => setEditShowPreview(!editShowPreview)}
-                    className="text-xs text-gray-500 hover:text-gray-700 dark:hover:text-gray-300"
+                    className="text-xs text-text-muted hover:text-text"
                     aria-label={editShowPreview ? '切换到编辑模式' : '切换到预览模式'}
                   >
                     {editShowPreview ? '编辑' : '预览'}
                   </button>
                 </div>
                 {editShowPreview ? (
-                  <div className="min-h-[76px] p-3 bg-gray-50 dark:bg-gray-800/50 rounded-lg">
-                    <MarkdownView content={editContent} className="text-sm text-gray-700 dark:text-gray-300" />
+                  <div className="min-h-[76px] p-3 bg-surface-lighter rounded-lg">
+                    <MarkdownView content={editContent} className="text-sm text-text" />
                   </div>
                 ) : (
                   <>
@@ -204,10 +204,10 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
                       aria-required="true"
                     />
                     <div className="flex items-center justify-between mt-1">
-                      <p className="text-[10px] text-gray-400">
+                      <p className="text-[10px] text-text-muted">
                         支持: **粗体**, *斜体*, `代码`, - 列表
                       </p>
-                      <span className="text-[10px] text-gray-400">
+                      <span className="text-[10px] text-text-muted">
                         {editContent.length} 字符
                       </span>
                     </div>
@@ -221,7 +221,7 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
                       setEditContent('');
                       setEditShowPreview(false);
                     }}
-                    className="text-xs text-gray-500 hover:text-gray-700"
+                    className="text-xs text-text-muted hover:text-text"
                     aria-label="取消编辑"
                   >
                     取消
@@ -240,11 +240,11 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
               <>
                 <MarkdownView
                   content={note.content}
-                  className="text-sm text-gray-700 dark:text-gray-300"
+                  className="text-sm text-text"
                 />
                 <div className="flex items-center justify-between mt-2">
                   <span
-                    className="text-xs text-gray-400 cursor-help"
+                    className="text-xs text-text-muted cursor-help"
                     title={note.updatedAt.replace('T', ' ').slice(0, 19)}
                   >
                     {relativeTimeMap.get(note.id)}
@@ -253,7 +253,7 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
                     <button
                       type="button"
                       onClick={() => startEditing(note)}
-                      className="text-xs text-gray-500 hover:text-blue-600"
+                      className="text-xs text-text-muted hover:text-blue-600"
                       aria-label={`编辑备注: ${note.content.slice(0, 20)}...`}
                     >
                       编辑
@@ -261,7 +261,7 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
                     <button
                       type="button"
                       onClick={() => setDeletingNoteId(note.id)}
-                      className="text-xs text-gray-500 hover:text-red-600"
+                      className="text-xs text-text-muted hover:text-red-600"
                       aria-label={`删除备注: ${note.content.slice(0, 20)}...`}
                     >
                       删除
@@ -275,7 +275,7 @@ export function NoteList({ taskId, notes, onUpdate }: NoteListProps) {
       </div>
 
       {notes.length === 0 && !isAdding && (
-        <p className="text-xs text-gray-400 text-center py-2">暂无备注</p>
+        <p className="text-xs text-text-muted text-center py-2">暂无备注</p>
       )}
 
       {/* Delete Confirmation */}

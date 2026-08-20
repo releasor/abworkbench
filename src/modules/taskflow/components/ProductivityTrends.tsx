@@ -104,12 +104,12 @@ export function ProductivityTrends({ className }: ProductivityTrendsProps) {
   const xLabels = points.filter((_, i) => i % xStep === 0 || i === points.length - 1);
 
   const trendArrow = stats?.trend === 'up' ? '↑' : stats?.trend === 'down' ? '↓' : '→';
-  const trendColor = stats?.trend === 'up' ? 'text-green-500' : stats?.trend === 'down' ? 'text-red-500' : 'text-gray-400';
+  const trendColor = stats?.trend === 'up' ? 'text-green-500' : stats?.trend === 'down' ? 'text-red-500' : 'text-text-muted';
 
   return (
     <div className={className}>
       <div className="flex items-center justify-between mb-4">
-        <h3 className="text-lg font-semibold text-gray-900 dark:text-white">
+        <h3 className="text-lg font-semibold text-text dark:text-white">
           生产力趋势
         </h3>
         <div className="flex gap-1">
@@ -117,11 +117,7 @@ export function ProductivityTrends({ className }: ProductivityTrendsProps) {
             <button
               key={r}
               onClick={() => setRange(r)}
-              className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${
-                range === r
-                  ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-medium'
-                  : 'text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700'
-              }`}
+              className={`text-xs px-2.5 py-1 rounded-lg transition-colors ${ range === r ? 'bg-blue-100 dark:bg-blue-900/50 text-blue-600 dark:text-blue-400 font-medium' : 'text-text-muted hover:bg-surface-lighter ' }`}
             >
               {RANGE_LABELS[r]}
             </button>
@@ -130,9 +126,9 @@ export function ProductivityTrends({ className }: ProductivityTrendsProps) {
       </div>
 
       {loading ? (
-        <div className="h-48 animate-pulse bg-gray-100 dark:bg-gray-700 rounded-lg" />
+        <div className="h-48 animate-pulse bg-surface-lighter rounded-lg" />
       ) : !stats || trends.length === 0 ? (
-        <div className="h-48 flex items-center justify-center text-gray-400 text-sm">
+        <div className="h-48 flex items-center justify-center text-text-muted text-sm">
           暂无数据
         </div>
       ) : (
@@ -140,24 +136,24 @@ export function ProductivityTrends({ className }: ProductivityTrendsProps) {
           {/* Summary stats */}
           <div className="grid grid-cols-5 gap-3 mb-4">
             <div className="text-center">
-              <p className="text-2xl font-bold text-gray-900 dark:text-white">{stats.avg}</p>
-              <p className="text-xs text-gray-500">平均分</p>
+              <p className="text-2xl font-bold text-text dark:text-white">{stats.avg}</p>
+              <p className="text-xs text-text-muted">平均分</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-green-600 dark:text-green-400">{stats.totalCompleted}</p>
-              <p className="text-xs text-gray-500">完成任务</p>
+              <p className="text-xs text-text-muted">完成任务</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-blue-600 dark:text-blue-400">{stats.activeDays}/{trends.length}</p>
-              <p className="text-xs text-gray-500">活跃天数</p>
+              <p className="text-xs text-text-muted">活跃天数</p>
             </div>
             <div className="text-center">
               <p className="text-2xl font-bold text-purple-600 dark:text-purple-400">{formatDurationCompact(stats.totalTime)}</p>
-              <p className="text-xs text-gray-500">专注时间</p>
+              <p className="text-xs text-text-muted">专注时间</p>
             </div>
             <div className="text-center">
               <p className={`text-2xl font-bold ${trendColor}`}>{trendArrow} {stats.recentAvg}</p>
-              <p className="text-xs text-gray-500">近期趋势</p>
+              <p className="text-xs text-text-muted">近期趋势</p>
             </div>
           </div>
 
@@ -170,7 +166,7 @@ export function ProductivityTrends({ className }: ProductivityTrendsProps) {
                 return (
                   <g key={v}>
                     <line x1={padX} y1={y} x2={padX + innerW} y2={y} stroke="currentColor" strokeOpacity={0.1} />
-                    <text x={padX - 8} y={y + 4} textAnchor="end" className="fill-gray-400 text-[9px]">{v}</text>
+                    <text x={padX - 8} y={y + 4} textAnchor="end" className="fill-text-muted text-[9px]">{v}</text>
                   </g>
                 );
               })}
@@ -191,7 +187,7 @@ export function ProductivityTrends({ className }: ProductivityTrendsProps) {
 
               {/* X-axis labels */}
               {xLabels.map((p, i) => (
-                <text key={i} x={p.x} y={chartH - 2} textAnchor="middle" className="fill-gray-400 text-[9px]">
+                <text key={i} x={p.x} y={chartH - 2} textAnchor="middle" className="fill-text-muted text-[9px]">
                   {formatDate(p.date)}
                 </text>
               ))}

@@ -30,13 +30,13 @@ function SortInline() {
 
   return (
     <div className="flex items-center gap-2">
-      <Icon name="sort" className="w-4 h-4 text-gray-400" />
+      <Icon name="sort" className="w-4 h-4 text-text-muted" />
       <label htmlFor="sort-select" className="sr-only">{t('taskflow.sort.order')}</label>
       <select
         id="sort-select"
         value={sortBy}
         onChange={(e) => setSortBy(e.target.value as SortBy)}
-        className="text-sm bg-transparent border-0 text-gray-600 dark:text-gray-400 focus:ring-0 cursor-pointer"
+        className="text-sm bg-transparent border-0 text-text-muted focus:ring-0 cursor-pointer"
         aria-label={t('taskflow.sort.order')}
       >
         {SORT_OPTIONS.map((opt) => (
@@ -45,11 +45,7 @@ function SortInline() {
       </select>
       <button
         onClick={() => setSortReverse(!sortReverse)}
-        className={`p-1 rounded transition-colors ${
-          sortReverse
-            ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-            : 'text-gray-400 hover:text-gray-600 dark:hover:text-gray-300'
-        }`}
+        className={`p-1 rounded transition-colors ${ sortReverse ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'text-text-muted hover:text-text ' }`}
         aria-label={sortReverse ? t('taskflow.sort.ascending') : t('taskflow.sort.descending')}
         title={sortReverse ? t('taskflow.sort.ascending') : t('taskflow.sort.descending')}
       >
@@ -89,7 +85,7 @@ function SortDropdownMenu() {
 
       {isOpen && (
         <div
-          className="absolute right-0 mt-2 w-48 bg-white dark:bg-gray-800 rounded-xl shadow-lg border border-gray-200 dark:border-gray-700 py-1 z-50 animate-fade-in"
+          className="absolute right-0 mt-2 w-48 bg-white rounded-xl shadow-lg border border-border py-1 z-50 animate-fade-in"
           role="listbox"
           aria-label={t('taskflow.sort.order')}
         >
@@ -100,11 +96,7 @@ function SortDropdownMenu() {
                 setSortBy(option.value);
                 setIsOpen(false);
               }}
-              className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors ${
-                sortBy === option.value
-                  ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20'
-                  : 'text-gray-700 dark:text-gray-300'
-              }`}
+              className={`w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-surface-lighter transition-colors ${ sortBy === option.value ? 'text-blue-600 dark:text-blue-400 bg-blue-50 dark:bg-blue-900/20' : 'text-text ' }`}
               role="option"
               aria-selected={sortBy === option.value}
             >
@@ -115,10 +107,10 @@ function SortDropdownMenu() {
               )}
             </button>
           ))}
-          <div className="border-t border-gray-200 dark:border-gray-700 my-1" aria-hidden="true" />
+          <div className="border-t border-border my-1" aria-hidden="true" />
           <button
             onClick={() => setSortReverse(!sortReverse)}
-            className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors text-gray-700 dark:text-gray-300"
+            className="w-full flex items-center gap-3 px-4 py-2 text-sm hover:bg-surface-lighter transition-colors text-text"
             role="option"
             aria-selected={sortReverse}
           >

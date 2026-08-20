@@ -1,0 +1,337 @@
+/* Closer Mineradio skin for Abworkbench — cyan glass, chill dark, home disc/cards. */
+
+html[data-theme="dark"] {
+  --home-accent: #00f5d4;
+  --home-accent-rgb: 0, 245, 212;
+  --chill-ink: #030608;
+  --chill-deep: #061116;
+  --chill-panel: #0a1218;
+  --tone-blue: #2442ff;
+  --tone-warm: #f8f4ee;
+  --champagne: #f4d28a;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+
+  --color-surface: #030608;
+  --color-surface-light: #061116;
+  --color-surface-lighter: #0f1a22;
+  --color-background: #030608;
+  --color-bg: #030608;
+  --color-border: rgba(255, 255, 255, 0.08);
+  --color-text: rgba(255, 255, 255, 0.96);
+  --color-text-muted: rgba(255, 255, 255, 0.55);
+  --color-text-secondary: rgba(255, 255, 255, 0.55);
+
+  --glass-blur: 30px;
+  --glass-sat: 1.16;
+  --glass-bg: linear-gradient(145deg, rgba(33, 29, 34, 0.64), rgba(9, 10, 14, 0.76) 48%, rgba(17, 20, 25, 0.7));
+  --glass-border: color-mix(in srgb, var(--home-accent) 22%, rgba(255, 255, 255, 0.085));
+  --glass-shadow:
+    0 28px 90px rgba(0, 0, 0, 0.34),
+    0 0 0 1px color-mix(in srgb, var(--home-accent) 7%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.065);
+  --glass-shadow-hover:
+    0 28px 84px rgba(0, 0, 0, 0.36),
+    0 0 34px color-mix(in srgb, var(--home-accent) 16%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.085);
+
+  --saved-panel-glass-bg: rgba(0, 0, 0, 0.12);
+  --saved-panel-glass-filter: blur(12px) saturate(1.8) brightness(1.16);
+  --saved-panel-glass-shadow:
+    inset 0 0 2px 1px rgba(255, 255, 255, 0.35),
+    inset 0 0 10px 4px rgba(255, 255, 255, 0.15),
+    0 4px 16px rgba(17, 17, 26, 0.05),
+    0 8px 24px rgba(17, 17, 26, 0.05),
+    0 16px 56px rgba(17, 17, 26, 0.05),
+    inset 0 4px 16px rgba(17, 17, 26, 0.05),
+    inset 0 8px 24px rgba(17, 17, 26, 0.05),
+    inset 0 16px 56px rgba(17, 17, 26, 0.05);
+  --radius-pill: 50px;
+
+  --color-primary: #00f5d4;
+  --color-primary-light: #5ffbec;
+  --color-primary-dark: #00c4aa;
+}
+
+:root {
+  --home-accent: #00f5d4;
+  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+}
+
+html[data-theme="dark"] body,
+html[data-theme="dark"] .app-frame {
+  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0, 245, 212, 0.08), transparent 55%),
+    radial-gradient(ellipse 50% 40% at 100% 20%, rgba(36, 66, 255, 0.1), transparent 50%),
+    var(--chill-ink) !important;
+}
+
+/* ---- Mineradio glass cards ---- */
+.glass-card,
+.dashboard-hero {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border) !important;
+  border-radius: 28px !important;
+  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+.glass-card:hover {
+  border-color: color-mix(in srgb, var(--home-accent) 42%, rgba(255, 255, 255, 0.18)) !important;
+  box-shadow: var(--glass-shadow-hover) !important;
+  transform: translateY(-2px);
+}
+
+html.control-glass-svg-ok .glass-card,
+html.control-glass-svg-ok .sidebar-glass,
+html.control-glass-svg-ok .shortcut-dock {
+  backdrop-filter: url(#abwb-control-glass-filter) saturate(1.2) !important;
+  -webkit-backdrop-filter: url(#abwb-control-glass-filter) saturate(1.2) !important;
+}
+
+/* ---- Sidebar as frosted control rail ---- */
+.sidebar-glass {
+  background: var(--saved-panel-glass-bg) !important;
+  border-right: 1px solid color-mix(in srgb, var(--home-accent) 12%, rgba(255, 255, 255, 0.06)) !important;
+  backdrop-filter: var(--saved-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
+  box-shadow: var(--saved-panel-glass-shadow);
+}
+
+.nav-item-spring[aria-current="page"] {
+  background: color-mix(in srgb, var(--home-accent) 12%, rgba(255, 255, 255, 0.04)) !important;
+  color: var(--home-accent) !important;
+  border: 1px solid color-mix(in srgb, var(--home-accent) 34%, rgba(255, 255, 255, 0.1));
+  box-shadow:
+    0 10px 26px color-mix(in srgb, var(--home-accent) 10%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
+}
+
+.nav-item-spring[aria-current="page"] .absolute.left-0 {
+  background: var(--home-accent) !important;
+  box-shadow: 0 0 12px color-mix(in srgb, var(--home-accent) 60%, transparent);
+}
+
+/* ---- Home hero (Mineradio home-hero) ---- */
+.dashboard-hero {
+  position: relative;
+  overflow: hidden;
+  min-height: 280px;
+}
+
+.dashboard-hero::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  background:
+    linear-gradient(
+      118deg,
+      rgba(255, 255, 255, 0.06),
+      transparent 24%,
+      rgba(0, 245, 212, 0.07) 54%,
+      rgba(36, 66, 255, 0.06) 82%,
+      transparent 100%
+    ),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.032) 0 1px, transparent 1px 48px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.024) 0 1px, transparent 1px 44px);
+  opacity: 0.72;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.dashboard-hero::after {
+  content: '';
+  position: absolute;
+  left: 28px;
+  right: 28px;
+  bottom: 12px;
+  height: 1px;
+  background: linear-gradient(
+    90deg,
+    transparent,
+    color-mix(in srgb, var(--home-accent) 52%, transparent),
+    rgba(36, 66, 255, 0.24),
+    rgba(248, 244, 238, 0.18),
+    transparent
+  );
+  opacity: 0.45;
+  pointer-events: none;
+  z-index: 0;
+}
+
+.home-kicker {
+  font-size: 10px;
+  font-weight: 780;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--home-accent) 62%, rgba(255, 255, 255, 0.36));
+}
+
+.home-wave-track {
+  position: relative;
+  z-index: 1;
+  width: min(420px, 55%);
+  height: 36px;
+  margin: 10px 0 4px;
+  display: flex;
+  align-items: flex-end;
+  gap: 3px;
+  opacity: 0.72;
+  mix-blend-mode: screen;
+  pointer-events: none;
+}
+
+.home-wave-track span {
+  flex: 1;
+  min-width: 2px;
+  border-radius: 999px;
+  background: linear-gradient(180deg, #fff, var(--home-accent));
+  box-shadow: 0 0 12px color-mix(in srgb, var(--home-accent) 55%, transparent);
+  height: var(--h, 8px);
+  transform-origin: bottom;
+  animation: home-eq-rise 1.6s ease-in-out infinite;
+  animation-delay: var(--d, 0s);
+}
+
+@keyframes home-eq-rise {
+  0%, 100% { transform: scaleY(0.55); opacity: 0.55; }
+  45% { transform: scaleY(1); opacity: 1; }
+}
+
+/* ---- Home cards (quick actions) ---- */
+.home-card {
+  --tone-a: #00f5d4;
+  --tone-b: #2442ff;
+  --tone-c: #f8f4ee;
+  position: relative;
+  min-height: 132px;
+  border: 1px solid color-mix(in srgb, var(--home-accent) 10%, rgba(255, 255, 255, 0.085));
+  border-radius: 22px;
+  background: linear-gradient(142deg, rgba(18, 21, 26, 0.66), rgba(8, 9, 13, 0.76));
+  box-shadow: 0 20px 64px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
+  backdrop-filter: blur(24px) saturate(1.12);
+  -webkit-backdrop-filter: blur(24px) saturate(1.12);
+  padding: 17px;
+  overflow: hidden;
+  color: #fff;
+  text-align: left;
+  transition: transform 0.22s var(--ease-spring), border-color 0.22s, background 0.22s, box-shadow 0.22s;
+  animation: home-card-float 7.4s ease-in-out infinite;
+}
+
+.home-card[data-home-tone="mix"] { --tone-a: #9db8cf; --tone-b: #00f5d4; }
+.home-card[data-home-tone="local"] { --tone-a: #2442ff; --tone-b: #00f5d4; }
+.home-card[data-home-tone="library"] { --tone-a: #f4d28a; --tone-b: #00f5d4; }
+
+.home-card:nth-child(2) { animation-delay: -1.4s; }
+.home-card:nth-child(3) { animation-delay: -2.6s; }
+.home-card:nth-child(4) { animation-delay: -3.8s; }
+
+.home-card:hover {
+  animation: none;
+  transform: translateY(-3px);
+  border-color: color-mix(in srgb, var(--tone-a) 42%, rgba(255, 255, 255, 0.18));
+  background: linear-gradient(142deg, rgba(36, 33, 39, 0.72), rgba(10, 10, 14, 0.84));
+  box-shadow:
+    0 28px 84px rgba(0, 0, 0, 0.36),
+    0 0 34px color-mix(in srgb, var(--tone-a) 16%, transparent),
+    inset 0 1px 0 rgba(255, 255, 255, 0.085);
+}
+
+.home-card::before {
+  content: '';
+  position: absolute;
+  right: -20%;
+  bottom: -30%;
+  width: 70%;
+  height: 80%;
+  border-radius: 50%;
+  background: radial-gradient(circle, color-mix(in srgb, var(--tone-a) 28%, transparent), transparent 68%);
+  pointer-events: none;
+}
+
+.home-card-label {
+  font-size: 10px;
+  font-weight: 760;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: color-mix(in srgb, var(--tone-a) 70%, #fff);
+  margin-bottom: 8px;
+  text-shadow: 0 0 18px color-mix(in srgb, var(--tone-a) 22%, transparent);
+}
+
+.home-card-title {
+  font-size: 17px;
+  font-weight: 780;
+  line-height: 1.16;
+  color: rgba(255, 255, 255, 0.96);
+  max-width: 72%;
+}
+
+.home-card-sub {
+  margin-top: 8px;
+  font-size: 11.5px;
+  line-height: 1.45;
+  color: rgba(255, 255, 255, 0.55);
+  max-width: 72%;
+}
+
+@keyframes home-card-float {
+  0%, 100% { transform: translateY(0); }
+  50% { transform: translateY(-2px); }
+}
+
+/* Ambient stronger cyan wash */
+.app-shell::before {
+  background:
+    radial-gradient(ellipse 55% 55% at 12% 8%, rgba(0, 245, 212, 0.22), transparent 68%),
+    radial-gradient(ellipse 45% 40% at 88% 5%, rgba(36, 66, 255, 0.18), transparent 65%),
+    radial-gradient(ellipse 40% 35% at 55% 40%, rgba(122, 215, 194, 0.08), transparent 70%) !important;
+}
+
+.app-main-stage {
+  background: transparent !important;
+}
+
+.shortcut-dock {
+  border-color: color-mix(in srgb, var(--home-accent) 28%, rgba(255, 255, 255, 0.08)) !important;
+  background: rgba(0, 0, 0, 0.22) !important;
+  backdrop-filter: blur(12px) saturate(1.8) brightness(1.1) !important;
+  box-shadow: var(--saved-panel-glass-shadow) !important;
+}
+
+.shortcut-dock kbd {
+  color: var(--home-accent) !important;
+  border-color: color-mix(in srgb, var(--home-accent) 30%, transparent) !important;
+  background: rgba(0, 245, 212, 0.08) !important;
+}
+
+.btn-primary {
+  background: linear-gradient(135deg, #5ffbec, #00f5d4 40%, #00c4aa) !important;
+  color: #031016 !important;
+  font-weight: 700;
+  box-shadow: 0 8px 28px rgba(0, 245, 212, 0.28);
+}
+
+.btn-primary:hover {
+  box-shadow: 0 12px 36px rgba(0, 245, 212, 0.4) !important;
+}
+
+/* Header strip */
+.header-glass {
+  background: color-mix(in srgb, var(--chill-deep) 72%, transparent) !important;
+  border-bottom: 1px solid color-mix(in srgb, var(--home-accent) 10%, rgba(255, 255, 255, 0.06)) !important;
+  backdrop-filter: blur(18px) saturate(1.3) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .home-wave-track span,
+  .home-card {
+    animation: none !important;
+  }
+}
+
+@media (max-width: 1024px) {
+  .home-wave-track {
+    width: min(360px, 90%);
+  }
+}

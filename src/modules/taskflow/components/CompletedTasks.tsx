@@ -114,7 +114,7 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold" id="completed-tasks-title">已完成任务</h2>
-            <p className="text-sm text-gray-500">共 {completedTasks.length} 个任务</p>
+            <p className="text-sm text-text-muted">共 {completedTasks.length} 个任务</p>
           </div>
           <div className="flex items-center gap-2">
             {completedTasks.length > 0 && (
@@ -122,7 +122,7 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
                 <div className="relative" ref={exportMenuRef}>
                   <button
                     onClick={() => setShowExportMenu(!showExportMenu)}
-                    className="text-xs px-3 py-1.5 text-gray-500 dark:text-gray-400 hover:bg-gray-100 dark:hover:bg-gray-700 rounded-lg transition-colors"
+                    className="text-xs px-3 py-1.5 text-text-muted hover:bg-surface-lighter rounded-lg transition-colors"
                     aria-label="导出已完成任务"
                     aria-expanded={showExportMenu}
                     aria-haspopup="menu"
@@ -133,21 +133,21 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
                     <div className="absolute right-0 top-full mt-1 w-36 card p-1 shadow-lg animate-slide-in z-10" role="menu">
                       <button
                         onClick={() => { exportToJSON(completedTasks, categories); setShowExportMenu(false); }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
                         role="menuitem"
                       >
                         导出 JSON
                       </button>
                       <button
                         onClick={() => { exportToCSV(completedTasks, categories); setShowExportMenu(false); }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
                         role="menuitem"
                       >
                         导出 CSV
                       </button>
                       <button
                         onClick={() => { exportToMarkdown(completedTasks, categories); setShowExportMenu(false); }}
-                        className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-gray-100 dark:hover:bg-gray-700 transition-colors"
+                        className="w-full text-left px-3 py-2 text-sm rounded-lg hover:bg-surface-lighter transition-colors"
                         role="menuitem"
                       >
                         导出 Markdown
@@ -172,14 +172,14 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
 
         {completedTasks.length === 0 ? (
           <div className="text-center py-12">
-            <Icon name="check-circle" className="w-16 h-16 mx-auto text-gray-300 dark:text-gray-600 mb-4" />
-            <p className="text-gray-400">暂无已完成的任务</p>
+            <Icon name="check-circle" className="w-16 h-16 mx-auto text-text-muted mb-4" />
+            <p className="text-text-muted">暂无已完成的任务</p>
           </div>
         ) : (
           <div className="space-y-6" role="list" aria-label="已完成任务列表">
             {groupedByDate.map(([date, dateTasks, header]) => (
               <div key={date} role="listitem">
-                <h3 className="text-sm font-medium text-gray-500 dark:text-gray-400 mb-3 sticky top-0 bg-white dark:bg-gray-800 py-1">
+                <h3 className="text-sm font-medium text-text-muted mb-3 sticky top-0 bg-white py-1">
                   {header}
                 </h3>
                 <div className="space-y-2">
@@ -192,7 +192,7 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
                           onEditTask(task);
                           onClose();
                         }}
-                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-gray-50 dark:hover:bg-gray-800/50 cursor-pointer transition-colors group"
+                        className="flex items-center gap-3 p-3 rounded-lg hover:bg-surface-lighter /50 cursor-pointer transition-colors group"
                         role="button"
                         tabIndex={0}
                         aria-label={`编辑任务: ${task.title}`}
@@ -208,30 +208,30 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
                           <Icon name="check" className="w-3 h-3 text-green-600 dark:text-green-400" />
                         </div>
                         <div className="flex-1 min-w-0">
-                          <p className="text-sm font-medium text-gray-700 dark:text-gray-300 line-through">
+                          <p className="text-sm font-medium text-text line-through">
                             {task.title}
                           </p>
                           {task.description && (
-                            <p className="text-xs text-gray-400 dark:text-gray-500 line-clamp-1 mt-0.5">
+                            <p className="text-xs text-text-muted line-clamp-1 mt-0.5">
                               {task.description}
                             </p>
                           )}
                         </div>
                         {category && <CategoryPill category={category} compact className="flex-shrink-0" />}
                         {durationMap.has(task.id) && (
-                          <span className="text-[10px] text-gray-400 flex-shrink-0" title="创建到完成耗时">
+                          <span className="text-[10px] text-text-muted flex-shrink-0" title="创建到完成耗时">
                             {durationMap.get(task.id)}
                           </span>
                         )}
                         {relativeTimeMap.has(task.id) ? (
                           <span
-                            className="text-xs text-gray-400 flex-shrink-0 cursor-help"
+                            className="text-xs text-text-muted flex-shrink-0 cursor-help"
                             title={task.completedAt!.replace('T', ' ').slice(0, 19)}
                           >
                             {relativeTimeMap.get(task.id)}
                           </span>
                         ) : (
-                          <span className="text-xs text-gray-400 flex-shrink-0" />
+                          <span className="text-xs text-text-muted flex-shrink-0" />
                         )}
                         <button
                           onClick={(e) => {
@@ -239,7 +239,7 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
                             archiveTask(task.id);
                             playClickSound();
                           }}
-                          className="p-1 text-gray-400 hover:text-amber-500 dark:hover:text-amber-400 transition-colors rounded opacity-0 group-hover:opacity-100"
+                          className="p-1 text-text-muted hover:text-amber-500 dark:hover:text-amber-400 transition-colors rounded opacity-0 group-hover:opacity-100"
                           aria-label={`归档任务: ${task.title}`}
                           title="归档"
                         >
