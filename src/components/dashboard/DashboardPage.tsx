@@ -31,21 +31,31 @@ import { useStore } from '../../store'
 import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useToday } from '../../hooks/useToday'
+import { prevDateStr, nextDateStr } from '../../modules/taskflow/dateUtils'
 import { useCurrentHour } from '../../hooks/useCurrentHour'
 import { useTick } from '../../hooks/useTick'
 import { getRelativeTime, WEEKDAY_NAMES, durationMinutes, fmtMin, getHabitStreak, dayNumToDateStr, getMonthLabel, dayNumToShortLabel, fmtHHmm, dayNumToFullLabel, dayNumToYMD } from '../../utils/format'
 import { buildPomodoroByDateMap, buildCompletedByDateMap, buildCreatedDateMap, buildHabitsByDateMap } from '../../utils/stats'
 import { buildAchievements } from '../../utils/achievements'
+import { parseQuickCreateInput, buildQuickCreateDueAt, buildQuickCreateSubtasks } from '../../modules/taskflow/utils/quickCreateParser'
+import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import { generateMockWeather } from '../weather/WeatherWidget'
 import { useTranslation } from '../../i18n'
 import { formatGreetingTitle } from './greetingTitle'
 import { buildTodayPlanning, type PlanningTone } from './todayPlanning'
 import { buildTodayTimeBlocks } from './timeBlocks'
+import DashboardReminders from './DashboardReminders'
 import { buildWorkdayStatus, DEFAULT_WORKDAY_SETTINGS, formatCountdown, formatCurrency, normalizeWorkdaySettings, type WorkdaySettings } from './workday'
 import { getPeriod, stripMarkdown } from './notePreview'
 import { safeGet, safeSet } from '../../utils/safeLocalStorage'
-import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import ErrorBoundary from '../common/ErrorBoundary'
+import { LOCAL_DATA_CHANGE_EVENT } from '../../utils/localData'
+import {
+  TIME_BLOCK_SCHEDULE_KEY,
+  getDayTaskHours,
+  readTimeBlockSchedule,
+  setTaskScheduledHour,
+} from '../../utils/timeBlockSchedule'
 
 const StatsPage = lazy(() => import('../stats/StatsPage'))
 const ClockWidget = lazy(() => import('./ClockWidget'))
@@ -53,6 +63,8 @@ const CalendarWidget = lazy(() => import('./CalendarWidget'))
 
 interface DashboardPageProps {
   onNavigate: (page: Page) => void
+  onOpenDailyBrief?: (mode?: 'morning' | 'evening') => void
+  onOpenQuickCapture?: () => void
 }
 
 const PRIORITY_COLORS: Record<string, string> = { urgent: 'bg-danger', high: 'bg-danger', medium: 'bg-warning', low: 'bg-success' }
@@ -99,7 +111,7 @@ function writeWorkdaySettings(settings: WorkdaySettings): WorkdaySettings {
   return normalized
 }
 
-export default function DashboardPage({ onNavigate }: DashboardPageProps) {
+export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuickCapture }: DashboardPageProps) {
   const taskFlowTasks = useTaskStore((s) => s.tasks)
   const categories = useTaskStore((s) => s.categories)
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
@@ -117,32 +129,49 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
   const [quickDueDate, setQuickDueDate] = useState('')
   const [togglingHabitId, setTogglingHabitId] = useState<string | null>(null)
   const [showAllTimeline, setShowAllTimeline] = useState(false)
+  const [showDashboardStats, setShowDashboardStats] = useState(() => {
+    try {
+      const raw = localStorage.getItem('abworkbench-dashboard-stats-open')
+      if (raw == null) return document.documentElement.dataset.workspaceMode === 'dashboard'
+      return raw === '1'
+    } catch {
+      return false
+    }
+  })
   const now = useTick(1000)
   const [showClockPanel, setShowClockPanel] = useState(false)
   const [showDatePanel, setShowDatePanel] = useState(false)
   const [showWorkdaySettings, setShowWorkdaySettings] = useState(false)
   const [workdaySettings, setWorkdaySettings] = useState<WorkdaySettings>(readWorkdaySettings)
   const [draftWorkdaySettings, setDraftWorkdaySettings] = useState<WorkdaySettings>(workdaySettings)
+  const [scheduleRevision, setScheduleRevision] = useState(0)
   const hour = useCurrentHour()
   const quickTodoRef = useRef<HTMLInputElement>(null)
   const shortcutOverrides = useShortcutStore((s) => s.overrides)
   const { t, tWith, language } = useTranslation()
   const dateInputLocale = language === 'zh' ? 'zh-CN' : 'en-US'
 
+  useEffect(() => {
+    const onLocal = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key
+      if (key === TIME_BLOCK_SCHEDULE_KEY) setScheduleRevision((n) => n + 1)
+    }
+    window.addEventListener(LOCAL_DATA_CHANGE_EVENT, onLocal as EventListener)
+    return () => window.removeEventListener(LOCAL_DATA_CHANGE_EVENT, onLocal as EventListener)
+  }, [])
+
   const weather = useMemo(() => generateMockWeather(weatherCity), [weatherCity])
 
   useEffect(() => {
-    if (taskFlowTasks.length === 0) {
-      fetchTasks().catch((err) => {
-        console.error('Failed to fetch tasks:', err)
-        showToast('加载任务失败', 'error')
-      })
-    }
+    fetchTasks().catch((err) => {
+      console.error('Failed to fetch tasks:', err)
+      showToast('加载任务失败', 'error')
+    })
     fetchCategories().catch((err) => {
       console.error('Failed to fetch categories:', err)
       showToast('加载分类失败', 'error')
     })
-  }, [fetchTasks, fetchCategories, taskFlowTasks.length])
+  }, [fetchTasks, fetchCategories])
 
   // 'n' to focus quick add input
   useEffect(() => {
@@ -161,16 +190,8 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
   const { todayStr, todayMidnightMs, tomorrowMidnightMs, yesterdayStr } = useToday()
   const [selectedDate, setSelectedDate] = useState(todayStr)
   const isSelectedToday = selectedDate === todayStr
-  const prevDay = () => {
-    const d = new Date(selectedDate)
-    d.setDate(d.getDate() - 1)
-    setSelectedDate(d.toISOString().slice(0, 10))
-  }
-  const nextDay = () => {
-    const d = new Date(selectedDate)
-    d.setDate(d.getDate() + 1)
-    setSelectedDate(d.toISOString().slice(0, 10))
-  }
+  const prevDay = () => setSelectedDate((d) => prevDateStr(d))
+  const nextDay = () => setSelectedDate((d) => nextDateStr(d))
 
   const todos = useMemo(() => taskFlowTasks.map((task) => ({
     id: task.id,
@@ -187,19 +208,27 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
     const title = quickTodo.trim()
     if (!title) return
     try {
+      const parsed = parseQuickCreateInput(title, { projects: categories })
+      const dueFromText = buildQuickCreateDueAt(parsed)
       await createTask({
-        title,
-        priority: quickPriority,
-        dueDate: quickDueDate ? `${quickDueDate}T00:00:00.000Z` : null,
+        title: parsed.title || title,
+        description: parsed.raw !== (parsed.title || title) ? parsed.raw : undefined,
+        priority: parsed.raw.includes('紧急') || parsed.raw.includes('高优先') ? 'high' : quickPriority,
+        category: parsed.projectId || categories[0]?.id || 'cat-work',
+        tags: parsed.tags,
+        dueDate: dueFromText || (quickDueDate ? `${quickDueDate}T00:00:00.000Z` : null),
+        subtasks: buildQuickCreateSubtasks(parsed),
+        status: 'todo',
       })
       setQuickTodo('')
       setQuickDueDate('')
       quickTodoRef.current?.focus()
+      showToast('已添加任务', 'success')
     } catch (err) {
       console.error('创建任务失败:', err);
       showToast('创建任务失败', 'error');
     }
-  }, [createTask, quickDueDate, quickPriority, quickTodo])
+  }, [categories, createTask, quickDueDate, quickPriority, quickTodo])
 
   const navigateFromCard = useCallback((page: Page, event: ReactMouseEvent<HTMLElement>) => {
     const target = event.target
@@ -731,6 +760,10 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
     pomodoroSessions,
   }), [hour, todayStr, yesterdayStr, todayMidnightMs, tomorrowMidnightMs, dailyPomodoroGoal, todos, habits, pomodoroSessions])
 
+  const timeBlockOverrides = useMemo(() => {
+    void scheduleRevision
+    return getDayTaskHours(todayStr, readTimeBlockSchedule())
+  }, [todayStr, scheduleRevision])
   const timeBlockPlan = useMemo(() => buildTodayTimeBlocks({
     todayStr,
     todayMidnightMs,
@@ -738,7 +771,14 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
     tasks: todos,
     habits,
     pomodoroSessions,
-  }), [todayStr, todayMidnightMs, tomorrowMidnightMs, todos, habits, pomodoroSessions])
+    hourOverrides: timeBlockOverrides,
+  }), [todayStr, todayMidnightMs, tomorrowMidnightMs, todos, habits, pomodoroSessions, timeBlockOverrides])
+
+  const onDropTaskToHour = useCallback((hour: number, taskId: string) => {
+    setTaskScheduledHour(todayStr, taskId, hour)
+    setScheduleRevision((n) => n + 1)
+    showToast(`已排到 ${String(hour).padStart(2, '0')}:00`, 'success')
+  }, [todayStr])
 
   const achievements = useMemo(() => buildAchievements({
     todayStr,
@@ -761,23 +801,21 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
 
   return (
     <ErrorBoundary>
-    <div className="space-y-6 animate-fade-in">
-      {/* Greeting */}
-      <div className="relative overflow-hidden rounded-[34px] border border-border bg-surface/85 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="pointer-events-none absolute bottom-0 left-1/4 h-48 w-48 rounded-full bg-emerald-500/10 blur-3xl" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
+    <div className="space-y-6 motion-stagger">
+      {/* Greeting — cinematic hero */}
+      <div className="dashboard-hero relative overflow-hidden rounded-[34px] border border-primary/25 p-6 md:p-8 shadow-2xl shadow-primary/10">
+        <div className="relative z-[2] flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <Zap size={14} />
+            <div className="home-kicker mb-3 inline-flex items-center gap-2">
+              <Zap size={12} />
               <button onClick={prevDay} className="rounded px-1 hover:bg-primary/20 transition" title="前一天" aria-label="前一天">←</button>
               <span>{isSelectedToday ? '今日工作台' : `${selectedDate} 工作台`}</span>
               <button onClick={nextDay} className="rounded px-1 hover:bg-primary/20 transition" title="后一天" aria-label="后一天">→</button>
               {!isSelectedToday && (
-                <button onClick={() => setSelectedDate(todayStr)} className="rounded px-1.5 py-0.5 text-[10px] bg-primary/20 hover:bg-primary/30 transition" aria-label="回到今天">回到今天</button>
+                <button onClick={() => setSelectedDate(todayStr)} className="rounded px-1.5 py-0.5 text-[10px] bg-primary/20 hover:bg-primary/30 transition normal-case tracking-normal" aria-label="回到今天">回到今天</button>
               )}
             </div>
-            <h2 className="text-3xl font-black tracking-tight text-text">{formatGreetingTitle(greeting.text, userName)}</h2>
+            <h2 className="text-4xl font-black tracking-tight text-text md:text-5xl">{formatGreetingTitle(greeting.text, userName)}</h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-muted">
               <button onClick={() => setShowDatePanel(true)} className="rounded-lg text-left transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开日期面板">
                 {todayDisplay}
@@ -789,6 +827,12 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
               <span>·</span>
               <span>{greeting.sub}</span>
             </div>
+            <div className="mt-3 flex flex-wrap gap-2">
+              <button type="button" onClick={() => onOpenDailyBrief?.('morning')} className="rounded-xl bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/25">今日作战板</button>
+              <button type="button" onClick={() => onOpenDailyBrief?.('evening')} className="rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-text-muted hover:bg-white/10">晚间复盘</button>
+              <button type="button" onClick={() => onOpenQuickCapture?.()} className="rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-text-muted hover:bg-white/10">快速捕获</button>
+              <button type="button" onClick={() => onNavigate('reminders')} className="rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-text-muted hover:bg-white/10">提醒中心</button>
+            </div>
             {pomodoroStreak > 1 && (
               <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1">
                 <Flame size={14} className={pomodoroStreak >= 30 ? 'text-purple-400' : pomodoroStreak >= 14 ? 'text-amber-400' : 'text-orange-400'} />
@@ -797,6 +841,17 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
                 </span>
               </div>
             )}
+            <div className="home-wave-track" aria-hidden>
+              {Array.from({ length: 28 }, (_, i) => (
+                <span
+                  key={i}
+                  style={{
+                    ['--h' as string]: `${6 + ((i * 17) % 34)}px`,
+                    ['--d' as string]: `${(i % 9) * 0.12}s`,
+                  }}
+                />
+              ))}
+            </div>
           </div>
           <div className="grid gap-3 sm:grid-cols-[minmax(250px,340px)_112px] sm:items-stretch">
             <div className="rounded-[28px] border border-primary/20 bg-background/55 p-4 shadow-xl shadow-black/10">
@@ -837,7 +892,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
                 <span>{workdaySettings.endTime} 下班</span>
               </div>
             </div>
-            <div className="relative grid h-28 w-28 place-items-center rounded-[28px] border border-primary/25 bg-primary/10 shadow-2xl shadow-primary/10">
+            <div className="relative grid h-28 w-28 place-items-center rounded-[28px] border border-primary/25 bg-primary/10 shadow-2xl shadow-primary/10 card-float-soft">
               <svg viewBox="0 0 96 96" className="absolute inset-3 -rotate-90">
                 <circle cx="48" cy="48" r="36" fill="none" stroke="var(--color-border)" strokeWidth="7" />
                 <circle cx="48" cy="48" r="36" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={ringOffset} className="transition-all duration-700" />
@@ -850,7 +905,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           </div>
         </div>
         {/* Quick Stats */}
-        <div className="relative mt-5 grid grid-cols-2 gap-2 border-t border-border pt-4 md:grid-cols-5">
+        <div className="relative z-[3] mt-5 grid grid-cols-2 gap-2 border-t border-border pt-4 md:grid-cols-5">
           {totalScore > 0 && (
               <button onClick={() => onNavigate('taskflow')} className="flex items-center gap-1.5 rounded-2xl bg-background/50 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label={`效率分: ${totalScore}%`}>
                 <span className={`text-xs font-medium ${progressColor}`}>{totalScore}%</span>
@@ -915,6 +970,8 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           </div>
         )}
       </div>
+
+      <DashboardReminders />
 
       {/* Selected day tasks */}
       {!isSelectedToday && (() => {
@@ -1053,7 +1110,7 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
             <Calendar size={18} className="text-primary" />
             <div>
               <h3 className="text-sm font-semibold text-text">今日时间块</h3>
-              <p className="text-xs text-text-muted">08:00-22:00 · 任务、番茄钟和习惯统一安排</p>
+              <p className="text-xs text-text-muted">拖拽任务到时段即可排程 · 08:00-21:00</p>
             </div>
           </div>
           <span className="text-xs text-text-muted">{timeBlockPlan.scheduledCount} 项已排入今天</span>
@@ -1062,25 +1119,47 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
           {timeBlockPlan.blocks.map((block) => {
             const isCurrentHour = block.hour === hour
             return (
-              <div key={block.hour} className={`grid grid-cols-[54px_1fr] gap-3 rounded-lg px-2 py-2 transition-colors ${isCurrentHour ? 'bg-primary/10' : 'hover:bg-surface-lighter/50'}`}>
+              <div
+                key={block.hour}
+                className={`grid grid-cols-[54px_1fr] gap-3 rounded-lg px-2 py-2 transition-colors ${isCurrentHour ? 'bg-primary/10' : 'hover:bg-surface-lighter/50'}`}
+                onDragOver={(e) => {
+                  e.preventDefault()
+                  e.dataTransfer.dropEffect = 'move'
+                }}
+                onDrop={(e) => {
+                  e.preventDefault()
+                  const taskId = e.dataTransfer.getData('text/task-id') || e.dataTransfer.getData('text/plain')
+                  if (!taskId) return
+                  onDropTaskToHour(block.hour, taskId)
+                }}
+              >
                 <div className={`pt-1 text-xs font-mono ${isCurrentHour ? 'text-primary' : 'text-text-muted'}`}>{block.label}</div>
                 <div className="min-w-0 border-l border-border pl-3">
                   {block.items.length === 0 ? (
-                    <div className="text-xs text-text-muted/50">空档</div>
+                    <div className="text-xs text-text-muted/50">空档 · 可拖入任务</div>
                   ) : (
                     <div className="flex flex-wrap gap-2">
                       {block.items.map((item) => {
                         const tone = PLANNING_TONE_STYLES[item.tone]
+                        const taskId = item.type === 'task' && item.id.startsWith('task-') ? item.id.slice(5) : null
                         return (
                           <button
                             key={item.id}
+                            type="button"
+                            draggable={!!taskId}
+                            onDragStart={(e) => {
+                              if (!taskId) return
+                              e.dataTransfer.setData('text/task-id', taskId)
+                              e.dataTransfer.setData('text/plain', taskId)
+                              e.dataTransfer.effectAllowed = 'move'
+                            }}
                             onClick={() => {
                               if (item.type === 'pomodoro') onNavigate('pomodoro')
                               else if (item.type === 'habit') onNavigate('habits')
                               else onNavigate('taskflow')
                             }}
-                            className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-left text-[11px] transition-transform hover:scale-[1.02] ${tone.badge}`}
-                            title={`${item.title} · ${item.meta}`}
+                            className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-left text-[11px] transition-transform hover:scale-[1.02] ${tone.badge} ${taskId ? 'cursor-grab active:cursor-grabbing' : ''}`}
+                            title={taskId ? `${item.title} · 拖拽到其它时段` : `${item.title} · ${item.meta}`}
                           >
                             {item.type === 'pomodoro' ? <Timer size={12} /> : item.type === 'habit' ? <Target size={12} /> : <CheckSquare size={12} />}
                             <span className="truncate">{item.title}</span>
@@ -1129,27 +1208,26 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       )}
 
-      {/* Quick Actions */}
+      {/* Quick Actions — Mineradio home-card grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {QUICK_ACTION_KEYS.map((action) => {
+        {QUICK_ACTION_KEYS.map((action, index) => {
           const Icon = action.icon
+          const tones = ['mix', 'local', 'library', 'mix'] as const
+          const labels = ['FOCUS', 'FLOW', 'RITUAL', 'NOTES']
           return (
             <button
               key={action.page}
+              type="button"
               onClick={() => onNavigate(action.page)}
-              className="group relative overflow-hidden rounded-[28px] border border-border bg-surface/80 p-4 text-left shadow-xl shadow-black/5 transition-all hover:-translate-y-1 hover:border-primary/40 hover:shadow-2xl hover:shadow-primary/10"
+              className="home-card"
+              data-home-tone={tones[index % tones.length]}
             >
-              <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${action.color} opacity-20 blur-2xl transition-opacity group-hover:opacity-35`} />
-              <div className="relative flex items-center gap-3">
-                <div className={`w-12 h-12 rounded-2xl bg-gradient-to-br ${action.color} flex items-center justify-center shadow-lg shadow-black/10`}>
-                  <Icon size={20} className="text-white" />
-                </div>
-                <div>
-                  <span className="block text-sm font-bold text-text">{t(action.labelKey)}</span>
-                  <span className="mt-0.5 block text-[11px] text-text-muted">快速进入</span>
-                </div>
-                <ArrowRight size={15} className="ml-auto text-text-muted opacity-0 transition-all group-hover:translate-x-1 group-hover:opacity-100" />
+              <div className="home-card-label">{labels[index]}</div>
+              <div className="home-card-title flex items-center gap-2">
+                <Icon size={18} />
+                {t(action.labelKey)}
               </div>
+              <div className="home-card-sub">快速进入</div>
             </button>
           )
         })}
@@ -1861,10 +1939,32 @@ export default function DashboardPage({ onNavigate }: DashboardPageProps) {
         </div>
       </div>
 
-      {/* Dashboard Stats */}
-      <Suspense fallback={<div className="glass-card h-56 animate-pulse" />}>
-        <StatsPage embedded />
-      </Suspense>
+      {/* Dashboard Stats — collapsed by default to reduce density */}
+      <div className="dashboard-stats-section">
+        <button
+          type="button"
+          onClick={() => {
+            setShowDashboardStats((prev) => {
+              const next = !prev
+              try { localStorage.setItem('abworkbench-dashboard-stats-open', next ? '1' : '0') } catch { /* ignore */ }
+              return next
+            })
+          }}
+          className="mb-3 flex w-full items-center justify-between rounded-panel border border-border bg-surface/70 px-4 py-3 text-left hover:border-primary/30"
+          aria-expanded={showDashboardStats}
+        >
+          <span className="flex items-center gap-2 text-sm font-semibold text-text">
+            <BarChart3 size={16} className="text-primary" />
+            统计总览
+          </span>
+          <span className="text-xs text-text-muted">{showDashboardStats ? '收起' : '展开详情'}</span>
+        </button>
+        {showDashboardStats && (
+          <Suspense fallback={<div className="glass-card h-56 animate-pulse" />}>
+            <StatsPage embedded />
+          </Suspense>
+        )}
+      </div>
     </div>
     </ErrorBoundary>
   )

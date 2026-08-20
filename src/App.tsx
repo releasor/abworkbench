@@ -19,6 +19,18 @@ import {
   TaskFlowSkeleton,
 } from './components/common/PageSkeletons'
 import { isPomodoroTitleActive } from './utils/documentTitle'
+import { useTaskStore } from './modules/taskflow/hooks/useTaskStore'
+import {
+  WORKSPACE_MODE_EVENT,
+  applyWorkspaceModeSideEffects,
+  planWorkspaceModeEffects,
+  requestPomodoroStart,
+  type WorkspaceModeChangeDetail,
+} from './utils/workspaceModeEffects'
+import { showToast } from './modules/taskflow/utils/toastEvent'
+import AmbientEffects from './components/common/AmbientEffects'
+import DeepWorkTransition from './components/common/DeepWorkTransition'
+import GlassFilterSvg from './components/common/GlassFilterSvg'
 
 const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'))
 const PomodoroTimer = lazy(() => import('./components/pomodoro/PomodoroTimer'))
@@ -27,6 +39,9 @@ const WeatherWidget = lazy(() => import('./components/weather/WeatherWidget'))
 const HabitTracker = lazy(() => import('./components/habits/HabitTracker'))
 const SettingsPage = lazy(() => import('./components/settings/SettingsPage'))
 const TaskFlowPage = lazy(() => import('./modules/taskflow/TaskFlowPage'))
+const RemindersPage = lazy(() => import('./components/reminders/RemindersPage'))
+const MineradioPage = lazy(() => import('./components/mineradio/MineradioPage'))
+const DailyBriefModal = lazy(() => import('./components/dashboard/DailyBriefModal'))
 
 const pages: Page[] = [...APP_PAGES]
 
@@ -37,12 +52,16 @@ function App() {
   const [showCommandPalette, setShowCommandPalette] = useState(false)
   const [showLauncher, setShowLauncher] = useState(false)
   const [showQuickCapture, setShowQuickCapture] = useState(false)
+  const [showDailyBrief, setShowDailyBrief] = useState(false)
+  const [dailyBriefMode, setDailyBriefMode] = useState<'morning' | 'evening'>('morning')
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
   const accentColor = useStore((s) => s.accentColor)
   const setAccentColor = useStore((s) => s.setAccentColor)
   const themeMode = useStore((s) => s.themeMode)
   const workspaceMode = useStore((s) => s.workspaceMode)
+  const visualNoise = useStore((s) => s.visualNoise)
+  const visualParticles = useStore((s) => s.visualParticles)
   const toggleSidebar = useStore((s) => s.toggleSidebar)
   const isMiniMode = useMemo(() => new URLSearchParams(window.location.search).get('mini') === '1', [])
   const isLauncherMode = useMemo(() => new URLSearchParams(window.location.search).get('launcher') === '1', [])
@@ -72,7 +91,11 @@ function App() {
   // Apply accent color as CSS custom properties
   useEffect(() => {
     const legacyPurpleAccents = new Set(['#6366f1', '#818cf8', '#4f46e5', '#8b5cf6', '#7c3aed'])
-    const hex = legacyPurpleAccents.has(accentColor.toLowerCase()) ? '#3b82f6' : accentColor
+    const legacyBlueAccents = new Set(['#3b82f6', '#2563eb', '#60a5fa', '#1d4ed8'])
+    let hex = accentColor
+    if (legacyPurpleAccents.has(hex.toLowerCase())) hex = '#00f5d4'
+    // Dark cinematic skin: migrate stock blue to Mineradio cyan once
+    if (themeMode === 'dark' && legacyBlueAccents.has(hex.toLowerCase())) hex = '#00f5d4'
     if (hex !== accentColor) setAccentColor(hex)
     const r = parseInt(hex.slice(1, 3), 16)
     const g = parseInt(hex.slice(3, 5), 16)
@@ -81,8 +104,9 @@ function App() {
     root.style.setProperty('--color-primary', hex)
     root.style.setProperty('--color-primary-light', `color-mix(in srgb, ${hex} 80%, white)`)
     root.style.setProperty('--color-primary-dark', `color-mix(in srgb, ${hex} 80%, black)`)
+    root.style.setProperty('--home-accent', hex)
     root.style.setProperty('--tw-ring-color', `rgb(${r} ${g} ${b} / 0.15)`)
-  }, [accentColor, setAccentColor])
+  }, [accentColor, setAccentColor, themeMode])
 
   useEffect(() => {
     document.documentElement.dataset.theme = themeMode
@@ -92,6 +116,17 @@ function App() {
   useEffect(() => {
     document.documentElement.dataset.workspaceMode = workspaceMode
   }, [workspaceMode])
+
+  useEffect(() => {
+    document.documentElement.dataset.fxNoise = visualNoise ? '1' : '0'
+    document.documentElement.dataset.fxParticles = visualParticles ? '1' : '0'
+  }, [visualNoise, visualParticles])
+
+  useEffect(() => {
+    // Enable SVG backdrop-filter path when browser supports filter URLs.
+    const ok = typeof CSS !== 'undefined' && CSS.supports?.('backdrop-filter', 'url(#abwb-control-glass-filter)')
+    document.documentElement.classList.toggle('control-glass-svg-ok', !!ok)
+  }, [])
 
   useEffect(() => {
     if (!isLauncherMode) return
@@ -129,6 +164,11 @@ function App() {
   }, [])
   const openQuickCapture = useCallback(() => setShowQuickCapture(true), [])
   const closeQuickCapture = useCallback(() => setShowQuickCapture(false), [])
+  const openDailyBrief = useCallback((mode: 'morning' | 'evening' = 'morning') => {
+    setDailyBriefMode(mode)
+    setShowDailyBrief(true)
+  }, [])
+  const closeDailyBrief = useCallback(() => setShowDailyBrief(false), [])
   const navigateFromPalette = useCallback((page: Page) => {
     setActivePage(page)
     setShowCommandPalette(false)
@@ -144,7 +184,6 @@ function App() {
 
   const shortcutOverrides = useShortcutStore((s) => s.overrides)
   const launcherHint = useShortcutStore((s) => s.getAccelerator('launcher'))
-  const mainWindowHint = useShortcutStore((s) => s.getAccelerator('mainWindow'))
   const commandPaletteHint = useShortcutStore((s) => s.getAccelerator('commandPalette'))
   const quickCaptureHint = useShortcutStore((s) => s.getAccelerator('quickCapture'))
 
@@ -185,7 +224,9 @@ function App() {
       if (eventMatchesShortcut('pagePomodoro', event)) { event.preventDefault(); setActivePage('pomodoro'); return }
       if (eventMatchesShortcut('pageHabits', event)) { event.preventDefault(); setActivePage('habits'); return }
       if (eventMatchesShortcut('pageNotes', event)) { event.preventDefault(); setActivePage('notes'); return }
+      if (eventMatchesShortcut('pageReminders', event)) { event.preventDefault(); setActivePage('reminders'); return }
       if (eventMatchesShortcut('pageWeather', event)) { event.preventDefault(); setActivePage('weather'); return }
+      if (eventMatchesShortcut('pageMineradio', event)) { event.preventDefault(); setActivePage('mineradio'); return }
       if (eventMatchesShortcut('pageSettings', event)) { event.preventDefault(); setActivePage('settings'); return }
     }
     window.addEventListener('keydown', handler)
@@ -195,6 +236,29 @@ function App() {
   useEffect(() => {
     return window.electronAPI?.onOpenQuickCapture?.(openQuickCapture)
   }, [openQuickCapture])
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const mode = (event as CustomEvent<{ mode?: 'morning' | 'evening' }>).detail?.mode || 'morning'
+      openDailyBrief(mode)
+    }
+    window.addEventListener('abworkbench:daily-brief', handler)
+    return () => window.removeEventListener('abworkbench:daily-brief', handler)
+  }, [openDailyBrief])
+
+  // Auto-open Daily Brief once per Beijing calendar day.
+  useEffect(() => {
+    if (isMiniMode || isLauncherMode || isReaderMode) return
+    import('./modules/taskflow/dateUtils').then(({ todayStr }) => {
+      const key = 'abworkbench-daily-brief-shown'
+      const today = todayStr()
+      if (localStorage.getItem(key) === today) return
+      const hour = new Date().getHours()
+      const mode = hour >= 18 ? 'evening' : 'morning'
+      localStorage.setItem(key, today)
+      openDailyBrief(mode)
+    }).catch(() => { /* ignore */ })
+  }, [isMiniMode, isLauncherMode, isReaderMode, openDailyBrief])
 
   // Global Alt+Space: when main window is focused, Electron routes here for the embedded launcher.
   useEffect(() => {
@@ -210,12 +274,51 @@ function App() {
     })
   }, [])
 
-  // Browser notification polling for overdue/due-today tasks
+  // Browser notification polling for overdue/due-today tasks and custom reminders
   useEffect(() => {
     if (!('Notification' in window)) return
     if (Notification.permission === 'default') {
       Notification.requestPermission()
     }
+
+    let cancelled = false
+    const run = async () => {
+      const { checkNotifications, loadReadNotificationIds, saveReadNotificationIds, sendBrowserNotifications } = await import('./utils/notificationManager')
+      if (cancelled) return
+      const tasks = useTaskStore.getState().tasks
+      const habits = useStore.getState().habits
+      const items = checkNotifications(tasks, habits)
+      const readIds = loadReadNotificationIds()
+      sendBrowserNotifications(items, readIds)
+      for (const item of items) readIds.add(item.id)
+      saveReadNotificationIds(readIds)
+    }
+
+    void run()
+    const id = window.setInterval(() => { void run() }, 5 * 60 * 1000)
+    return () => {
+      cancelled = true
+      window.clearInterval(id)
+    }
+  }, [])
+
+  useEffect(() => {
+    const handler = (event: Event) => {
+      const detail = (event as CustomEvent<WorkspaceModeChangeDetail>).detail
+      if (!detail) return
+      const plan = planWorkspaceModeEffects(detail.prev, detail.next)
+      applyWorkspaceModeSideEffects(plan)
+      if (plan.navigatePomodoro) {
+        setActivePage('pomodoro')
+        setShowCommandPalette(false)
+        setShowLauncher(false)
+      }
+      if (plan.startPomodoro) requestPomodoroStart()
+      if (plan.enableDnd) showToast('深度工作已开启：免打扰 + 番茄计时', 'success')
+      else if (plan.disableDnd) showToast('已退出深度工作，免打扰已关闭', 'info')
+    }
+    window.addEventListener(WORKSPACE_MODE_EVENT, handler)
+    return () => window.removeEventListener(WORKSPACE_MODE_EVENT, handler)
   }, [])
 
   // Track which pages have been visited to lazily mount them (but never unmount)
@@ -250,83 +353,85 @@ function App() {
   }
 
   return (
-    <div style={{ display: 'flex', height: '100vh', width: '100vw', overflow: 'hidden', background: 'var(--color-surface)' }}>
-      <Sidebar
-        activePage={activePage}
-        onPageChange={setActivePage}
-        onOpenLauncher={openLauncher}
-        isMobileOpen={mobileSidebarOpen}
-        onMobileClose={closeMobileSidebar}
-      />
-      <div style={{ flex: '1 1 0%', minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
-        <Header
-          title={pageTitles[activePage]}
-          onOpenCommandPalette={toggleCommandPalette}
-          onOpenMobileSidebar={openMobileSidebar}
+    <div className="app-frame" style={{ height: '100vh', width: '100vw', overflow: 'hidden', background: 'var(--color-surface)', position: 'relative' }}>
+      <GlassFilterSvg />
+      <div className="app-shell" style={{ display: 'flex', height: '100%', width: '100%', overflow: 'hidden' }}>
+        <Sidebar
+          activePage={activePage}
+          onPageChange={setActivePage}
+          onOpenLauncher={openLauncher}
+          isMobileOpen={mobileSidebarOpen}
+          onMobileClose={closeMobileSidebar}
         />
-        <main ref={mainRef} className="p-4 md:p-6 overflow-auto bg-gradient-to-b from-surface to-surface-light/30" style={{ flex: '1 1 0%', minHeight: 0, width: '100%' }}>
-          <ErrorBoundary>
-            {visitedPages.has('dashboard')   && <div style={{ display: activePage === 'dashboard'   ? undefined : 'none' }}><Suspense fallback={<DashboardSkeleton />}><DashboardPage onNavigate={setActivePage} /></Suspense></div>}
-            {visitedPages.has('taskflow')    && <div style={{ display: activePage === 'taskflow'    ? undefined : 'none' }}><Suspense fallback={<TaskFlowSkeleton />}><TaskFlowPage /></Suspense></div>}
-            {visitedPages.has('pomodoro')    && <div style={{ display: activePage === 'pomodoro'    ? undefined : 'none' }}><Suspense fallback={<PomodoroSkeleton />}><PomodoroTimer /></Suspense></div>}
-            {visitedPages.has('habits')      && <div style={{ display: activePage === 'habits'      ? undefined : 'none' }}><Suspense fallback={<HabitsSkeleton />}><HabitTracker /></Suspense></div>}
-            {visitedPages.has('notes')       && <div style={{ display: activePage === 'notes'       ? undefined : 'none' }}><Suspense fallback={<NotesSkeleton />}><NotesList /></Suspense></div>}
-            {visitedPages.has('weather')     && <div style={{ display: activePage === 'weather'     ? undefined : 'none' }}><Suspense fallback={<WeatherSkeleton />}><WeatherWidget /></Suspense></div>}
-            {visitedPages.has('settings')    && <div style={{ display: activePage === 'settings'    ? undefined : 'none' }}><Suspense fallback={<SettingsSkeleton />}><SettingsPage /></Suspense></div>}
-          </ErrorBoundary>
-        </main>
+        <div style={{ flex: '1 1 0%', minWidth: 0, display: 'flex', flexDirection: 'column', overflow: 'hidden' }}>
+          <Header
+            title={pageTitles[activePage]}
+            onOpenCommandPalette={toggleCommandPalette}
+            onOpenMobileSidebar={openMobileSidebar}
+            onNavigate={setActivePage}
+          />
+          <main
+            ref={mainRef}
+            className={`app-main-stage ${activePage === 'mineradio' ? 'app-main-stage--embed p-0 overflow-hidden' : 'p-4 md:p-6 overflow-auto'}`}
+            style={{ flex: '1 1 0%', minHeight: 0, width: '100%' }}
+          >
+            <ErrorBoundary>
+              {visitedPages.has('dashboard')   && <div className={`w-full min-w-0 ${activePage === 'dashboard' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'dashboard'   ? undefined : 'none' }}><Suspense fallback={<DashboardSkeleton />}><DashboardPage onNavigate={setActivePage} onOpenDailyBrief={openDailyBrief} onOpenQuickCapture={openQuickCapture} /></Suspense></div>}
+              {visitedPages.has('taskflow')    && <div className={`w-full min-w-0 ${activePage === 'taskflow' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'taskflow'    ? undefined : 'none' }}><Suspense fallback={<TaskFlowSkeleton />}><TaskFlowPage /></Suspense></div>}
+              {visitedPages.has('pomodoro')    && <div className={`w-full min-w-0 ${activePage === 'pomodoro' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'pomodoro'    ? undefined : 'none' }}><Suspense fallback={<PomodoroSkeleton />}><PomodoroTimer /></Suspense></div>}
+              {visitedPages.has('habits')      && <div className={`w-full min-w-0 ${activePage === 'habits' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'habits'      ? undefined : 'none' }}><Suspense fallback={<HabitsSkeleton />}><HabitTracker /></Suspense></div>}
+              {visitedPages.has('notes')       && <div className={`w-full min-w-0 ${activePage === 'notes' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'notes'       ? undefined : 'none' }}><Suspense fallback={<NotesSkeleton />}><NotesList /></Suspense></div>}
+              {visitedPages.has('reminders')   && <div className={`w-full min-w-0 ${activePage === 'reminders' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'reminders'   ? undefined : 'none' }}><Suspense fallback={<NotesSkeleton />}><RemindersPage /></Suspense></div>}
+              {visitedPages.has('weather')     && <div className={`w-full min-w-0 ${activePage === 'weather' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'weather'     ? undefined : 'none' }}><Suspense fallback={<WeatherSkeleton />}><WeatherWidget /></Suspense></div>}
+              {visitedPages.has('mineradio')   && <div className={`w-full min-w-0 h-full ${activePage === 'mineradio' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'mineradio'   ? 'flex' : 'none', flexDirection: 'column', minHeight: 0, height: '100%' }}><Suspense fallback={<DashboardSkeleton />}><MineradioPage /></Suspense></div>}
+              {visitedPages.has('settings')    && <div className={`w-full min-w-0 ${activePage === 'settings' ? 'page-enter-key' : ''}`} style={{ display: activePage === 'settings'    ? undefined : 'none' }}><Suspense fallback={<SettingsSkeleton />}><SettingsPage /></Suspense></div>}
+            </ErrorBoundary>
+          </main>
+        </div>
       </div>
 
-      {/* Command Palette */}
-      <CommandPalette
-        isOpen={showCommandPalette}
-        onClose={closeCommandPalette}
-        pages={pages}
-        pageTitles={pageTitles}
-        onNavigate={navigateFromPalette}
-      />
-
-      {/* Embedded launcher (same UI as Alt+Space floating window) */}
-      <LauncherApp
-        variant="embedded"
-        isOpen={showLauncher}
-        onClose={closeLauncher}
-        onNavigate={navigateFromLauncher}
-      />
-
-      <QuickCaptureModal isOpen={showQuickCapture} onClose={closeQuickCapture} />
-      <GlobalToastHost />
-
-      {/* Keyboard Shortcuts Hint - desktop only */}
-      <div className="fixed bottom-4 right-4 text-xs text-text-muted/50 hidden md:flex items-center gap-3">
-        <span className="inline-flex items-center gap-1">
-          {acceleratorToKeys(launcherHint).map((key) => (
-            <kbd key={key} className="px-1.5 py-0.5 bg-surface-light rounded border border-border text-[10px]">{key}</kbd>
-          ))}
-          {' '}启动器
-        </span>
-        <span className="inline-flex items-center gap-1">
-          {acceleratorToKeys(mainWindowHint).map((key) => (
-            <kbd key={`main-${key}`} className="px-1.5 py-0.5 bg-surface-light rounded border border-border text-[10px]">{key}</kbd>
-          ))}
-          {' '}主窗口
-        </span>
-        <span className="inline-flex items-center gap-1">
-          {acceleratorToKeys(commandPaletteHint).map((key) => (
-            <kbd key={key} className="px-1.5 py-0.5 bg-surface-light rounded border border-border text-[10px]">{key}</kbd>
-          ))}
-          {' '}{t('shortcuts.commandPalette')}
-        </span>
-        <span className="inline-flex items-center gap-1">
-          {acceleratorToKeys(quickCaptureHint).map((key) => (
-            <kbd key={key} className="px-1.5 py-0.5 bg-surface-light rounded border border-border text-[10px]">{key}</kbd>
-          ))}
-          {' '}快速捕获
-        </span>
-        <span>
-          <kbd className="px-1.5 py-0.5 bg-surface-light rounded border border-border text-[10px]">ESC</kbd>
-          {' '}关闭
-        </span>
+      {/* Overlays must stay outside the flex shell or they steal horizontal space */}
+      <div className="app-overlay-root">
+        <CommandPalette
+          isOpen={showCommandPalette}
+          onClose={closeCommandPalette}
+          pages={pages}
+          pageTitles={pageTitles}
+          onNavigate={navigateFromPalette}
+          onOpenQuickCapture={openQuickCapture}
+        />
+        <LauncherApp
+          variant="embedded"
+          isOpen={showLauncher}
+          onClose={closeLauncher}
+          onNavigate={navigateFromLauncher}
+          onOpenQuickCapture={openQuickCapture}
+        />
+        <QuickCaptureModal isOpen={showQuickCapture} onClose={closeQuickCapture} />
+        {showDailyBrief && (
+          <Suspense fallback={null}>
+            <DailyBriefModal
+              isOpen={showDailyBrief}
+              mode={dailyBriefMode}
+              onClose={closeDailyBrief}
+              onNavigate={(page) => { setActivePage(page); closeDailyBrief() }}
+              onOpenQuickCapture={openQuickCapture}
+            />
+          </Suspense>
+        )}
+        <GlobalToastHost />
+        <AmbientEffects />
+        <DeepWorkTransition />
+        <div className="shortcut-dock hidden md:flex" title="快捷键">
+          <kbd>{acceleratorToKeys(launcherHint).join('+')}</kbd>
+          <span>启动器</span>
+          <span className="opacity-40">·</span>
+          <kbd>{acceleratorToKeys(commandPaletteHint).join('+')}</kbd>
+          <span>命令</span>
+          <span className="opacity-40">·</span>
+          <kbd>{acceleratorToKeys(quickCaptureHint).join('+')}</kbd>
+          <span>捕获</span>
+        </div>
       </div>
     </div>
   )

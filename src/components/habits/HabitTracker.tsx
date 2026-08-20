@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { Plus, Sparkles, Target, BarChart3 } from 'lucide-react'
 import type { Habit } from '../../store'
 import { useStore } from '../../store'
@@ -26,6 +26,7 @@ export default function HabitTracker() {
   const toggleHabitDate = useStore((state) => state.toggleHabitDate)
   const deleteHabit = useStore((state) => state.deleteHabit)
   const updateHabit = useStore((state) => state.updateHabit)
+  const lastDeletedHabitRef = useRef<Habit | null>(null)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
   const shortcutOverrides = useShortcutStore((s) => s.overrides)
@@ -111,8 +112,58 @@ export default function HabitTracker() {
         label: '撤销',
         onClick: () => toggleHabitDate(habitId, todayStr),
       })
+    } else {
+      showToast(`已取消打卡：${habit.name}`, 'info', {
+        label: '恢复',
+        onClick: () => toggleHabitDate(habitId, todayStr),
+      })
     }
   }
+
+  const restoreDeletedHabit = useCallback(() => {
+    const habit = lastDeletedHabitRef.current
+    if (!habit) return false
+    lastDeletedHabitRef.current = null
+    useStore.setState((s) => ({
+      habits: [habit, ...s.habits.filter((h) => h.id !== habit.id)],
+    }))
+    showToast('已恢复打卡项', 'success')
+    return true
+  }, [])
+
+  useEffect(() => {
+    const onKey = (e: KeyboardEvent) => {
+      if (!(e.ctrlKey || e.metaKey) || e.key.toLowerCase() !== 'z') return
+      const tag = (e.target as HTMLElement)?.tagName
+      if (tag === 'INPUT' || tag === 'TEXTAREA') return
+      if (!lastDeletedHabitRef.current) return
+      e.preventDefault()
+      restoreDeletedHabit()
+    }
+    window.addEventListener('keydown', onKey)
+    return () => window.removeEventListener('keydown', onKey)
+  }, [restoreDeletedHabit])
+
+  useEffect(() => {
+    const applyFocus = () => {
+      let id = ''
+      try {
+        id = sessionStorage.getItem('abworkbench-focus-habit') || ''
+        if (id) sessionStorage.removeItem('abworkbench-focus-habit')
+      } catch {
+        return
+      }
+      if (!id) return
+      queueMicrotask(() => {
+        const el = document.querySelector(`[data-habit-id="${CSS.escape(id)}"]`) as HTMLElement | null
+        if (!el) return
+        el.scrollIntoView({ block: 'center', behavior: 'smooth' })
+        el.classList.add('ring-2', 'ring-primary')
+        window.setTimeout(() => el.classList.remove('ring-2', 'ring-primary'), 2200)
+      })
+    }
+    queueMicrotask(applyFocus)
+  }, [habits])
 
   const toggleMonthExpand = (habitId: string) => {
     if (expandedMonthId === habitId) {
@@ -262,8 +313,16 @@ export default function HabitTracker() {
               onRequestDelete={setDeletingId}
               onCancelDelete={() => setDeletingId(null)}
               onConfirmDelete={(habitId) => {
+                const habit = habits.find((h) => h.id === habitId)
                 deleteHabit(habitId)
                 setDeletingId(null)
+                if (habit) {
+                  lastDeletedHabitRef.current = habit
+                  showToast(`已删除打卡：${habit.name}（Ctrl+Z 可撤销）`, 'info', {
+                    label: '撤销',
+                    onClick: () => { restoreDeletedHabit() },
+                  }, 10_000)
+                }
               }}
               editForm={
                 <HabitForm

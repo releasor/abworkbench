@@ -27,6 +27,8 @@ import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useTranslation } from '../../i18n'
 import { generateWeeklyReport, generateMonthlyReport, downloadReport } from '../../utils/reportExport'
+import { showToast as showAppToast } from '../../modules/taskflow/utils/toastEvent'
+import { todayStr } from '../../modules/taskflow/dateUtils'
 import { durationMinutes, fmtMin, dayNumToDateStr } from '../../utils/format'
 import { useToday } from '../../hooks/useToday'
 import { clearTaskFlowLocalData, createDesktopBackup, downloadJsonBackup, getLegacyOrCurrentData, restoreTaskFlowBackup } from '../../utils/desktopBackup'
@@ -84,6 +86,10 @@ export default function SettingsPage() {
   const setThemeMode = useStore((s) => s.setThemeMode)
   const workspaceMode = useStore((s) => s.workspaceMode)
   const setWorkspaceMode = useStore((s) => s.setWorkspaceMode)
+  const visualNoise = useStore((s) => s.visualNoise)
+  const setVisualNoise = useStore((s) => s.setVisualNoise)
+  const visualParticles = useStore((s) => s.visualParticles)
+  const setVisualParticles = useStore((s) => s.setVisualParticles)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
   const setDailyPomodoroGoal = useStore((s) => s.setDailyPomodoroGoal)
   const pomodoroWorkDuration = useStore((s) => s.pomodoroWorkDuration)
@@ -206,13 +212,13 @@ export default function SettingsPage() {
 
   const handleExportWeeklyReport = () => {
     const report = generateWeeklyReport({ tasks: taskFlowTasks, pomodoroSessions, habits, notes })
-    downloadReport(report, `abworkbench-weekly-${new Date().toISOString().slice(0, 10)}.md`)
+    downloadReport(report, `abworkbench-weekly-${todayStr()}.md`)
     showToast('周报已下载', 'success')
   }
 
   const handleExportMonthlyReport = () => {
     const report = generateMonthlyReport({ tasks: taskFlowTasks, pomodoroSessions, habits, notes })
-    downloadReport(report, `abworkbench-monthly-${new Date().toISOString().slice(0, 10)}.md`)
+    downloadReport(report, `abworkbench-monthly-${todayStr()}.md`)
     showToast('月报已下载', 'success')
   }
 
@@ -234,7 +240,7 @@ export default function SettingsPage() {
           if (typeof d.userName === 'string') patch.userName = d.userName
           if (typeof d.accentColor === 'string') patch.accentColor = d.accentColor
           if (d.themeMode === 'dark' || d.themeMode === 'light' || d.themeMode === 'system') patch.themeMode = d.themeMode
-          if (d.workspaceMode === 'focus' || d.workspaceMode === 'night' || d.workspaceMode === 'minimal' || d.workspaceMode === 'dashboard') patch.workspaceMode = d.workspaceMode
+          if (d.workspaceMode === 'focus' || d.workspaceMode === 'deep' || d.workspaceMode === 'night' || d.workspaceMode === 'minimal' || d.workspaceMode === 'dashboard') patch.workspaceMode = d.workspaceMode
           if (typeof d.dailyPomodoroGoal === 'number' && d.dailyPomodoroGoal > 0) patch.dailyPomodoroGoal = d.dailyPomodoroGoal
           if (typeof d.pomodoroWorkDuration === 'number' && d.pomodoroWorkDuration > 0) {
             patch.pomodoroWorkDuration = d.pomodoroWorkDuration
@@ -306,22 +312,44 @@ export default function SettingsPage() {
     }
   }, [dataEpoch])
 
-  const dataHealth = useMemo(() => buildDataHealthReport({
-    todos,
-    notes,
-    pomodoroSessions,
-    habits,
-    taskFlowTasks,
-    backups: taskFlowBackups,
-  }), [habits, notes, pomodoroSessions, taskFlowBackups, taskFlowTasks, todos])
+  const dataHealth = useMemo(() => {
+    void dataEpoch
+    let reminders: Array<{ id: string; done?: boolean; dueAt?: string }> = []
+    try {
+      const raw = localStorage.getItem('abworkbench-reminders')
+      const parsed = raw ? JSON.parse(raw) : []
+      if (Array.isArray(parsed)) reminders = parsed
+    } catch {
+      // keep empty
+    }
+    return buildDataHealthReport({
+      todos,
+      notes,
+      pomodoroSessions,
+      habits,
+      taskFlowTasks,
+      backups: taskFlowBackups,
+      reminders,
+    })
+  }, [dataEpoch, habits, notes, pomodoroSessions, taskFlowBackups, taskFlowTasks, todos])
 
   const clearEmptyNotes = () => {
+    const removed = notes.filter((note) => !note.content.trim())
+    if (removed.length === 0) return
     const nextNotes = notes.filter((note) => note.content.trim())
     useStore.setState((state) => ({
       notes: nextNotes,
       activeNoteId: nextNotes.some((note) => note.id === state.activeNoteId) ? state.activeNoteId : null,
     }))
-    showToast('已清理空笔记', 'success')
+    showAppToast(`已清理 ${removed.length} 篇空笔记`, 'info', {
+      label: '撤销',
+      onClick: () => {
+        useStore.setState((state) => ({
+          notes: [...removed, ...state.notes.filter((n) => !removed.some((r) => r.id === n.id))],
+        }))
+        showAppToast('已恢复空笔记', 'success')
+      },
+    }, 10_000)
   }
 
   return (
@@ -519,6 +547,51 @@ export default function SettingsPage() {
                   <p className="mt-1 text-xs text-text-muted">{option.description}</p>
                 </button>
               ))}
+            </div>
+          </div>
+
+          {/* Cinematic FX */}
+          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+            <div className="mb-4 flex items-center gap-2">
+              <Sparkles size={20} className="text-primary" />
+              <h2 className="text-lg font-semibold text-text">电影感视觉</h2>
+            </div>
+            <p className="mb-4 text-xs text-text-muted">
+              参考 Mineradio 的玻璃质感与氛围层；可按机器性能单独关闭噪点或粒子。系统「减少动态效果」开启时会自动停用。
+            </p>
+            <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
+              <button
+                type="button"
+                onClick={() => setVisualNoise(!visualNoise)}
+                aria-pressed={visualNoise}
+                className={`rounded-2xl border p-4 text-left transition-all ${
+                  visualNoise
+                    ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
+                    : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-text">胶片噪点</span>
+                  <span className={`h-3 w-3 rounded-full ${visualNoise ? 'bg-primary' : 'bg-text-muted/30'}`} />
+                </div>
+                <p className="mt-1 text-xs text-text-muted">全屏轻噪点，提升暗场层次</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setVisualParticles(!visualParticles)}
+                aria-pressed={visualParticles}
+                className={`rounded-2xl border p-4 text-left transition-all ${
+                  visualParticles
+                    ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
+                    : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-text">氛围粒子</span>
+                  <span className={`h-3 w-3 rounded-full ${visualParticles ? 'bg-primary' : 'bg-text-muted/30'}`} />
+                </div>
+                <p className="mt-1 text-xs text-text-muted">极轻漂浮光点（默认开启，可关）</p>
+              </button>
             </div>
           </div>
 

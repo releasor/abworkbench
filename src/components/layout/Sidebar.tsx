@@ -11,6 +11,8 @@ import {
   X,
   ClipboardList,
   Rocket,
+  Bell,
+  Radio,
 } from 'lucide-react'
 import { useMemo, memo } from 'react'
 import { useStore } from '../../store'
@@ -18,6 +20,9 @@ import { useToday } from '../../hooks/useToday'
 import { useTranslation } from '../../i18n'
 import type { TranslationKey } from '../../i18n'
 import { useShortcutStore } from '../../shortcuts'
+import { useSyncedLocalCollection } from '../../hooks/useSyncedLocalCollection'
+import { REMINDERS_KEY, type WorkspaceReminder } from '../../utils/reminders'
+import { beijingYMD } from '../../utils/beijingTime'
 import clsx from 'clsx'
 import type { Page } from '../../navigation/pages'
 
@@ -37,8 +42,10 @@ const menuItems = [
   { id: 'pomodoro' as Page, labelKey: 'page.pomodoro' as TranslationKey, icon: Timer, shortcut: '3' },
   { id: 'habits' as Page, labelKey: 'page.habits' as TranslationKey, icon: Target, shortcut: '4' },
   { id: 'notes' as Page, labelKey: 'page.notes' as TranslationKey, icon: StickyNote, shortcut: '5' },
-  { id: 'weather' as Page, labelKey: 'page.weather' as TranslationKey, icon: Cloud, shortcut: '6' },
-  { id: 'settings' as Page, labelKey: 'page.settings' as TranslationKey, icon: Settings, shortcut: '7' },
+  { id: 'reminders' as Page, labelKey: 'page.reminders' as TranslationKey, icon: Bell, shortcut: '6' },
+  { id: 'weather' as Page, labelKey: 'page.weather' as TranslationKey, icon: Cloud, shortcut: '7' },
+  { id: 'mineradio' as Page, labelKey: 'page.mineradio' as TranslationKey, icon: Radio, shortcut: '8' },
+  { id: 'settings' as Page, labelKey: 'page.settings' as TranslationKey, icon: Settings, shortcut: '9' },
 ]
 
 export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher, isMobileOpen, onMobileClose }: SidebarProps) {
@@ -57,15 +64,20 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
   const pagePomodoroHotkey = useShortcutStore((s) => s.getAccelerator('pagePomodoro'))
   const pageHabitsHotkey = useShortcutStore((s) => s.getAccelerator('pageHabits'))
   const pageNotesHotkey = useShortcutStore((s) => s.getAccelerator('pageNotes'))
+  const pageRemindersHotkey = useShortcutStore((s) => s.getAccelerator('pageReminders'))
   const pageWeatherHotkey = useShortcutStore((s) => s.getAccelerator('pageWeather'))
+  const pageMineradioHotkey = useShortcutStore((s) => s.getAccelerator('pageMineradio'))
   const pageSettingsHotkey = useShortcutStore((s) => s.getAccelerator('pageSettings'))
+  const { items: reminders } = useSyncedLocalCollection<WorkspaceReminder>(REMINDERS_KEY, [])
   const pageHotkeys: Record<string, string> = {
     dashboard: pageDashboardHotkey,
     taskflow: pageTaskflowHotkey,
     pomodoro: pagePomodoroHotkey,
     habits: pageHabitsHotkey,
     notes: pageNotesHotkey,
+    reminders: pageRemindersHotkey,
     weather: pageWeatherHotkey,
+    mineradio: pageMineradioHotkey,
     settings: pageSettingsHotkey,
   }
 
@@ -82,9 +94,25 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
     let pinnedNotes = 0
     for (const n of notes) { if (n.pinned) pinnedNotes++ }
 
+    let overdueReminders = 0
+    let todayReminders = 0
+    const now = Date.now()
+    for (const r of reminders) {
+      if (r.done) continue
+      const dueMs = Date.parse(r.dueAt)
+      if (!Number.isFinite(dueMs)) continue
+      if (dueMs < now) overdueReminders++
+      else if (beijingYMD(new Date(dueMs)) === todayStr) todayReminders++
+    }
+
     const pomodoroBadge = todayWork > 0 ? `${todayWork}/${dailyPomodoroGoal}` : null
     const habitsBadge = habits.length > 0 ? `${completedHabits}/${habits.length}` : null
     const notesBadge = pinnedNotes > 0 ? `${pinnedNotes} ${t('dashboard.pinned')}` : null
+    const remindersBadge = overdueReminders > 0
+      ? `逾期 ${overdueReminders}`
+      : todayReminders > 0
+        ? `今日 ${todayReminders}`
+        : null
 
     return {
       pomodoro: pomodoroBadge,
@@ -92,9 +120,16 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
       habits: habitsBadge,
       habitsAllDone: habits.length > 0 && completedHabits >= habits.length,
       notes: notesBadge,
-      badgeMap: { pomodoro: pomodoroBadge, habits: habitsBadge, notes: notesBadge } as Record<string, string | null>,
+      reminders: remindersBadge,
+      remindersOverdue: overdueReminders > 0,
+      badgeMap: {
+        pomodoro: pomodoroBadge,
+        habits: habitsBadge,
+        notes: notesBadge,
+        reminders: remindersBadge,
+      } as Record<string, string | null>,
     }
-  }, [pomodoroSessions, habits, dailyPomodoroGoal, notes, todayStr, todayMidnightMs, tomorrowMidnightMs, t])
+  }, [pomodoroSessions, habits, dailyPomodoroGoal, notes, reminders, todayStr, todayMidnightMs, tomorrowMidnightMs, t])
 
   const handleNavClick = (page: Page) => {
     onPageChange(page)
@@ -162,6 +197,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
           return (
             <button
               key={item.id}
+              data-nav-page={item.id}
               onClick={() => handleNavClick(item.id)}
               aria-current={isActive ? 'page' : undefined}
               title={sidebarCollapsed
@@ -169,7 +205,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
                 : undefined
               }
               className={clsx(
-                'relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group',
+                'nav-item-spring relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl group',
                 isActive
                   ? 'bg-primary/15 text-primary'
                   : 'text-text-muted hover:text-text hover:bg-surface-lighter'
@@ -187,8 +223,9 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
                 {sidebarCollapsed && badges.badgeMap[item.id] && (
                   <span className={clsx(
                     'absolute -top-1 -right-1 w-2 h-2 rounded-full',
-                    item.id === 'pomodoro' && badges.pomodoroGoalMet ? 'bg-green-500' :
-                    item.id === 'habits' && badges.habitsAllDone ? 'bg-green-500' :
+                    item.id === 'pomodoro' && badges.pomodoroGoalMet ? 'bg-success' :
+                    item.id === 'habits' && badges.habitsAllDone ? 'bg-success' :
+                    item.id === 'reminders' && badges.remindersOverdue ? 'bg-danger' :
                     'bg-primary'
                   )} />
                 )}
@@ -202,9 +239,11 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
                 <span className={clsx(
                   'ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium hidden lg:inline',
                   item.id === 'pomodoro' && badges.pomodoroGoalMet
-                    ? 'bg-green-500/15 text-green-500'
+                    ? 'bg-success/15 text-success'
                     : item.id === 'habits' && badges.habitsAllDone
-                    ? 'bg-green-500/15 text-green-500'
+                    ? 'bg-success/15 text-success'
+                    : item.id === 'reminders' && badges.remindersOverdue
+                    ? 'bg-danger/15 text-danger'
                     : 'bg-primary/15 text-primary'
                 )}>
                   {badges.badgeMap[item.id]}
@@ -251,7 +290,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
       {/* Desktop Sidebar */}
       <aside
         className={clsx(
-          'h-screen sticky top-0 flex-col border-r border-border bg-surface-light transition-all duration-300 hidden lg:flex',
+          'sidebar-glass h-screen sticky top-0 flex-col transition-all duration-300 hidden lg:flex',
           sidebarCollapsed ? 'w-[72px]' : 'w-[240px]'
         )}
       >

@@ -1,13 +1,34 @@
-import { Search, Bell, Menu, X, Moon, Sun } from 'lucide-react'
-import { useState, useEffect, useMemo, useRef, memo, type CSSProperties } from 'react'
+import { Search, Bell, Menu, X, Moon, Sun, Timer, Pause, Play } from 'lucide-react'
+import { useState, useEffect, useMemo, useRef, useCallback, memo, type CSSProperties } from 'react'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useTranslation } from '../../i18n'
 import { useToday } from '../../hooks/useToday'
+import { nextDateStr } from '../../modules/taskflow/dateUtils'
 import { useTick } from '../../hooks/useTick'
 import { durationMinutes, fmtMin, dayNumToFullLabel, fmtHHmm } from '../../utils/format'
 import { useShortcutStore } from '../../shortcuts'
+import type { Page } from '../../navigation/pages'
 import WindowControls from './WindowControls'
+import { useSyncedLocalCollection } from '../../hooks/useSyncedLocalCollection'
+import {
+  REMINDERS_KEY,
+  type WorkspaceReminder,
+  completeReminder,
+  snoozeReminderDueAt,
+} from '../../utils/reminders'
+import { showToast } from '../../modules/taskflow/utils/toastEvent'
+import {
+  ACTIVE_POMODORO_EVENT,
+  getActiveRemainingSec,
+  pauseActivePomodoro,
+  readActivePomodoro,
+  resumeActivePomodoro,
+  type ActivePomodoroState,
+} from '../../utils/activePomodoro'
+import { shouldMuteReminder } from '../../utils/focusDnd'
+import { FOCUS_DND_KEY } from '../../utils/workspaceModeEffects'
+import { LOCAL_DATA_CHANGE_EVENT, readLocalValue } from '../../utils/localData'
 
 const dragRegion = { WebkitAppRegion: 'drag' } as CSSProperties
 const noDragRegion = { WebkitAppRegion: 'no-drag' } as CSSProperties
@@ -24,7 +45,7 @@ const LiveClock = memo(function LiveClock() {
   const s = String(time.getSeconds()).padStart(2, '0')
   return (
     <>
-      <div className="hidden md:block text-sm text-text-muted">
+      <div className="text-sm text-text-muted hidden sm:block">
         {dateLabel} {weekday}
       </div>
       <div className="hidden md:block text-sm font-mono text-text-muted px-3 py-1.5 bg-surface rounded-lg">
@@ -38,9 +59,21 @@ interface HeaderProps {
   title: string
   onOpenCommandPalette?: () => void
   onOpenMobileSidebar?: () => void
+  onNavigate?: (page: Page) => void
 }
 
-export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileSidebar }: HeaderProps) {
+type NotifKind = 'summary' | 'reminder'
+
+interface NotifItem {
+  id: string
+  kind: NotifKind
+  text: string
+  time: string
+  color: string
+  reminderId?: string
+}
+
+export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileSidebar, onNavigate }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [seenCount, setSeenCount] = useState(0)
   const notifRef = useRef<HTMLDivElement>(null)
@@ -53,11 +86,11 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
   const commandPaletteHotkey = useShortcutStore((s) => s.getAccelerator('commandPalette'))
   const { todayStr, todayMidnightMs, tomorrowMidnightMs } = useToday()
-  const tomorrowStr = useMemo(() => {
-    const d = new Date()
-    d.setDate(d.getDate() + 1)
-    return d.toISOString().slice(0, 10)
-  }, [])
+  const tomorrowStr = useMemo(() => nextDateStr(todayStr), [todayStr])
+  const { items: reminders, update: updateReminder } = useSyncedLocalCollection<WorkspaceReminder>(REMINDERS_KEY, [])
+  const nowMs = useTick(1000).getTime()
+  const [activePomo, setActivePomo] = useState<ActivePomodoroState | null>(() => readActivePomodoro())
+  const [dndEnabled, setDndEnabled] = useState(() => readLocalValue(FOCUS_DND_KEY) === 'true')
 
   useEffect(() => {
     if (!showNotifications) return
@@ -70,10 +103,41 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
     return () => document.removeEventListener('mousedown', handler)
   }, [showNotifications])
 
-  const { items: notifications, todayWorkCount } = useMemo(() => {
-    const items: Array<{ id: string; text: string; time: string; color: string }> = []
+  useEffect(() => {
+    const sync = (event?: Event) => {
+      const detail = (event as CustomEvent<ActivePomodoroState | null> | undefined)?.detail
+      setActivePomo(detail === undefined ? readActivePomodoro() : detail)
+    }
+    window.addEventListener(ACTIVE_POMODORO_EVENT, sync as EventListener)
+    return () => window.removeEventListener(ACTIVE_POMODORO_EVENT, sync as EventListener)
+  }, [])
 
-    // Single pass over TaskFlow tasks: overdue + today due + tomorrow due + today completed
+  useEffect(() => {
+    const syncDnd = () => setDndEnabled(readLocalValue(FOCUS_DND_KEY) === 'true')
+    const onLocal = (event: Event) => {
+      const key = (event as CustomEvent<{ key?: string }>).detail?.key
+      if (key === FOCUS_DND_KEY) syncDnd()
+    }
+    window.addEventListener(LOCAL_DATA_CHANGE_EVENT, onLocal as EventListener)
+    return () => window.removeEventListener(LOCAL_DATA_CHANGE_EVENT, onLocal as EventListener)
+  }, [])
+
+  const dueReminders = useMemo(
+    () =>
+      reminders.filter((r) => {
+        if (r.done || !Number.isFinite(Date.parse(r.dueAt)) || Date.parse(r.dueAt) > nowMs) return false
+        return !shouldMuteReminder({
+          enabled: dndEnabled,
+          reminder: { title: r.title, dueAt: r.dueAt },
+          now: nowMs,
+        })
+      }),
+    [reminders, nowMs, dndEnabled],
+  )
+
+  const { items: notifications, todayWorkCount } = useMemo(() => {
+    const items: NotifItem[] = []
+
     let overdueCount = 0
     let todayDueCount = 0
     let tomorrowDueCount = 0
@@ -96,19 +160,18 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
       }
     }
     if (overdueCount > 0) {
-      items.push({ id: 'overdue', text: tWith('notification.overdueTasks', overdueCount), time: '', color: 'bg-danger' })
+      items.push({ id: 'overdue', kind: 'summary', text: tWith('notification.overdueTasks', overdueCount), time: '', color: 'bg-danger' })
     }
     if (todayDueCount > 0) {
-      items.push({ id: 'due-today', text: `${todayDueCount} 个任务今日到期`, time: '', color: 'bg-warning' })
+      items.push({ id: 'due-today', kind: 'summary', text: tWith('notification.dueToday', todayDueCount), time: '', color: 'bg-warning' })
     }
     if (tomorrowDueCount > 0) {
-      items.push({ id: 'due-tomorrow', text: `${tomorrowDueCount} 个任务明日到期`, time: '', color: 'bg-blue-400' })
+      items.push({ id: 'due-tomorrow', kind: 'summary', text: tWith('notification.dueTomorrow', tomorrowDueCount), time: '', color: 'bg-primary' })
     }
     if (todayCompletedCount > 0) {
-      items.push({ id: 'todos', text: tWith('notification.todayCompleted', todayCompletedCount), time: fmtHHmm(lastCompletedAt), color: 'bg-success' })
+      items.push({ id: 'todos', kind: 'summary', text: tWith('notification.todayCompleted', todayCompletedCount), time: fmtHHmm(lastCompletedAt), color: 'bg-success' })
     }
 
-    // Single pass over pomodoro sessions: today work
     let todayWorkCount = 0
     let totalWorkMin = 0
     let lastWorkEndedAt = 0
@@ -122,29 +185,39 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
     if (todayWorkCount > 0) {
       items.push({
         id: 'pomodoro',
+        kind: 'summary',
         text: tWith('notification.pomodoroDone', todayWorkCount, fmtMin(totalWorkMin)),
         time: fmtHHmm(lastWorkEndedAt),
         color: 'bg-primary',
       })
       if (todayWorkCount >= dailyPomodoroGoal) {
-        items.push({ id: 'goal', text: tWith('notification.goalReached', todayWorkCount), time: '', color: 'bg-success' })
+        items.push({ id: 'goal', kind: 'summary', text: tWith('notification.goalReached', todayWorkCount), time: '', color: 'bg-success' })
       }
     }
 
-    // Habits
     let completedHabits = 0
     for (const h of habits) { if (h.completedDates.includes(todayStr)) completedHabits++ }
     if (completedHabits > 0) {
-      items.push({ id: 'habits', text: tWith('notification.habitCheckin', completedHabits, habits.length), time: '', color: 'bg-warning' })
+      items.push({ id: 'habits', kind: 'summary', text: tWith('notification.habitCheckin', completedHabits, habits.length), time: '', color: 'bg-warning' })
     }
-    // Incomplete habits reminder
     const incompleteHabits = habits.length - completedHabits
-    if (incompleteHabits > 0 && habits.length > 0) {
-      items.push({ id: 'habits-reminder', text: `${incompleteHabits} 个习惯尚未完成`, time: '', color: 'bg-amber-400' })
+    if (incompleteHabits > 0 && habits.length > 0 && new Date().getHours() >= 18) {
+      items.push({ id: 'habits-reminder', kind: 'summary', text: tWith('notification.habitsIncomplete', incompleteHabits), time: '', color: 'bg-amber-400' })
+    }
+
+    for (const r of dueReminders.slice(0, 5)) {
+      items.unshift({
+        id: `reminder-${r.id}`,
+        kind: 'reminder',
+        text: r.title,
+        time: '',
+        color: 'bg-amber-400',
+        reminderId: r.id,
+      })
     }
 
     return { items, todayWorkCount }
-  }, [pomodoroSessions, taskFlowTasks, habits, dailyPomodoroGoal, todayStr, tomorrowStr, todayMidnightMs, tomorrowMidnightMs, tWith])
+  }, [pomodoroSessions, taskFlowTasks, habits, dailyPomodoroGoal, todayStr, tomorrowStr, todayMidnightMs, tomorrowMidnightMs, tWith, dueReminders])
 
   const hasNotifications = notifications.length > 0
   const hasUnread = hasNotifications && notifications.length !== seenCount
@@ -158,13 +231,46 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
     return { r, c, offset }
   }, [todayWorkCount, dailyPomodoroGoal])
 
+  const activeRemaining = getActiveRemainingSec(activePomo, nowMs)
+  const activeLabel = activePomo
+    ? `${Math.floor(activeRemaining / 60)}:${String(activeRemaining % 60).padStart(2, '0')}`
+    : null
+
+  const toggleActivePomo = useCallback(() => {
+    if (!activePomo) return
+    if (activePomo.targetEnd) pauseActivePomodoro(activePomo.source)
+    else resumeActivePomodoro(activePomo.source)
+  }, [activePomo])
+
+  const onCompleteReminder = useCallback((id: string) => {
+    const reminder = reminders.find((r) => r.id === id)
+    if (!reminder) return
+    const snapshot = { dueAt: reminder.dueAt, done: reminder.done }
+    const patch = completeReminder(reminder)
+    updateReminder(id, patch)
+    showToast(patch.done ? '提醒已完成' : '已滚到下一期', 'success', {
+      label: '撤销',
+      onClick: () => updateReminder(id, snapshot),
+    }, 8_000)
+  }, [reminders, updateReminder])
+
+  const onSnoozeReminder = useCallback((id: string) => {
+    const reminder = reminders.find((r) => r.id === id)
+    if (!reminder) return
+    const prev = reminder.dueAt
+    updateReminder(id, { dueAt: snoozeReminderDueAt(30), done: false })
+    showToast('已延后 30 分钟', 'info', {
+      label: '撤销',
+      onClick: () => updateReminder(id, { dueAt: prev, done: false }),
+    }, 8_000)
+  }, [reminders, updateReminder])
+
   return (
     <header
-      className="h-16 border-b border-border bg-surface-light/50 backdrop-blur-md flex items-center justify-between px-4 md:px-6 sticky top-0 z-10"
+      className="header-glass h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-10"
       style={dragRegion}
     >
       <div className="flex items-center gap-3" style={noDragRegion}>
-        {/* Mobile menu button */}
         <button
           onClick={onOpenMobileSidebar}
           aria-label={t('header.openMenu')}
@@ -174,20 +280,46 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
         </button>
 
         <h1 className="text-lg md:text-xl font-semibold text-text">{title}</h1>
+
+        {dndEnabled && (
+          <span className="hidden sm:inline-flex items-center rounded-lg border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">
+            防打扰
+          </span>
+        )}
+
+        {activePomo && activeLabel && (
+          <button
+            type="button"
+            onClick={() => onNavigate?.('pomodoro')}
+            className="hidden sm:inline-flex items-center gap-2 rounded-xl border border-primary/30 bg-primary/10 px-2.5 py-1 text-xs font-semibold text-primary hover:bg-primary/15"
+            title="打开番茄钟"
+          >
+            <Timer size={14} className={activePomo.targetEnd ? 'animate-pulse' : ''} />
+            <span className="font-mono">{activeLabel}</span>
+            <span
+              role="button"
+              tabIndex={0}
+              className="rounded-lg p-0.5 hover:bg-primary/20"
+              onClick={(e) => { e.stopPropagation(); toggleActivePomo() }}
+              onKeyDown={(e) => { if (e.key === 'Enter') { e.stopPropagation(); toggleActivePomo() } }}
+              aria-label={activePomo.targetEnd ? '暂停' : '继续'}
+            >
+              {activePomo.targetEnd ? <Pause size={12} /> : <Play size={12} />}
+            </span>
+          </button>
+        )}
       </div>
 
       <div className="flex items-center gap-2 md:gap-3" style={noDragRegion}>
-        {/* Theme Toggle */}
         <button
           onClick={toggleThemeMode}
-          aria-label={themeMode === 'dark' ? '切换到浅色主题' : '切换到深色主题'}
-          title={themeMode === 'dark' ? '浅色主题' : '深色主题'}
+          aria-label={themeMode === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
+          title={themeMode === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
           className="p-2 rounded-lg hover:bg-surface-lighter text-text-muted hover:text-text transition-colors"
         >
           {themeMode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
-        {/* Search / Command Palette Trigger */}
         <button
           onClick={onOpenCommandPalette}
           className="relative hidden sm:flex items-center gap-2 input-field pl-9 pr-12 py-2 w-48 md:w-56 text-sm cursor-pointer hover:border-primary/50 transition-colors"
@@ -199,7 +331,6 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
           </kbd>
         </button>
 
-        {/* Mobile search button */}
         <button
           onClick={onOpenCommandPalette}
           aria-label={t('header.search')}
@@ -208,7 +339,6 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
           <Search size={18} />
         </button>
 
-        {/* Today's Progress */}
         {progressRing && (
             <div className="hidden md:flex items-center gap-2 px-2.5 py-1.5 bg-primary/10 rounded-lg">
               <div className="relative w-5 h-5">
@@ -221,10 +351,8 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
             </div>
         )}
 
-        {/* Time */}
         <LiveClock />
 
-        {/* Notification */}
         <div className="relative" ref={notifRef}>
           <button
             onClick={() => {
@@ -244,7 +372,7 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-full mt-2 w-64 glass-card p-3 shadow-xl z-50 animate-fade-in">
+            <div className="absolute right-0 top-full mt-2 w-72 glass-card p-3 shadow-xl z-50 animate-fade-in">
               <div className="flex items-center justify-between mb-2">
                 <span className="text-sm font-medium text-text">{t('header.notifications')}</span>
                 <button
@@ -255,14 +383,52 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
                   <X size={14} />
                 </button>
               </div>
-              <div className="space-y-2">
+              <div className="max-h-80 space-y-2 overflow-y-auto">
                 {notifications.length > 0 ? notifications.map((n) => (
-                  <div key={n.id} className="flex items-start gap-2 p-2 rounded-lg bg-surface-lighter/50">
-                    <div className={`w-2 h-2 rounded-full ${n.color} mt-1.5 flex-shrink-0`} />
-                    <div className="flex-1 min-w-0">
-                      <p className="text-xs text-text">{n.text}</p>
-                      {n.time && <p className="text-[10px] text-text-muted mt-0.5">{n.time}</p>}
-                    </div>
+                  <div
+                    key={n.id}
+                    className="rounded-lg bg-surface-lighter/50 p-2"
+                  >
+                    <button
+                      type="button"
+                      className="flex w-full items-start gap-2 text-left hover:opacity-90"
+                      onClick={() => {
+                        setShowNotifications(false)
+                        if (n.kind === 'reminder') {
+                          onNavigate?.('reminders')
+                        } else if (n.id === 'habits-reminder' || n.id === 'habits') {
+                          onNavigate?.('habits')
+                        } else if (n.id === 'overdue' || n.id === 'todos' || n.id === 'due-today' || n.id === 'due-tomorrow') {
+                          onNavigate?.('taskflow')
+                        } else if (n.id === 'pomodoro' || n.id === 'goal') {
+                          onNavigate?.('pomodoro')
+                        }
+                      }}
+                    >
+                      <div className={`w-2 h-2 rounded-full ${n.color} mt-1.5 flex-shrink-0`} />
+                      <div className="flex-1 min-w-0">
+                        <p className="text-xs text-text">{n.text}</p>
+                        {n.time && <p className="text-[10px] text-text-muted mt-0.5">{n.time}</p>}
+                      </div>
+                    </button>
+                    {n.kind === 'reminder' && n.reminderId && (
+                      <div className="mt-1.5 flex gap-1.5 pl-4">
+                        <button
+                          type="button"
+                          className="rounded-lg bg-success/15 px-2 py-0.5 text-[10px] font-semibold text-success hover:bg-success/25"
+                          onClick={() => onCompleteReminder(n.reminderId!)}
+                        >
+                          完成
+                        </button>
+                        <button
+                          type="button"
+                          className="rounded-lg bg-surface px-2 py-0.5 text-[10px] font-semibold text-text-muted hover:bg-surface-lighter"
+                          onClick={() => onSnoozeReminder(n.reminderId!)}
+                        >
+                          +30分
+                        </button>
+                      </div>
+                    )}
                   </div>
                 )) : (
                   <p className="text-xs text-text-muted text-center py-2">{t('header.noNotifications')}</p>
@@ -272,7 +438,6 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
           )}
         </div>
 
-        {/* Custom window controls (frameless window) */}
         <div className="ml-1 pl-2 border-l border-border/60">
           <WindowControls />
         </div>

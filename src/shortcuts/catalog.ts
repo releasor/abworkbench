@@ -24,8 +24,10 @@ export const SHORTCUT_CATALOG: ShortcutDefinition[] = [
   { id: 'pagePomodoro', group: '全局', label: '切换到番茄钟', defaultAccelerator: 'Ctrl+3', scope: 'global' },
   { id: 'pageHabits', group: '全局', label: '切换到每日打卡', defaultAccelerator: 'Ctrl+4', scope: 'global' },
   { id: 'pageNotes', group: '全局', label: '切换到笔记', defaultAccelerator: 'Ctrl+5', scope: 'global' },
-  { id: 'pageWeather', group: '全局', label: '切换到天气', defaultAccelerator: 'Ctrl+6', scope: 'global' },
-  { id: 'pageSettings', group: '全局', label: '切换到设置', defaultAccelerator: 'Ctrl+7', scope: 'global' },
+  { id: 'pageReminders', group: '全局', label: '切换到提醒', defaultAccelerator: 'Ctrl+6', scope: 'global' },
+  { id: 'pageWeather', group: '全局', label: '切换到天气', defaultAccelerator: 'Ctrl+7', scope: 'global' },
+  { id: 'pageMineradio', group: '全局', label: '切换到 Mineradio', defaultAccelerator: 'Ctrl+8', scope: 'global' },
+  { id: 'pageSettings', group: '全局', label: '切换到设置', defaultAccelerator: 'Ctrl+9', scope: 'global' },
   { id: 'escapeClose', group: '全局', label: '关闭启动器 / 弹窗', defaultAccelerator: 'Escape', scope: 'global' },
 
   // Dashboard

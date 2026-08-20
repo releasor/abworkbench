@@ -1,6 +1,7 @@
 import { useMemo, useCallback, useState, memo } from 'react'
 import { BarChart3, Timer, CheckSquare, Target, Flame, Clock, Download, Copy } from 'lucide-react'
 import { useStore } from '../../store'
+import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { WEEKDAY_NAMES, durationMinutes, fmtMin, dayNumToDateStr, dayNumToShortLabel, getMonthLabel, fmtHHmm, fmtHHmmss, dayNumToYMD } from '../../utils/format'
 import { buildCompletedByDateMap, buildHabitsByDateMap } from '../../utils/stats'
 import { useToday } from '../../hooks/useToday'
@@ -15,7 +16,8 @@ function csvEscape(field: string): string {
 }
 
 const PRIORITY_CARDS = [
-  { label: '高优先级', priority: 'high' as const, color: 'bg-danger', textColor: 'text-danger' },
+  { label: '紧急', priority: 'urgent' as const, color: 'bg-danger', textColor: 'text-danger' },
+  { label: '高优先级', priority: 'high' as const, color: 'bg-orange-500', textColor: 'text-orange-400' },
   { label: '中优先级', priority: 'medium' as const, color: 'bg-warning', textColor: 'text-warning' },
   { label: '低优先级', priority: 'low' as const, color: 'bg-success', textColor: 'text-success' },
 ]
@@ -95,7 +97,17 @@ interface StatsPageProps {
 }
 
 export default function StatsPage({ embedded = false }: StatsPageProps) {
-  const todos = useStore((s) => s.todos)
+  const taskFlowTasks = useTaskStore((s) => s.tasks)
+  const todos = useMemo(() => taskFlowTasks.filter((t) => !t.archived).map((task) => ({
+    id: task.id,
+    title: task.title,
+    text: task.title,
+    completed: task.status === 'done',
+    priority: task.priority,
+    createdAt: Date.parse(task.createdAt) || 0,
+    completedAt: task.completedAt ? Date.parse(task.completedAt) : undefined,
+    dueDate: task.dueDate ? task.dueDate.slice(0, 10) : undefined,
+  })), [taskFlowTasks])
   const pomodoroSessions = useStore((s) => s.pomodoroSessions)
   const habits = useStore((s) => s.habits)
   const notes = useStore((s) => s.notes)
@@ -228,17 +240,18 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
     // Priority stats (single pass over todos)
     const weekStartMs = todayMidnightMs - 6 * 86400000
     const priorityMap = new Map<string, { total: number; completed: number; completionRate: number; weekAdded: number }>()
-    for (const p of ['high', 'medium', 'low']) priorityMap.set(p, { total: 0, completed: 0, completionRate: 0, weekAdded: 0 })
+    for (const p of ['urgent', 'high', 'medium', 'low']) priorityMap.set(p, { total: 0, completed: 0, completionRate: 0, weekAdded: 0 })
     for (const t of todos) {
-      const pStats = priorityMap.get(t.priority || 'low')!
+      const key = (t.priority || 'low') as string
+      const pStats = priorityMap.get(key) || priorityMap.get('low')!
       pStats.total++
       if (t.completed) pStats.completed++
       if (t.createdAt >= weekStartMs) pStats.weekAdded++
     }
     for (const s of priorityMap.values()) { s.completionRate = s.total > 0 ? Math.round((s.completed / s.total) * 100) : 0 }
 
-    const totalTodos = priorityMap.get('high')!.total + priorityMap.get('medium')!.total + priorityMap.get('low')!.total
-    const highPct = totalTodos > 0 ? Math.round((priorityMap.get('high')!.total / totalTodos) * 100) : 0
+    const totalTodos = [...priorityMap.values()].reduce((sum, s) => sum + s.total, 0)
+    const highPct = totalTodos > 0 ? Math.round(((priorityMap.get('urgent')!.total + priorityMap.get('high')!.total) / totalTodos) * 100) : 0
     const medPct = totalTodos > 0 ? Math.round((priorityMap.get('medium')!.total / totalTodos) * 100) : 0
     const lowPct = 100 - highPct - medPct
 
@@ -1061,9 +1074,9 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
               </div>
             </div>
         )}
-        <div className="grid grid-cols-3 gap-3">
+        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
           {PRIORITY_CARDS.map((p) => {
-            const pStats = chartStats.priorityStats.get(p.priority)!
+            const pStats = chartStats.priorityStats.get(p.priority) || { total: 0, completed: 0, completionRate: 0, weekAdded: 0 }
             const pct = todos.length > 0 ? Math.round((pStats.total / todos.length) * 100) : 0
             return (
               <div key={p.label} className="text-center p-3 rounded-lg bg-surface-lighter/50">

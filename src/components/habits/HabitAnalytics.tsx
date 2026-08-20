@@ -1,13 +1,14 @@
 import { useMemo } from 'react'
 import { BarChart3, Flame, Target, TrendingUp, Calendar } from 'lucide-react'
 import type { Habit } from '../../store'
+import { dayKeyFromMs } from '../../modules/taskflow/dateUtils'
 
 interface HabitAnalyticsProps {
   habits: Habit[]
 }
 
 function dayKey(ts: number): string {
-  return new Date(ts).toISOString().slice(0, 10)
+  return dayKeyFromMs(ts)
 }
 
 export default function HabitAnalytics({ habits }: HabitAnalyticsProps) {

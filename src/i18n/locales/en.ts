@@ -23,6 +23,8 @@ export const en = {
   'header.langEnglish': 'English',
   'header.openMenu': 'Open menu',
   'header.closeNotifications': 'Close notifications',
+  'header.switchToLight': 'Switch to light theme',
+  'header.switchToDark': 'Switch to dark theme',
 
   // Sidebar
   'sidebar.quickAdd': 'Quick add...',
@@ -32,13 +34,27 @@ export const en = {
   'sidebar.expand': 'Expand sidebar',
   'sidebar.collapseSidebar': 'Collapse sidebar',
 
+  // Reminders
+  'reminders.title': 'Reminder Center',
+  'reminders.subtitle': 'Manage due reminders in Beijing time with repeat and bulk snooze',
+  'reminders.empty': 'No reminders',
+  'reminders.emptyHint': 'Add your first reminder, or create one from Quick Capture',
+  'reminders.add': 'Add',
+  'reminders.placeholder': 'Reminder text, e.g. submit report',
+
+  // Empty / notes
+  'empty.create': 'Create now',
+  'notes.startWriting': 'Start writing...',
+
   // Pages
   'page.dashboard': 'Dashboard',
   'page.todo': 'Todo',
   'page.pomodoro': 'Pomodoro',
   'page.habits': 'Daily Check-in',
   'page.notes': 'Notes',
+  'page.reminders': 'Reminders',
   'page.weather': 'Weather',
+  'page.mineradio': 'Mineradio',
   'page.stats': 'Stats',
   'page.settings': 'Settings',
   'page.taskflow': 'TaskFlow',
@@ -550,10 +566,15 @@ export const en = {
   'notification.breakTime': 'Break time! Take a rest.',
   'notification.focusComplete': 'Focus session complete!',
   'notification.overdueTasks': (n: number) => `${n} task(s) overdue`,
+  'notification.dueToday': (n: number) => `${n} task(s) due today`,
+  'notification.dueTomorrow': (n: number) => `${n} task(s) due tomorrow`,
   'notification.todayCompleted': (n: number) => `Completed ${n} task(s) today`,
   'notification.pomodoroDone': (n: number, min: string) => `Completed ${n} pomodoro(s) (${min})`,
   'notification.goalReached': (n: number) => `Daily goal reached! ${n} pomodoros`,
   'notification.habitCheckin': (done: number, total: number) => `Checked ${done}/${total} items today`,
+  'notification.habitsIncomplete': (n: number) => `${n} habit(s) still incomplete`,
+  'notification.remindersDue': (n: number) => `${n} reminder(s) due`,
+  'notification.reminderOne': (title: string) => `Reminder: ${title}`,
 
   // Common
   'common.north': 'N',

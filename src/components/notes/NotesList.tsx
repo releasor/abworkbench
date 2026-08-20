@@ -2,6 +2,7 @@ import type { MouseEvent, ReactNode } from 'react'
 import { useState, useEffect, useMemo, useRef, useCallback, useDeferredValue } from 'react'
 import { Plus, Trash2, Edit3, FileText, Clock, Palette, Search, X, Download, Copy, Pin, ClipboardCopy, BookOpen, Sparkles, CheckCircle2, Link2, CheckSquare, History } from 'lucide-react'
 import { useStore } from '../../store'
+import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useToday } from '../../hooks/useToday'
@@ -211,6 +212,7 @@ export default function NotesList() {
   const togglePinNote = useStore((s) => s.togglePinNote)
   const deleteNote = useStore((s) => s.deleteNote)
   const setActiveNote = useStore((s) => s.setActiveNote)
+  const lastDeletedNoteRef = useRef<typeof notes[0] | null>(null)
   const addNoteFolder = useStore((s) => s.addNoteFolder)
   const tasks = useTaskStore((s) => s.tasks)
   const categories = useTaskStore((s) => s.categories)
@@ -447,6 +449,17 @@ export default function NotesList() {
         }
         return
       }
+      if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && lastDeletedNoteRef.current) {
+        e.preventDefault()
+        const restored = lastDeletedNoteRef.current
+        lastDeletedNoteRef.current = null
+        useStore.setState((s) => ({
+          notes: [restored, ...s.notes.filter((n) => n.id !== restored.id)],
+          activeNoteId: restored.id,
+        }))
+        showToast('已恢复笔记', 'success')
+        return
+      }
       if (eventMatchesShortcut('notesNewGlobal', e) || eventMatchesShortcut('notesNew', e)) {
         e.preventDefault()
         addNote()
@@ -467,7 +480,9 @@ export default function NotesList() {
   }, [addNote, activeNoteId, flushPendingContent, setActiveNote, shortcutOverrides])
 
   const exportNote = (note: typeof notes[0]) => {
-    const blob = new Blob([`# ${note.title}\n\n${note.content}`], { type: 'text/markdown' })
+    flushPendingContent()
+    const content = note.id === activeNote?.id ? localContent : (useStore.getState().notes.find((n) => n.id === note.id)?.content ?? note.content)
+    const blob = new Blob([`# ${note.title}\n\n${content}`], { type: 'text/markdown' })
     const url = URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
@@ -477,16 +492,21 @@ export default function NotesList() {
   }
 
   const copyToClipboard = async (note: typeof notes[0]) => {
+    flushPendingContent()
+    const content = note.id === activeNote?.id ? localContent : (useStore.getState().notes.find((n) => n.id === note.id)?.content ?? note.content)
+    const text = `# ${note.title}\n\n${content}`
     try {
-      await navigator.clipboard.writeText(`# ${note.title}\n\n${note.content}`)
+      await navigator.clipboard.writeText(text)
+      showToast('已复制到剪贴板', 'success')
     } catch {
       // Fallback for older browsers
       const textArea = document.createElement('textarea')
-      textArea.value = `# ${note.title}\n\n${note.content}`
+      textArea.value = text
       document.body.appendChild(textArea)
       textArea.select()
       document.execCommand('copy')
       document.body.removeChild(textArea)
+      showToast('已复制到剪贴板', 'success')
     }
   }
 
@@ -760,8 +780,25 @@ export default function NotesList() {
                         <button
                           onClick={(e) => {
                             e.stopPropagation()
+                            flushPendingContent()
+                            const snapshot = useStore.getState().notes.find((n) => n.id === note.id) || note
+                            const content = note.id === activeNote?.id ? localContent : snapshot.content
+                            lastDeletedNoteRef.current = { ...snapshot, content }
                             deleteNote(note.id)
                             setDeletingNoteId(null)
+                            showToast(`已删除笔记：${snapshot.title}（Ctrl+Z 可撤销）`, 'info', {
+                              label: '撤销',
+                              onClick: () => {
+                                const restored = lastDeletedNoteRef.current
+                                if (!restored) return
+                                lastDeletedNoteRef.current = null
+                                useStore.setState((s) => ({
+                                  notes: [restored, ...s.notes.filter((n) => n.id !== restored.id)],
+                                  activeNoteId: restored.id,
+                                }))
+                                showToast('已恢复笔记', 'success')
+                              },
+                            }, 10_000)
                           }}
                           className="rounded-lg bg-danger px-2 py-1 text-[10px] text-white"
                         >
@@ -1060,7 +1097,8 @@ export default function NotesList() {
                       requestAnimationFrame(syncVisualEditor)
                     }
                   }}
-                  className="note-visual-editor h-full w-full overflow-auto rounded-[28px] border border-border bg-background/45 p-6 text-base leading-8 text-text outline-none transition-all focus:border-primary/40"
+                  className="note-visual-editor h-full w-full overflow-auto rounded-[28px] border border-border bg-surface-light/45 p-6 text-base leading-8 text-text outline-none transition-all focus:border-primary/40"
+                  data-placeholder="开始写作..."
                 />
               )}
             </div>

@@ -22,7 +22,7 @@ function parseInline(text: string, baseKey: number): React.ReactNode[] {
     const codeMatch = CODE_RE.exec(remaining);
     if (codeMatch) {
       parts.push(
-        <code key={key++} className="px-1 py-0.5 bg-gray-200 dark:bg-gray-700 rounded text-xs font-mono">
+        <code key={key++} className="px-1 py-0.5 bg-surface-lighter rounded text-xs font-mono">
           {codeMatch[1]}
         </code>
       );

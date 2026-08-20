@@ -1,10 +1,11 @@
 import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { generateId } from '../utils/id'
+import { emitWorkspaceModeChange } from '../utils/workspaceModeEffects'
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 export type ThemeMode = 'dark' | 'light'
-export type WorkspaceMode = 'focus' | 'night' | 'minimal' | 'dashboard'
+export type WorkspaceMode = 'focus' | 'deep' | 'night' | 'minimal' | 'dashboard'
 
 export interface Todo {
   id: string
@@ -114,6 +115,10 @@ interface AppState {
   toggleThemeMode: () => void
   workspaceMode: WorkspaceMode
   setWorkspaceMode: (mode: WorkspaceMode) => void
+  visualNoise: boolean
+  setVisualNoise: (enabled: boolean) => void
+  visualParticles: boolean
+  setVisualParticles: (enabled: boolean) => void
 
   // Weather
   weatherCity: string
@@ -133,7 +138,7 @@ const NOTE_COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b
 
 export const useStore = create<AppState>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       // User
       userName: '',
       setUserName: (name) => set({ userName: name }),
@@ -266,13 +271,22 @@ export const useStore = create<AppState>()(
       setPomodoroAutoStartWork: (enabled) => set({ pomodoroAutoStartWork: enabled }),
 
       // Theme
-      accentColor: '#3b82f6',
+      accentColor: '#00f5d4',
       setAccentColor: (color) => set({ accentColor: color }),
       themeMode: 'dark',
       setThemeMode: (mode) => set({ themeMode: mode }),
       toggleThemeMode: () => set((s) => ({ themeMode: s.themeMode === 'dark' ? 'light' : 'dark' })),
       workspaceMode: 'focus',
-      setWorkspaceMode: (mode) => set({ workspaceMode: mode }),
+      setWorkspaceMode: (mode) => {
+        const prev = get().workspaceMode
+        if (prev === mode) return
+        set({ workspaceMode: mode })
+        emitWorkspaceModeChange(prev, mode)
+      },
+      visualNoise: true,
+      setVisualNoise: (enabled) => set({ visualNoise: enabled }),
+      visualParticles: true,
+      setVisualParticles: (enabled) => set({ visualParticles: enabled }),
 
       // Weather
       weatherCity: '北京',
@@ -317,6 +331,8 @@ export const useStore = create<AppState>()(
         accentColor: state.accentColor,
         themeMode: state.themeMode,
         workspaceMode: state.workspaceMode,
+        visualNoise: state.visualNoise,
+        visualParticles: state.visualParticles,
         habits: state.habits,
         userName: state.userName,
         dailyPomodoroGoal: state.dailyPomodoroGoal,

@@ -27,6 +27,8 @@ export const zh = {
   'header.langEnglish': '英文',
   'header.openMenu': '打开菜单',
   'header.closeNotifications': '关闭通知',
+  'header.switchToLight': '切换到浅色主题',
+  'header.switchToDark': '切换到深色主题',
 
   // Sidebar
   'sidebar.quickAdd': '快速添加...',
@@ -36,13 +38,27 @@ export const zh = {
   'sidebar.expand': '展开侧边栏',
   'sidebar.collapseSidebar': '收起侧边栏',
 
+  // Reminders
+  'reminders.title': '提醒中心',
+  'reminders.subtitle': '按北京时间管理到期提醒，支持重复与批量延后',
+  'reminders.empty': '暂无提醒',
+  'reminders.emptyHint': '添加第一条提醒，或从快速捕获创建',
+  'reminders.add': '添加',
+  'reminders.placeholder': '提醒内容，例如：交材料',
+
+  // Empty / notes
+  'empty.create': '立即创建',
+  'notes.startWriting': '开始写作...',
+
   // Pages
   'page.dashboard': '仪表盘',
   'page.todo': '待办事项',
   'page.pomodoro': '番茄钟',
   'page.habits': '每日打卡',
   'page.notes': '笔记',
+  'page.reminders': '提醒',
   'page.weather': '天气',
+  'page.mineradio': 'Mineradio',
   'page.stats': '统计',
   'page.settings': '设置',
   'page.taskflow': '任务流',
@@ -553,10 +569,15 @@ export const zh = {
   'notification.breakTime': '休息时间到！放松一下吧。',
   'notification.focusComplete': '专注完成！',
   'notification.overdueTasks': (n: number) => `${n} 个任务已逾期`,
+  'notification.dueToday': (n: number) => `${n} 个任务今日到期`,
+  'notification.dueTomorrow': (n: number) => `${n} 个任务明日到期`,
   'notification.todayCompleted': (n: number) => `今日已完成 ${n} 个任务`,
   'notification.pomodoroDone': (n: number, min: string) => `今日已完成 ${n} 个番茄钟 (${min})`,
   'notification.goalReached': (n: number) => `今日目标已达成！完成 ${n} 个番茄钟`,
   'notification.habitCheckin': (done: number, total: number) => `今日已打卡 ${done}/${total} 项`,
+  'notification.habitsIncomplete': (n: number) => `${n} 个习惯尚未完成`,
+  'notification.remindersDue': (n: number) => `${n} 条提醒已到点`,
+  'notification.reminderOne': (title: string) => `提醒：${title}`,
 
   // Common
   'common.north': '北',
