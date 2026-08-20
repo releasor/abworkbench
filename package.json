@@ -6,9 +6,10 @@
   "type": "module",
   "scripts": {
     "dev": "npm run desktop:dev",
-    "desktop:dev": "vite build && electron .",
+    "vendor:mineradio": "node scripts/vendor-mineradio.mjs",
+    "desktop:dev": "npm run vendor:mineradio && vite build && electron .",
     "build": "npm run electron:build",
-    "electron:build": "vite build && electron-builder",
+    "electron:build": "npm run vendor:mineradio && vite build && electron-builder",
     "lint": "eslint .",
     "test": "node --test electron/**/*.test.mjs src/launcher/*.test.mjs src/hooks/*.test.mjs src/components/**/*.test.mjs src/modules/**/*.test.mjs src/utils/*.test.mjs src/shortcuts/*.test.mjs src/navigation/*.test.mjs src/quality/*.test.mjs",
     "typecheck": "tsc -b --noEmit"
@@ -33,13 +34,34 @@
           "!*.db.tmp",
           "!*.csv"
         ]
+      },
+      {
+        "from": "vendor/mineradio/",
+        "to": "mineradio",
+        "filter": [
+          "**/*",
+          "!**/.cookie",
+          "!**/.qq-cookie",
+          "!**/.kugou-cookie",
+          "!**/.qishui-cookie",
+          "!**/.spotify-token.json",
+          "!node_modules/**"
+        ]
+      },
+      {
+        "from": "vendor/mineradio/node_modules",
+        "to": "mineradio/node_modules",
+        "filter": [
+          "**/*"
+        ]
       }
     ],
     "win": {
       "target": [
         "nsis"
       ],
-      "icon": "public/favicon.ico"
+      "icon": "public/favicon.ico",
+      "signAndEditExecutable": false
     },
     "nsis": {
       "oneClick": false,

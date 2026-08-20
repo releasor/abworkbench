@@ -34,6 +34,17 @@ import {
   showReader,
   unregisterBossKey,
 } from './readerWindow'
+import { ensureMineradioHost, getMineradioHostStatus, stopMineradioHost } from './mineradioHost'
+import { openKugouMusicLogin, openNeteaseMusicLogin, openQQMusicLogin } from './mineradioLoginBridge'
+import { listMineradioAccounts, upsertMineradioAccount } from './mineradioAccounts'
+import {
+  bindMineradioDesktopHost,
+  bindMineradioEmbedWebContents,
+  installMineradioDesktopProtocols,
+  loadMineradioDesktopRuntime,
+  prepareMineradioDesktopEnv,
+  resolveMineradioPreloadPath,
+} from './mineradioDesktopAttach'
 
 const __dirname = path.dirname(fileURLToPath(import.meta.url))
 
@@ -70,6 +81,8 @@ function configureDiskCacheIsolation() {
 }
 
 configureDiskCacheIsolation()
+prepareMineradioDesktopEnv()
+loadMineradioDesktopRuntime()
 
 function showMainWindow() {
   if (!win) {
@@ -450,6 +463,7 @@ function refreshTrayMenu() {
     { label: '打开 Abworkbench', accelerator: mainWindowHotkey || DEFAULT_MAIN_WINDOW_HOTKEY, click: showMainWindow },
     { label: '启动器', accelerator: launcherHotkey || DEFAULT_HOTKEY, click: toggleLauncher },
     { label: '快速捕获', accelerator: quickCaptureHotkey || DEFAULT_QUICK_CAPTURE_HOTKEY, click: openQuickCapture },
+    { label: '迷你窗', click: () => createMiniWindow() },
     { type: 'separator' },
     {
       label: '退出',
@@ -481,11 +495,19 @@ function configureContentSecurityPolicy() {
     "img-src 'self' data:",
     "font-src 'self' data:",
     "connect-src 'self' https://nominatim.openstreetmap.org",
+    "frame-src 'self' http://127.0.0.1:* http://localhost:*",
+    "child-src 'self' http://127.0.0.1:* http://localhost:*",
     "object-src 'none'",
     "base-uri 'self'",
   ].join('; ')
 
   session.defaultSession.webRequest.onHeadersReceived((details, callback) => {
+    const url = details.url || ''
+    // Mineradio (and any local embed) must keep its own scripts/styles; do not overlay our shell CSP.
+    if (/^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?(?:\/|$)/i.test(url)) {
+      callback({ responseHeaders: details.responseHeaders })
+      return
+    }
     callback({
       responseHeaders: {
         ...details.responseHeaders,
@@ -547,6 +569,7 @@ function createWindow() {
       preload: path.join(__dirname, 'preload.js'),
       nodeIntegration: false,
       contextIsolation: true,
+      webviewTag: true,
     },
   })
 
@@ -573,6 +596,8 @@ function createWindow() {
     win?.webContents.send('main-process-message', new Date().toLocaleString())
   })
 
+  bindMineradioDesktopHost(win)
+
   win.loadFile(path.join(process.env.DIST!, 'index.html'))
 }
 
@@ -589,10 +614,45 @@ app.on('window-all-closed', () => {
   if (process.platform === 'darwin') return
 })
 
-app.whenReady().then(() => {
+app.whenReady().then(async () => {
   if (shouldQuitForExistingInstance(hasSingleInstanceLock)) return
   configureContentSecurityPolicy()
+  await installMineradioDesktopProtocols()
+
+  app.on('web-contents-created', (_event, contents) => {
+    contents.on('will-attach-webview', (attachEvent, webPreferences, params) => {
+      const preloadPath = resolveMineradioPreloadPath()
+      const src = String(params.src || '')
+      const isMineradio = /^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(src)
+      if (!isMineradio || !preloadPath) {
+        attachEvent.preventDefault()
+        return
+      }
+      webPreferences.preload = preloadPath
+      webPreferences.nodeIntegration = false
+      webPreferences.contextIsolation = true
+      webPreferences.sandbox = false
+      delete (webPreferences as { preloadURL?: string }).preloadURL
+    })
+
+    contents.on('did-finish-load', () => {
+      try {
+        if (contents.getType() !== 'webview') return
+        const url = contents.getURL()
+        if (!/^https?:\/\/(?:127\.0\.0\.1|localhost)(?::\d+)?\//i.test(url)) return
+        bindMineradioEmbedWebContents(contents)
+        if (win && !win.isDestroyed()) bindMineradioDesktopHost(win)
+      } catch {
+        // ignore
+      }
+    })
+  })
+
   ipcMain.handle('desktop:open-mini-window', () => createMiniWindow())
+  ipcMain.handle('desktop:open-quick-capture', () => {
+    openQuickCapture()
+    return true
+  })
   ipcMain.handle('desktop:show-main-window', () => {
     showMainWindow()
     return true
@@ -915,6 +975,35 @@ app.whenReady().then(() => {
     })
   })
 
+  ipcMain.handle('desktop:mineradio-ensure', async () => {
+    const status = await ensureMineradioHost()
+    if (status.ok && win && !win.isDestroyed()) {
+      bindMineradioDesktopHost(win, status.port)
+    }
+    const preloadPath = resolveMineradioPreloadPath()
+    return {
+      ...status,
+      preloadPath: preloadPath || undefined,
+      embedEngine: preloadPath ? 'webview-native' : 'iframe-bridge',
+    }
+  })
+  ipcMain.handle('desktop:mineradio-status', () => {
+    const status = getMineradioHostStatus()
+    const preloadPath = resolveMineradioPreloadPath()
+    return {
+      ...status,
+      preloadPath: preloadPath || undefined,
+      embedEngine: preloadPath ? 'webview-native' : 'iframe-bridge',
+    }
+  })
+  ipcMain.handle('desktop:mineradio-open-netease-login', async () => openNeteaseMusicLogin(win))
+  ipcMain.handle('desktop:mineradio-open-qq-login', async (_event, options?: { forceReauth?: boolean }) =>
+    openQQMusicLogin(win, options))
+  ipcMain.handle('desktop:mineradio-open-kugou-login', async () => openKugouMusicLogin(win))
+  ipcMain.handle('desktop:mineradio-save-account', (_event, payload: Record<string, unknown>) =>
+    upsertMineradioAccount(payload || {}))
+  ipcMain.handle('desktop:mineradio-list-accounts', () => listMineradioAccounts())
+
   initRecentApps(app.getPath('userData'))
   createWindow()
   createTray()
@@ -930,9 +1019,11 @@ app.on('activate', () => {
 
 app.on('before-quit', () => {
   isQuitting = true
+  stopMineradioHost()
 })
 
 app.on('will-quit', () => {
+  stopMineradioHost()
   unregisterBossKey()
   globalShortcut.unregisterAll()
 })

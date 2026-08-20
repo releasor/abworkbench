@@ -1,0 +1,50 @@
+/* Abworkbench embed mode — kept as a separate file so vendor syncs do not wipe it */
+html.abwb-embedded,
+html.abwb-embedded body {
+  width: 100%;
+  height: 100%;
+  margin: 0;
+  overflow: hidden;
+  background: #050505;
+}
+html.abwb-embedded #desktop-titlebar,
+body.abwb-embedded #desktop-titlebar,
+html.abwb-embedded body.desktop-shell #desktop-titlebar {
+  display: none !important;
+}
+html.abwb-embedded #desktop-window-shell,
+body.abwb-embedded #desktop-window-shell,
+html.abwb-embedded body.desktop-shell #desktop-window-shell {
+  height: 100vh;
+  min-height: 100vh;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  overflow: hidden;
+}
+html.abwb-embedded #empty-home {
+  overflow: visible;
+}
+html.abwb-embedded .empty-home-shell,
+html.abwb-embedded .home-grid,
+html.abwb-embedded .home-quick-grid {
+  overflow: visible;
+  position: relative;
+  z-index: 2;
+}
+html.abwb-embedded .home-card {
+  position: relative;
+  z-index: 2;
+}
+html.abwb-embedded .home-card:hover,
+html.abwb-embedded .home-card:focus-visible {
+  z-index: 40;
+}
+html.abwb-embedded #search-area {
+  z-index: 5;
+}
+html.abwb-embedded #search-area:hover,
+html.abwb-embedded #search-area:focus-within,
+html.abwb-embedded #search-area.has-results {
+  z-index: 30;
+}

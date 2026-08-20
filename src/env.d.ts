@@ -92,6 +92,7 @@ declare global {
       platform: string
       onOpenQuickCapture?: (callback: () => void) => () => void
       openMiniWindow?: () => Promise<void>
+      openQuickCapture?: () => Promise<boolean>
       showMainWindow?: () => Promise<boolean>
       openTarget?: (target: string) => Promise<boolean>
       readClipboard?: () => Promise<{ text: string; imageDataUrl: string }>
@@ -142,6 +143,71 @@ declare global {
       >
       readerOpenBook?: (bookId: string) => Promise<{ mode: string; bookId?: string }>
       readerWindowControl?: (action: unknown) => Promise<boolean>
+      ensureMineradio?: () => Promise<{
+        ok: boolean
+        url?: string
+        mode?: 'full' | 'static'
+        root?: string
+        message?: string
+        installing?: boolean
+        port?: number
+        preloadPath?: string
+        embedEngine?: 'webview-native' | 'iframe-bridge'
+      }>
+      mineradioStatus?: () => Promise<{
+        ok: boolean
+        url?: string
+        mode?: 'full' | 'static'
+        root?: string
+        message?: string
+        installing?: boolean
+        port?: number
+        preloadPath?: string
+        embedEngine?: 'webview-native' | 'iframe-bridge'
+      }>
+      openMineradioNeteaseLogin?: () => Promise<{
+        ok: boolean
+        cookie?: string
+        reused?: boolean
+        cancelled?: boolean
+        error?: string
+        message?: string
+      }>
+      openMineradioQQLogin?: (options?: { forceReauth?: boolean }) => Promise<{
+        ok: boolean
+        cookie?: string
+        reused?: boolean
+        recovered?: boolean
+        partial?: boolean
+        cancelled?: boolean
+        error?: string
+        message?: string
+      }>
+      openMineradioKugouLogin?: () => Promise<{
+        ok: boolean
+        cookie?: string
+        reused?: boolean
+        partial?: boolean
+        cancelled?: boolean
+        error?: string
+        message?: string
+      }>
+      saveMineradioAccount?: (payload: Record<string, unknown>) => Promise<{
+        id: string
+        provider: string
+        userId?: string
+        nickname?: string
+        loggedIn: boolean
+        updatedAt: number
+      }>
+      listMineradioAccounts?: () => Promise<Array<{
+        id: string
+        provider: string
+        userId?: string
+        nickname?: string
+        loggedIn: boolean
+        updatedAt: number
+      }>>
     }
   }
 }

@@ -11,6 +11,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
     return () => ipcRenderer.removeListener('open-quick-capture', callback)
   },
   openMiniWindow: () => ipcRenderer.invoke('desktop:open-mini-window'),
+  openQuickCapture: () => ipcRenderer.invoke('desktop:open-quick-capture'),
   showMainWindow: () => ipcRenderer.invoke('desktop:show-main-window'),
   openTarget: (target: string) => ipcRenderer.invoke('desktop:open-target', target),
   readClipboard: () => ipcRenderer.invoke('desktop:read-clipboard'),
@@ -87,4 +88,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
     ipcRenderer.invoke('desktop:reader-scrape-url', bookId ? { url, bookId } : url),
   readerOpenBook: (bookId: string) => ipcRenderer.invoke('desktop:reader-open-book', bookId),
   readerWindowControl: (action: unknown) => ipcRenderer.invoke('desktop:reader-window-control', action),
+
+  ensureMineradio: () => ipcRenderer.invoke('desktop:mineradio-ensure'),
+  mineradioStatus: () => ipcRenderer.invoke('desktop:mineradio-status'),
+  openMineradioNeteaseLogin: () => ipcRenderer.invoke('desktop:mineradio-open-netease-login'),
+  openMineradioQQLogin: (options?: { forceReauth?: boolean }) =>
+    ipcRenderer.invoke('desktop:mineradio-open-qq-login', options || {}),
+  openMineradioKugouLogin: () => ipcRenderer.invoke('desktop:mineradio-open-kugou-login'),
+  saveMineradioAccount: (payload: Record<string, unknown>) =>
+    ipcRenderer.invoke('desktop:mineradio-save-account', payload || {}),
+  listMineradioAccounts: () => ipcRenderer.invoke('desktop:mineradio-list-accounts'),
 })
