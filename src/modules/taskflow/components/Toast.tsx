@@ -15,9 +15,9 @@ interface ToastProps {
 }
 
 const BG_COLORS: Record<string, string> = {
-  success: 'bg-green-600',
-  error: 'bg-red-600',
-  info: 'bg-blue-600',
+  success: 'bg-success',
+  error: 'bg-danger',
+  info: 'bg-primary',
 };
 
 const ICON_NAMES: Record<string, string> = {
@@ -48,8 +48,7 @@ export function Toast({ message, type = 'info', action, onClose, duration = 3000
 
   return (
     <div
-      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg text-white shadow-lg
-        ${BG_COLORS[type]} transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
+      className={`fixed bottom-6 right-6 z-50 flex items-center gap-2 px-4 py-3 rounded-lg text-white shadow-lg ${BG_COLORS[type]} transition-all duration-300 ${visible ? 'translate-y-0 opacity-100' : 'translate-y-4 opacity-0'}`}
       role={type === 'error' ? 'alert' : 'status'}
       aria-live={type === 'error' ? 'assertive' : 'polite'}
       aria-atomic="true"

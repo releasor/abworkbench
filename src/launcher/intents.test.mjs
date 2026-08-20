@@ -119,6 +119,9 @@ test('matchCommands finds stealth reader by 摸鱼 / novel', () => {
   assert.ok(matchCommands('摸鱼').some((c) => c.id === 'stealth-reader'))
   assert.ok(matchCommands('novel').some((c) => c.id === 'stealth-reader'))
   assert.ok(matchCommands('阅读').some((c) => c.id === 'stealth-reader'))
+  assert.ok(matchCommands('书架').some((c) => c.id === 'stealth-reader-library'))
+  assert.ok(matchCommands('迷你').some((c) => c.id === 'open-mini'))
+  assert.ok(matchCommands('快速捕获').some((c) => c.id === 'quick-capture'))
 })
 
 test('buildLauncherItems puts calculator result first', () => {

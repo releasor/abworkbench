@@ -16,6 +16,7 @@ test('buildMiniWindowModel picks top three tasks and next reminder', () => {
       { id: '5', title: '正在专注', status: 'in-progress', priority: 'high', pinned: false, archived: false, dueDate: null, timeEntries: [{ endTime: null }] },
     ],
     reminders: [
+      { id: 'r0', title: '过期提醒', dueAt: '2026-06-09T08:00', done: false },
       { id: 'r1', title: '晚上提醒', dueAt: '2026-06-09T20:00', done: false },
       { id: 'r2', title: '已完成提醒', dueAt: '2026-06-09T10:00', done: true },
     ],
@@ -23,6 +24,7 @@ test('buildMiniWindowModel picks top three tasks and next reminder', () => {
   })
 
   assert.deepEqual(model.topTasks.map((task) => task.id), ['3', '2', '1'])
-  assert.equal(model.nextReminder?.id, 'r1')
+  assert.equal(model.nextReminder?.id, 'r0')
+  assert.equal(model.reminderOverdue, true)
   assert.equal(model.activeTask?.id, '5')
 })

@@ -13,8 +13,15 @@ function createStorage() {
 }
 
 test('buildMacroLocalState avoids navigating to removed workspace page', () => {
-  assert.deepEqual(buildMacroLocalState('macro-clear-inbox'), { target: 'dashboard', inboxFilter: 'high' })
+  assert.deepEqual(buildMacroLocalState('macro-clear-inbox'), { target: 'taskflow', clearInbox: true })
   assert.deepEqual(buildMacroLocalState('macro-project-scan'), { target: 'taskflow', projectScan: true })
+  assert.deepEqual(buildMacroLocalState('macro-bulk-import'), { target: 'taskflow', bulkImport: true })
+})
+
+test('runLocalMacro evening review targets notes', () => {
+  const result = runLocalMacro('macro-evening-review')
+  assert.equal(result.targetPage, 'notes')
+  assert.equal(result.createEveningReview, true)
 })
 
 test('runLocalMacro writes macro state and DND state', () => {
@@ -23,5 +30,7 @@ test('runLocalMacro writes macro state and DND state', () => {
 
   assert.equal(result.targetPage, 'taskflow')
   assert.equal(storage.getItem('abworkbench-focus-dnd'), 'true')
-  assert.equal(JSON.parse(storage.getItem('abworkbench-macro-state')).target, 'taskflow')
+  const state = JSON.parse(storage.getItem('abworkbench-macro-state'))
+  assert.equal(state.target, 'taskflow')
+  assert.equal(state.startWork, true)
 })

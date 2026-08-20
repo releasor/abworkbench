@@ -26,10 +26,16 @@ export const LAUNCHER_COMMANDS: LauncherCommandDef[] = [
   { id: 'nav-pomodoro', label: '番茄钟', description: '打开主窗口并开始专注', keywords: ['pomodoro', 'focus', 'fanqie', '番茄', '专注'] },
   { id: 'nav-habits', label: '每日打卡', description: '打开主窗口并进入习惯打卡', keywords: ['habit', 'daka', '打卡', '习惯'] },
   { id: 'nav-notes', label: '笔记', description: '打开主窗口并进入笔记', keywords: ['note', 'biji', '笔记'] },
+  { id: 'nav-reminders', label: '提醒中心', description: '打开提醒列表与重复提醒管理', keywords: ['reminder', 'tixing', '提醒', '闹钟'] },
   { id: 'nav-weather', label: '天气', description: '打开主窗口并查看天气', keywords: ['weather', 'tianqi', '天气'] },
+  { id: 'nav-mineradio', label: 'Mineradio', description: '打开嵌入的 Mineradio 音乐可视化', keywords: ['mineradio', 'music', 'yinyue', '音乐', '电台', 'radio'] },
   { id: 'nav-settings', label: '设置', description: '打开主窗口并进入设置', keywords: ['settings', 'shezhi', '设置', 'preferences'] },
+  { id: 'daily-brief', label: '今日作战板', description: '查看今日任务、提醒、习惯与番茄进度', keywords: ['brief', 'today', '作战', '今日', '复盘'] },
   { id: 'translate-clipboard', label: '翻译剪贴板内容', description: '用默认翻译引擎翻译剪贴板中的文本', keywords: ['translate', 'fanyi', '翻译', 'fy', 'clipboard'] },
   { id: 'stealth-reader', label: '摸鱼阅读', description: '打开透明悬浮窗继续阅读或进入书架', keywords: ['reader', 'novel', 'moyu', '摸鱼', '阅读', '小说', '看书'] },
+  { id: 'stealth-reader-library', label: '摸鱼书架', description: '直接打开摸鱼阅读书架', keywords: ['library', 'bookshelf', '书架', '书库', 'moyu'] },
+  { id: 'open-mini', label: '迷你窗', description: '打开悬浮迷你工作窗，快速看任务与提醒', keywords: ['mini', 'miniw', '悬浮', '迷你', '小窗'] },
+  { id: 'quick-capture', label: '快速捕获', description: '快速记下任务、笔记或提醒', keywords: ['capture', 'kuaisu', '快速捕获', '捕获', 'inbox', '速记'] },
 ]
 
 // --- Prefix handling ---

@@ -7,7 +7,7 @@ import { useToast } from '../../modules/taskflow/hooks/useToast'
 export default function GlobalToastHost() {
   const { toast, show, clear } = useToast()
 
-  useEffect(() => onToast((message, type, action) => show(message, type, action)), [show])
+  useEffect(() => onToast((message, type, action, duration) => show(message, type, action, duration)), [show])
 
   if (!toast) return null
   return (
@@ -16,6 +16,7 @@ export default function GlobalToastHost() {
       message={toast.message}
       type={toast.type}
       action={toast.action}
+      duration={toast.duration}
       onClose={clear}
     />
   )

@@ -33,7 +33,9 @@ export interface MiniWindowModelInput {
 const PRIORITY_WEIGHT = { low: 1, medium: 2, high: 3, urgent: 4 }
 
 function todayStr(now: number): string {
-  return new Date(now).toISOString().slice(0, 10)
+  const d = new Date(now)
+  const pad = (n: number) => (n < 10 ? `0${n}` : `${n}`)
+  return `${d.getFullYear()}-${pad(d.getMonth() + 1)}-${pad(d.getDate())}`
 }
 
 function isTodayDue(task: MiniTask, now: number): boolean {
@@ -55,8 +57,10 @@ export function buildMiniWindowModel(input: MiniWindowModelInput) {
     .slice(0, 3)
 
   const nextReminder = input.reminders
-    .filter((reminder) => !reminder.done && Date.parse(reminder.dueAt) >= input.now)
+    .filter((reminder) => !reminder.done)
     .sort((a, b) => Date.parse(a.dueAt) - Date.parse(b.dueAt))[0] || null
+
+  const reminderOverdue = Boolean(nextReminder && Date.parse(nextReminder.dueAt) < input.now)
 
   const todayFocus = input.pomodoroSessions.filter((session) => (
     session.type === 'work' &&
@@ -66,5 +70,5 @@ export function buildMiniWindowModel(input: MiniWindowModelInput) {
 
   const activeTask = input.tasks.find((task) => task.timeEntries?.some((entry) => !entry.endTime)) || null
 
-  return { topTasks, nextReminder, todayFocus, activeTask }
+  return { topTasks, nextReminder, reminderOverdue, todayFocus, activeTask }
 }

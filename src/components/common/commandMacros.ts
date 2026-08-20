@@ -12,16 +12,16 @@ export const COMMAND_MACROS: CommandMacroSuggestion[] = [
   {
     id: 'macro-start-work',
     label: '宏命令：开始工作',
-    description: '打开任务流，进入专注页，并开启防打扰。',
+    description: '打开任务流，进入专注模式，并开启防打扰标记。',
     query: ['开始工作', 'start work', '进入工作'],
-    steps: ['打开任务流', '进入专注页', '开启防打扰'],
+    steps: ['打开任务流', '进入专注模式', '开启防打扰'],
   },
   {
     id: 'macro-clear-inbox',
     label: '宏命令：清空收件箱',
-    description: '回到仪表盘，优先处理高优先条目。',
+    description: '打开任务流，按紧急度处理未完成待办。',
     query: ['清空收件箱', 'inbox zero', '处理收件箱'],
-    steps: ['打开仪表盘', '筛选高优先', '处理收件箱'],
+    steps: ['打开任务流', '按紧急度排序', '处理待办'],
   },
   {
     id: 'macro-evening-review',
@@ -33,9 +33,9 @@ export const COMMAND_MACROS: CommandMacroSuggestion[] = [
   {
     id: 'macro-project-scan',
     label: '宏命令：项目巡检',
-    description: '打开任务流，按项目维度检查风险。',
+    description: '打开任务流，筛选长期未更新的风险任务。',
     query: ['项目巡检', 'project scan', '检查项目'],
-    steps: ['打开任务流', '查看项目风险', '确认下一步'],
+    steps: ['打开任务流', '筛选陈旧任务', '确认下一步'],
   },
   {
     id: 'macro-daily-review',

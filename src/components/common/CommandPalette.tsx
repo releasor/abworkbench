@@ -22,6 +22,10 @@ import {
   Palette,
   FileText,
   BookOpen,
+  PictureInPicture2,
+  PenLine,
+  Zap,
+  Radio,
 } from 'lucide-react'
 import type { Page } from '../layout/Sidebar'
 import { useStore } from '../../store'
@@ -38,6 +42,8 @@ import { buildGlobalSearchResults, type GlobalSearchResult } from '../../utils/g
 import { buildQuickCreateDueAt, buildQuickCreateSubtasks, parseQuickCreateInput } from '../../modules/taskflow/utils/quickCreateParser'
 import { appendLocalCollection, readLocalCollection } from '../../utils/localData'
 import { getRecentCommandIds, recordCommandUse, sortCommandsByUsage } from './commandUsage'
+import { formatLocalDateTimeMinute } from '../../modules/taskflow/dateUtils'
+import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import clsx from 'clsx'
 
 interface CommandPaletteProps {
@@ -46,6 +52,7 @@ interface CommandPaletteProps {
   pages: Page[]
   pageTitles: Record<Page, string>
   onNavigate: (page: Page) => void
+  onOpenQuickCapture?: () => void
 }
 
 const pageIcons: Record<Page, typeof LayoutDashboard> = {
@@ -54,7 +61,9 @@ const pageIcons: Record<Page, typeof LayoutDashboard> = {
   pomodoro: Timer,
   habits: Target,
   notes: StickyNote,
+  reminders: Bell,
   weather: Cloud,
+  mineradio: Radio,
   settings: Settings,
 }
 
@@ -64,8 +73,10 @@ const pageShortcuts: Partial<Record<Page, string>> = {
   pomodoro: 'Ctrl+3',
   habits: 'Ctrl+4',
   notes: 'Ctrl+5',
-  weather: 'Ctrl+6',
-  settings: 'Ctrl+7',
+  reminders: 'Ctrl+6',
+  weather: 'Ctrl+7',
+  mineradio: 'Ctrl+8',
+  settings: 'Ctrl+9',
 }
 
 interface Command {
@@ -115,7 +126,7 @@ function readIndexedFilesForSearch(): Array<{ id: string; name: string; path: st
   return readLocalCollection('abworkbench-indexed-files', [])
 }
 
-export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onNavigate }: CommandPaletteProps) {
+export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onNavigate, onOpenQuickCapture }: CommandPaletteProps) {
   const { t, tWith } = useTranslation()
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -128,6 +139,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
   const habits = useStore((s) => s.habits)
   const toggleThemeMode = useStore((s) => s.toggleThemeMode)
   const themeMode = useStore((s) => s.themeMode)
+  const workspaceMode = useStore((s) => s.workspaceMode)
   const tasks = useTaskStore((s) => s.tasks)
   const categories = useTaskStore((s) => s.categories)
   const setTaskFilters = useTaskStore((s) => s.setFilters)
@@ -135,13 +147,17 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
   const toggleSidebar = useStore((s) => s.toggleSidebar)
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed)
   const clearCompletedTodos = useStore((s) => s.clearCompletedTodos)
-  const completedCount = useStore((s) => {
+  const legacyCompletedCount = useStore((s) => {
     let count = 0
     for (const todo of s.todos) {
       if (todo.completed) count++
     }
     return count
   })
+  const taskFlowCompletedCount = useTaskStore((s) => s.tasks.reduce((n, task) => (
+    task.status === 'done' && !task.archived ? n + 1 : n
+  ), 0))
+  const completedCount = Math.max(legacyCompletedCount, taskFlowCompletedCount)
 
   const createNoteWithContent = useCallback((title: string, content: string) => {
     addNote()
@@ -190,11 +206,11 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       appendWorkspaceReminder({
         title: parsed.title || suggestion.payload,
         body: `Ctrl+K 创建：${suggestion.payload}\n记录时间：${timestamp}`,
-        dueAt: buildQuickCreateDueAt(parsed) || new Date(Date.now() + 60 * 60 * 1000).toISOString().slice(0, 16),
+        dueAt: buildQuickCreateDueAt(parsed) || formatLocalDateTimeMinute(new Date(Date.now() + 60 * 60 * 1000)),
         repeat: parsed.repeat,
         projectId: parsed.projectId,
       })
-      onNavigate('notes')
+      onNavigate('dashboard')
       onClose()
       return
     }
@@ -213,6 +229,11 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       setActiveNote(result.targetId)
       onNavigate('notes')
     } else if (result.type === 'habit') {
+      try {
+        sessionStorage.setItem('abworkbench-focus-habit', result.targetId)
+      } catch {
+        // ignore storage failures
+      }
       onNavigate('habits')
     } else if (result.type === 'file') {
       void window.electronAPI?.openTarget?.(result.targetId)
@@ -230,13 +251,22 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       createNoteWithContent(`晚间复盘 - ${timestamp.slice(0, 10)}`, `# 晚间复盘\n\n- 完成：\n- 拖延：\n- 明天优先：\n\n创建时间：${timestamp}`)
       return
     }
-    // TaskFlow macros: dispatch event so TaskFlowPage can open the right modal
-    if (macro.id === 'macro-daily-review' || macro.id === 'macro-weekly-report' || macro.id === 'macro-focus-mode' || macro.id === 'macro-bulk-import') {
+    // TaskFlow macros: navigate then dispatch so TaskFlowPage can open filters/modals
+    const taskflowMacros = new Set([
+      'macro-daily-review',
+      'macro-weekly-report',
+      'macro-focus-mode',
+      'macro-bulk-import',
+      'macro-project-scan',
+      'macro-clear-inbox',
+      'macro-start-work',
+    ])
+    if (taskflowMacros.has(macro.id)) {
       onNavigate(result.targetPage)
       onClose()
       window.setTimeout(() => {
         window.dispatchEvent(new CustomEvent('abworkbench:macro', { detail: { id: macro.id } }))
-      }, 100)
+      }, 120)
       return
     }
     onNavigate(result.targetPage)
@@ -258,7 +288,10 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       label: t('command.quickAddTask'),
       description: t('command.quickAddTaskDesc'),
       icon: Plus,
-      action: () => onNavigate('taskflow'),
+      action: () => {
+        if (onOpenQuickCapture) onOpenQuickCapture()
+        else onNavigate('taskflow')
+      },
       category: t('command.action'),
     },
     {
@@ -278,7 +311,35 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       label: t('command.startFocus'),
       description: t('command.startFocusDesc'),
       icon: Timer,
-      action: () => onNavigate('pomodoro'),
+      action: () => {
+        onNavigate('pomodoro')
+        window.setTimeout(() => {
+          window.dispatchEvent(new CustomEvent('abworkbench:pomodoro-start'))
+        }, 120)
+        onClose()
+      },
+      category: t('command.action'),
+    },
+    {
+      id: 'daily-brief',
+      label: '今日作战板',
+      description: '打开今日任务、提醒与番茄摘要',
+      icon: Zap,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'morning' } }))
+        onClose()
+      },
+      category: t('command.action'),
+    },
+    {
+      id: 'evening-review',
+      label: '晚间复盘',
+      description: '打开晚间复盘并生成笔记',
+      icon: FileText,
+      action: () => {
+        window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'evening' } }))
+        onClose()
+      },
       category: t('command.action'),
     },
     {
@@ -288,6 +349,40 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       icon: BookOpen,
       action: () => {
         void window.electronAPI?.openReader?.({ mode: 'auto' })
+        onClose()
+      },
+      category: t('command.action'),
+    },
+    {
+      id: 'stealth-reader-library',
+      label: '打开摸鱼书架',
+      description: '直接进入摸鱼阅读书架管理',
+      icon: BookOpen,
+      action: () => {
+        void window.electronAPI?.openReader?.({ mode: 'library' })
+        onClose()
+      },
+      category: t('command.action'),
+    },
+    {
+      id: 'open-mini',
+      label: '打开迷你窗',
+      description: '悬浮小窗查看任务与提醒',
+      icon: PictureInPicture2,
+      action: () => {
+        void window.electronAPI?.openMiniWindow?.()
+        onClose()
+      },
+      category: t('command.action'),
+    },
+    {
+      id: 'quick-capture',
+      label: '快速捕获',
+      description: '快速记下任务、笔记或提醒',
+      icon: PenLine,
+      action: () => {
+        if (onOpenQuickCapture) onOpenQuickCapture()
+        else void window.electronAPI?.openQuickCapture?.()
         onClose()
       },
       category: t('command.action'),
@@ -420,7 +515,22 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       description: tWith('command.clearCompletedDesc', completedCount),
       icon: CheckSquare,
       action: () => {
-        clearCompletedTodos()
+        const doneIds = useTaskStore.getState().tasks
+          .filter((task) => task.status === 'done' && !task.archived)
+          .map((task) => task.id)
+        if (doneIds.length === 0) {
+          clearCompletedTodos()
+          showToast('没有可归档的已完成任务', 'info')
+          onClose()
+          return
+        }
+        useTaskStore.setState({ selectedIds: new Set(doneIds) })
+        void useTaskStore.getState().batchArchive().then(() => {
+          clearCompletedTodos()
+          showToast(`已归档 ${doneIds.length} 个已完成任务`, 'success')
+        }).catch(() => {
+          showToast('归档失败，请稍后重试', 'error')
+        })
         onClose()
       },
       category: t('command.action'),
@@ -441,7 +551,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       action: () => onNavigate('settings'),
       category: t('command.help'),
     },
-  ], [pages, pageTitles, onNavigate, onClose, addNote, toggleSidebar, sidebarCollapsed, clearCompletedTodos, completedCount, t, tWith, themeMode, toggleThemeMode])
+  ], [pages, pageTitles, onNavigate, onClose, onOpenQuickCapture, addNote, toggleSidebar, sidebarCollapsed, clearCompletedTodos, completedCount, t, tWith, themeMode, toggleThemeMode])
 
   const dynamicCommands: Command[] = useMemo(() => {
     const macroCommands = buildCommandMacroSuggestions(query).map((macro) => ({
@@ -488,8 +598,12 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
           command.shortcut?.toLowerCase().includes(normalizedQuery)
       )
       : commands
-    return normalizedQuery ? sortCommandsByUsage([...dynamicCommands, ...matchedCommands]) : sortCommandsByUsage(matchedCommands)
-  }, [commands, dynamicCommands, query])
+    const merged = normalizedQuery ? sortCommandsByUsage([...dynamicCommands, ...matchedCommands]) : sortCommandsByUsage(matchedCommands)
+    if (workspaceMode !== 'deep') return merged
+    return merged.filter(
+      (command) => command.id !== 'stealth-reader' && command.id !== 'stealth-reader-library',
+    )
+  }, [commands, dynamicCommands, query, workspaceMode])
 
   useEffect(() => {
     if (isOpen) {
@@ -552,10 +666,10 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
 
   return (
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" onClick={onClose}>
-      <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
+      <div className="absolute inset-0 modal-veil" />
 
       <div
-        className="relative w-full max-w-lg glass-card overflow-hidden animate-fade-in"
+        className="relative w-full max-w-lg glass-card overflow-hidden modal-panel-cinematic"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"

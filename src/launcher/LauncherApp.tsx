@@ -22,10 +22,18 @@ import {
   PinOff,
   X,
   BookOpen,
+  PictureInPicture2,
+  PenLine,
+  Bell,
+  Radio,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useShortcutStore } from '../shortcuts'
 import { buildLauncherItems, detectUrl, LAUNCHER_COMMANDS, type LauncherItem } from './intents'
+import {
+  filterCommandsForWorkspaceMode,
+  readPersistedWorkspaceMode,
+} from '../utils/workspaceModeEffects'
 
 interface EverythingItem {
   name: string
@@ -68,10 +76,16 @@ const COMMAND_ICONS: Record<string, typeof LayoutDashboard> = {
   'nav-pomodoro': Timer,
   'nav-habits': Target,
   'nav-notes': StickyNote,
+  'nav-reminders': Bell,
   'nav-weather': Cloud,
+  'nav-mineradio': Radio,
   'nav-settings': Settings,
   'translate-clipboard': Languages,
   'stealth-reader': BookOpen,
+  'stealth-reader-library': BookOpen,
+  'open-mini': PictureInPicture2,
+  'quick-capture': PenLine,
+  'daily-brief': Zap,
 }
 
 const PAGE_BY_COMMAND: Record<string, string> = {
@@ -80,7 +94,9 @@ const PAGE_BY_COMMAND: Record<string, string> = {
   'nav-pomodoro': 'pomodoro',
   'nav-habits': 'habits',
   'nav-notes': 'notes',
+  'nav-reminders': 'reminders',
   'nav-weather': 'weather',
+  'nav-mineradio': 'mineradio',
   'nav-settings': 'settings',
 }
 
@@ -118,6 +134,7 @@ export interface LauncherAppProps {
   isOpen?: boolean
   onClose?: () => void
   onNavigate?: (page: string) => void
+  onOpenQuickCapture?: () => void
 }
 
 function rowClass(isSelected: boolean) {
@@ -134,6 +151,7 @@ export default function LauncherApp({
   isOpen = true,
   onClose,
   onNavigate,
+  onOpenQuickCapture,
 }: LauncherAppProps) {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -160,7 +178,11 @@ export default function LauncherApp({
     return () => window.clearTimeout(timer)
   }, [launchError])
 
-  const items = useMemo(() => buildLauncherItems(query), [query])
+  const items = useMemo(() => {
+    const mode = readPersistedWorkspaceMode()
+    const commands = filterCommandsForWorkspaceMode(LAUNCHER_COMMANDS, mode)
+    return buildLauncherItems(query, commands)
+  }, [query])
   const everythingQuery = useMemo(() => {
     const entry = items.find((item) => item.kind === 'everything')
     return entry && entry.kind === 'everything' ? entry.query : ''
@@ -310,6 +332,33 @@ export default function LauncherApp({
       hideLauncher()
       return
     }
+    if (commandId === 'stealth-reader-library') {
+      void window.electronAPI?.openReader?.({ mode: 'library' })
+      hideLauncher()
+      return
+    }
+    if (commandId === 'open-mini') {
+      void window.electronAPI?.openMiniWindow?.()
+      hideLauncher()
+      return
+    }
+    if (commandId === 'quick-capture') {
+      if (onOpenQuickCapture) {
+        onOpenQuickCapture()
+        hideLauncher()
+        return
+      }
+      void window.electronAPI?.openQuickCapture?.()
+      hideLauncher()
+      return
+    }
+    if (commandId === 'daily-brief') {
+      window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'morning' } }))
+      if (onNavigate) onNavigate('dashboard')
+      else void window.electronAPI?.openMainPage?.('dashboard')
+      hideLauncher()
+      return
+    }
     const page = PAGE_BY_COMMAND[commandId]
     if (page) {
       if (onNavigate) {
@@ -326,7 +375,7 @@ export default function LauncherApp({
     }
     void window.electronAPI?.showMainWindow?.()
     hideLauncher()
-  }, [clipboardText, hideLauncher, onNavigate, variant])
+  }, [clipboardText, hideLauncher, onNavigate, onOpenQuickCapture, variant])
 
   const openApp = useCallback((appEntry: DesktopAppInfo) => {
     setLaunchError('')
