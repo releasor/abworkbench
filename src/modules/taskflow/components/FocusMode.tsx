@@ -12,6 +12,7 @@ import { formatClock } from '../utils/formatTime';
 import { countCompleted } from '../utils/subtaskUtils';
 import { buildCompletionReviewText, buildExecutionModeModel } from '../utils/executionMode';
 import { Icon } from './Icon';
+import { useStore } from '../../../store';
 
 interface FocusModeProps {
   taskId: string;
@@ -31,7 +32,26 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
   const refreshTask = useTaskStore((state) => state.refreshTask);
   const task = useTaskStore((state) => state.tasks.find((t) => t.id === taskId) || null);
   const trapRef = useFocusTrap<HTMLDivElement>();
-  const { state: pomoState, minutes: pomoMin, seconds: pomoSec, progress: pomoProgress, sessionsCompleted, isLongBreak, start: pomoStart, pause: pomoPause, resume: pomoResume, reset: pomoReset } = usePomodoro();
+  const addPomodoroSession = useStore((s) => s.addPomodoroSession);
+  const handleWorkComplete = useCallback((durationSeconds: number) => {
+    const endedAt = Date.now();
+    try {
+      addPomodoroSession({
+        startedAt: endedAt - Math.max(1, durationSeconds) * 1000,
+        endedAt,
+        type: 'work',
+        completed: true,
+        taskId,
+      });
+    } catch (err) {
+      console.error('Failed to save pomodoro session:', err);
+    }
+  }, [addPomodoroSession, taskId]);
+  const { state: pomoState, minutes: pomoMin, seconds: pomoSec, progress: pomoProgress, sessionsCompleted, isLongBreak, foreignActive, start: pomoStart, pause: pomoPause, resume: pomoResume, reset: pomoReset } = usePomodoro(undefined, {
+    onWorkComplete: handleWorkComplete,
+    source: 'focus',
+    taskId,
+  });
   const [showPomodoro, setShowPomodoro] = useState(false);
   const [currentTime, setCurrentTime] = useState(new Date());
   const [blockerNote, setBlockerNote] = useState('');
@@ -177,7 +197,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
   return (
     <div
       ref={trapRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-gray-900/95 backdrop-blur-md"
+      className="fixed inset-0 z-50 flex items-center justify-center bg-surface/95 backdrop-blur-md"
       role="dialog"
       aria-modal="true"
       aria-label="专注模式"
@@ -186,7 +206,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
         {/* Close button */}
         <button
           onClick={onClose}
-          className="absolute top-6 right-6 p-2 text-gray-400 hover:text-white transition-colors"
+          className="absolute top-6 right-6 p-2 text-text-muted hover:text-white transition-colors"
           aria-label="退出专注模式"
         >
           <Icon name="close" className="w-6 h-6" />
@@ -194,28 +214,16 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
 
         {/* Status badge */}
         <div className="mb-6">
-          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-            task.status === 'done' ? 'bg-green-500/20 text-green-400' :
-            task.status === 'in-progress' ? 'bg-blue-500/20 text-blue-400' :
-            task.status === 'review' ? 'bg-yellow-500/20 text-yellow-400' :
-            'bg-gray-500/20 text-gray-400'
-          }`}>
+          <span className={`inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${ task.status === 'done' ? 'bg-green-500/20 text-green-400' : task.status === 'in-progress' ? 'bg-blue-500/20 text-blue-400' : task.status === 'review' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-surface-lighter/20 text-text-muted' }`}>
             {STATUS_CONFIG[task.status].label}
           </span>
-          <span className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${
-            task.priority === 'urgent' ? 'bg-red-500/20 text-red-400' :
-            task.priority === 'high' ? 'bg-orange-500/20 text-orange-400' :
-            task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' :
-            'bg-green-500/20 text-green-400'
-          }`}>
+          <span className={`ml-2 inline-flex items-center px-3 py-1 rounded-full text-sm font-medium ${ task.priority === 'urgent' ? 'bg-red-500/20 text-red-400' : task.priority === 'high' ? 'bg-orange-500/20 text-orange-400' : task.priority === 'medium' ? 'bg-yellow-500/20 text-yellow-400' : 'bg-green-500/20 text-green-400' }`}>
             {PRIORITY_CONFIG[task.priority].label}
           </span>
         </div>
 
         {/* Title */}
-        <h1 className={`text-3xl font-bold mb-4 ${
-          task.status === 'done' ? 'line-through text-gray-500' : 'text-white'
-        }`}>
+        <h1 className={`text-3xl font-bold mb-4 ${ task.status === 'done' ? 'line-through text-text-muted' : 'text-white' }`}>
           {task.title}
         </h1>
 
@@ -228,14 +236,14 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
               </div>
               <div className="mt-2 text-lg font-semibold text-white">{executionModel.currentStep}</div>
               <div className="mt-1 text-sm text-blue-100/70">{executionModel.focusHint}</div>
-              <div className="mt-3 rounded-xl bg-gray-950/30 px-3 py-2 text-sm text-gray-300">
+              <div className="mt-3 rounded-xl bg-surface/40 px-3 py-2 text-sm text-text-muted">
                 下一步：{executionModel.nextStep}
               </div>
             </div>
-            <div className="rounded-2xl border border-gray-700 bg-gray-800/50 p-4">
+            <div className="rounded-2xl border border-border bg-surface-light/50 p-4">
               <div className="flex items-center justify-between gap-2 text-sm">
-                <span className="font-semibold text-gray-200">{executionModel.energyLabel}</span>
-                <span className="text-gray-400">已专注 {executionModel.spentMinutes} 分钟</span>
+                <span className="font-semibold text-text">{executionModel.energyLabel}</span>
+                <span className="text-text-muted">已专注 {executionModel.spentMinutes} 分钟</span>
               </div>
               <div className={`mt-3 rounded-xl px-3 py-2 text-sm ${executionModel.blockerCount > 0 ? 'bg-amber-500/10 text-amber-200' : 'bg-emerald-500/10 text-emerald-200'}`}>
                 {executionModel.blockerPrompt}
@@ -244,14 +252,14 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
                 <input
                   value={blockerNote}
                   onChange={(e) => setBlockerNote(e.target.value)}
-                  className="min-w-0 flex-1 rounded-lg border border-gray-600 bg-gray-900 px-3 py-1.5 text-sm text-gray-200 outline-none focus:border-blue-500"
+                  className="min-w-0 flex-1 rounded-lg border border-border bg-surface px-3 py-1.5 text-sm text-text outline-none focus:border-blue-500"
                   placeholder="记录阻塞或结果..."
                   aria-label="记录阻塞或执行结果"
                 />
                 <button
                   type="button"
                   onClick={() => handleSaveFocusNote(blockerNote, '已记录执行备注')}
-                  className="rounded-lg bg-gray-700 px-3 py-1.5 text-sm font-semibold text-gray-200 transition hover:bg-gray-600"
+                  className="rounded-lg bg-surface-lighter px-3 py-1.5 text-sm font-semibold text-text transition hover:bg-surface-lighter"
                 >
                   记录
                 </button>
@@ -269,7 +277,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
 
         {/* Description */}
         {task.description && (
-          <p className="text-gray-400 text-lg mb-8 max-w-md mx-auto">
+          <p className="text-text-muted text-lg mb-8 max-w-md mx-auto">
             {task.description}
           </p>
         )}
@@ -280,12 +288,12 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
             <div className="text-6xl font-mono text-blue-400 animate-pulse">
               {formatClock(elapsed)}
             </div>
-            <p className="text-gray-500 mt-2">计时中</p>
+            <p className="text-text-muted mt-2">计时中</p>
           </div>
         )}
 
         {/* Time stats */}
-        <div className="flex items-center justify-center gap-8 mb-8 text-gray-400">
+        <div className="flex items-center justify-center gap-8 mb-8 text-text-muted">
           {task.estimatedMinutes && (
             <div>
               <p className="text-2xl font-semibold text-white">{task.estimatedMinutes}分</p>
@@ -313,7 +321,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
         {/* Progress bar */}
         {task.estimatedMinutes && totalTimeSpent > 0 && (
           <div className="mb-8 max-w-xs mx-auto">
-            <div className="h-2 bg-gray-700 rounded-full overflow-hidden">
+            <div className="h-2 bg-surface-lighter rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -322,7 +330,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
                 }}
               />
             </div>
-            <p className="text-xs text-gray-500 mt-1">{progressPercent}%</p>
+            <p className="text-xs text-text-muted mt-1">{progressPercent}%</p>
           </div>
         )}
 
@@ -330,7 +338,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
         {task.tags.length > 0 && (
           <div className="flex items-center justify-center gap-2 mb-6 flex-wrap">
             {task.tags.map((tag) => (
-              <span key={tag} className="px-2 py-0.5 text-xs bg-gray-700 text-gray-300 rounded-full">
+              <span key={tag} className="px-2 py-0.5 text-xs bg-surface-lighter text-text-muted rounded-full">
                 #{tag}
               </span>
             ))}
@@ -345,10 +353,10 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
             <div className="mb-6 max-w-sm mx-auto text-left">
               {subs.length > 0 && (
                 <>
-                  <p className="text-gray-400 mb-3 text-center text-sm">
+                  <p className="text-text-muted mb-3 text-center text-sm">
                     子任务: {completedCount}/{subs.length}
                   </p>
-                  <div className="h-1.5 bg-gray-700 rounded-full overflow-hidden mb-4">
+                  <div className="h-1.5 bg-surface-lighter rounded-full overflow-hidden mb-4">
                     <div
                       className="h-full bg-green-500 rounded-full transition-all duration-500"
                       style={{
@@ -365,19 +373,15 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
                           if (!sub.completed) playTickSound();
                           await refreshTask(task.id);
                         }}
-                        className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-gray-800/50 transition-colors text-left group"
+                        className="flex items-center gap-3 w-full px-3 py-2 rounded-lg hover:bg-surface-lighter/50 transition-colors text-left group"
                         aria-label={`${sub.completed ? '取消完成' : '完成'}: ${sub.title}`}
                       >
-                        <span className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${
-                          sub.completed
-                            ? 'bg-green-500 border-green-500'
-                            : 'border-gray-500 group-hover:border-green-400'
-                        }`}>
+                        <span className={`w-5 h-5 rounded border-2 flex items-center justify-center flex-shrink-0 transition-colors ${ sub.completed ? 'bg-green-500 border-green-500' : 'border-border group-hover:border-green-400' }`}>
                           {sub.completed && (
                             <Icon name="check" className="w-3 h-3 text-white" />
                           )}
                         </span>
-                        <span className={`text-sm ${sub.completed ? 'line-through text-gray-500' : 'text-gray-300'}`}>
+                        <span className={`text-sm ${sub.completed ? 'line-through text-text-muted' : 'text-text-muted'}`}>
                           {sub.title}
                         </span>
                       </button>
@@ -401,13 +405,13 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
                 <input
                   name="subtaskTitle"
                   type="text"
-                  className="flex-1 px-3 py-1.5 text-sm bg-gray-800 border border-gray-600 rounded-lg focus:outline-none focus:border-blue-500 text-gray-200 placeholder-gray-500"
+                  className="flex-1 px-3 py-1.5 text-sm bg-surface-light border border-border rounded-lg focus:outline-none focus:border-blue-500 text-text placeholder:text-text-muted"
                   placeholder="添加子任务..."
                   aria-label="添加子任务"
                 />
                 <button
                   type="submit"
-                  className="px-3 py-1.5 text-sm bg-gray-700 hover:bg-gray-600 text-gray-300 rounded-lg transition-colors"
+                  className="px-3 py-1.5 text-sm bg-surface-lighter hover:bg-surface-lighter text-text-muted rounded-lg transition-colors"
                   aria-label="确认添加子任务"
                 >
                   +
@@ -420,13 +424,13 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
         {/* Notes preview */}
         {task.notes && task.notes.length > 0 && (
           <div className="mb-6 max-w-sm mx-auto text-left">
-            <p className="text-gray-400 mb-2 text-center text-sm">
+            <p className="text-text-muted mb-2 text-center text-sm">
               备注 ({task.notes.length})
             </p>
-            <div className="max-h-32 overflow-y-auto px-3 py-2 bg-gray-800/50 rounded-lg text-sm text-gray-300">
+            <div className="max-h-32 overflow-y-auto px-3 py-2 bg-surface-light/50 rounded-lg text-sm text-text-muted">
               <MarkdownView content={task.notes[0].content} />
               {task.notes.length > 1 && (
-                <p className="text-xs text-gray-500 mt-2">还有 {task.notes.length - 1} 条备注...</p>
+                <p className="text-xs text-text-muted mt-2">还有 {task.notes.length - 1} 条备注...</p>
               )}
             </div>
           </div>
@@ -437,11 +441,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
           <button
             type="button"
             onClick={handleCycleStatus}
-            className={`px-8 py-3 rounded-xl text-lg font-semibold transition-all ${
-              task.status === 'done'
-                ? 'bg-gray-600 hover:bg-gray-500 text-white'
-                : 'bg-blue-600 hover:bg-blue-500 text-white'
-            }`}
+            className={`px-8 py-3 rounded-xl text-lg font-semibold transition-all ${ task.status === 'done' ? 'bg-surface-lighter hover:bg-surface-light text-white' : 'bg-blue-600 hover:bg-blue-500 text-white' }`}
           >
             {task.status === 'done' ? '重新开始' :
              task.status === 'review' ? '标记完成' :
@@ -451,11 +451,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
           <button
             type="button"
             onClick={handleToggleTimer}
-            className={`px-6 py-3 rounded-xl text-lg font-semibold transition-all ${
-              isRunning
-                ? 'bg-red-600 hover:bg-red-500 text-white'
-                : 'bg-purple-600 hover:bg-purple-500 text-white'
-            }`}
+            className={`px-6 py-3 rounded-xl text-lg font-semibold transition-all ${ isRunning ? 'bg-red-600 hover:bg-red-500 text-white' : 'bg-purple-600 hover:bg-purple-500 text-white' }`}
           >
             {isRunning ? '停止计时' : '开始计时'}
           </button>
@@ -465,7 +461,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
         <div className="mt-8">
           <button
             onClick={() => setShowPomodoro(!showPomodoro)}
-            className="text-xs text-gray-500 hover:text-gray-300 transition-colors"
+            className="text-xs text-text-muted hover:text-text transition-colors"
             aria-expanded={showPomodoro}
             aria-label="切换番茄钟"
           >
@@ -475,27 +471,23 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
 
         {/* Pomodoro Panel */}
         {showPomodoro && (
-          <div className="mt-4 p-4 bg-gray-800/50 rounded-xl max-w-xs mx-auto" role="group" aria-label="番茄钟计时器">
+          <div className="mt-4 p-4 bg-surface-light/50 rounded-xl max-w-xs mx-auto" role="group" aria-label="番茄钟计时器">
             <div className="text-center mb-3" aria-live="polite" aria-atomic="true">
               <div className="text-3xl font-mono font-bold text-white" aria-label={`剩余时间 ${pomoMin}分${pomoSec}秒`}>
                 {String(pomoMin).padStart(2, '0')}:{String(pomoSec).padStart(2, '0')}
               </div>
-              <div className={`text-xs mt-1 ${
-                pomoState === 'running' ? 'text-green-400' :
-                pomoState === 'paused' ? 'text-yellow-400' :
-                pomoState === 'break' ? 'text-blue-400' : 'text-gray-500'
-              }`}>
+              <div className={`text-xs mt-1 ${ pomoState === 'running' ? 'text-green-400' : pomoState === 'paused' ? 'text-yellow-400' : pomoState === 'break' ? 'text-blue-400' : 'text-text-muted' }`}>
                 {pomoState === 'break' && isLongBreak ? '长休息' :
                  pomoState === 'break' ? '短休息' :
                  pomoState === 'running' ? '专注中' :
-                 pomoState === 'paused' ? '已暂停' : '准备开始'}
+                 pomoState === 'paused' ? (foreignActive ? '已暂停 · 其它入口进行中' : '已暂停') : '准备开始'}
               </div>
             </div>
 
             {/* Progress ring */}
             <div className="flex justify-center mb-3">
               <svg className="w-16 h-16 -rotate-90" viewBox="0 0 100 100">
-                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" className="text-gray-700" />
+                <circle cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6" className="text-text" />
                 <circle
                   cx="50" cy="50" r="45" fill="none" stroke="currentColor" strokeWidth="6"
                   strokeLinecap="round"
@@ -521,26 +513,26 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
                   <button onClick={pomoResume} className="px-4 py-1.5 text-sm bg-green-600 hover:bg-green-500 text-white rounded-lg transition-colors" aria-label="继续番茄钟">
                     继续
                   </button>
-                  <button onClick={pomoReset} className="px-4 py-1.5 text-sm bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors" aria-label="重置番茄钟">
+                  <button onClick={pomoReset} className="px-4 py-1.5 text-sm bg-surface-lighter hover:bg-surface-light text-white rounded-lg transition-colors" aria-label="重置番茄钟">
                     重置
                   </button>
                 </>
               )}
               {pomoState === 'break' && (
-                <button onClick={pomoReset} className="px-4 py-1.5 text-sm bg-gray-600 hover:bg-gray-500 text-white rounded-lg transition-colors" aria-label={isLongBreak ? '跳过长休息' : '跳过休息'}>
+                <button onClick={pomoReset} className="px-4 py-1.5 text-sm bg-surface-lighter hover:bg-surface-light text-white rounded-lg transition-colors" aria-label={isLongBreak ? '跳过长休息' : '跳过休息'}>
                   跳过休息
                 </button>
               )}
             </div>
-            <p className="text-center text-xs text-gray-500 mt-2">已完成 {sessionsCompleted} 个番茄</p>
+            <p className="text-center text-xs text-text-muted mt-2">已完成 {sessionsCompleted} 个番茄</p>
           </div>
         )}
 
         {/* Keyboard hints */}
-        <div className="mt-6 flex items-center justify-center gap-6 text-xs text-gray-600">
-          <span><kbd className="px-2 py-1 bg-gray-800 rounded">T</kbd> 计时</span>
-          <span><kbd className="px-2 py-1 bg-gray-800 rounded">P</kbd> 番茄钟</span>
-          <span><kbd className="px-2 py-1 bg-gray-800 rounded">Esc</kbd> 退出</span>
+        <div className="mt-6 flex items-center justify-center gap-6 text-xs text-text-muted">
+          <span><kbd className="px-2 py-1 bg-surface-light rounded">T</kbd> 计时</span>
+          <span><kbd className="px-2 py-1 bg-surface-light rounded">P</kbd> 番茄钟</span>
+          <span><kbd className="px-2 py-1 bg-surface-light rounded">Esc</kbd> 退出</span>
         </div>
       </div>
     </div>

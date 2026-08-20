@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { BarChart3, Flame, Clock, Target, TrendingUp } from 'lucide-react'
 import type { PomodoroSession } from '../../store'
+import { dayKeyFromMs } from '../../modules/taskflow/dateUtils'
 
 interface PomodoroStatsProps {
   sessions: PomodoroSession[]
@@ -8,7 +9,7 @@ interface PomodoroStatsProps {
 }
 
 function dayKey(ts: number): string {
-  return new Date(ts).toISOString().slice(0, 10)
+  return dayKeyFromMs(ts)
 }
 
 export default function PomodoroStats({ sessions, dailyGoal }: PomodoroStatsProps) {

@@ -7,6 +7,7 @@ import { createCompletionReviewNote, shouldAddCompletionReview, calculateNextDue
 import { safeGet, safeSet } from '../../../utils/safeLocalStorage'
 import { generateId } from '../../../utils/id'
 import { migrateLegacyTaskCategories } from './legacyCategoryMigrate'
+import { buildProductivityTrends } from '../../../utils/productivityTrends'
 
 const TASKS_KEY = 'taskflow-offline-tasks'
 const CATEGORIES_KEY = 'taskflow-offline-categories'
@@ -749,7 +750,9 @@ export const offlineApi = {
       }
     },
   },
-  productivityTrends: { get: async (days = 7) => ({ days, trends: [] }) },
+  productivityTrends: {
+    get: async (days = 7) => buildProductivityTrends(loadTasks(), days),
+  },
   weeklyReport: {
     get: async () => ({
       weekStart: '', weekEnd: '',

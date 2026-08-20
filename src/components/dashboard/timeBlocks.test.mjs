@@ -43,3 +43,27 @@ test('buildTodayTimeBlocks places due tasks, pomodoros and habits into today sch
   assert.equal(result.blocks.find((block) => block.hour === 18).items.some((item) => item.title === '阅读'), true)
 })
 
+test('buildTodayTimeBlocks respects manual hour overrides', () => {
+  const result = buildTodayTimeBlocks({
+    todayStr: '2026-06-09',
+    todayMidnightMs,
+    tomorrowMidnightMs: todayMidnightMs + DAY,
+    tasks: [
+      {
+        id: 'task-1',
+        title: '写项目方案',
+        completed: false,
+        priority: 'high',
+        createdAt: todayMidnightMs,
+        dueDate: '2026-06-09',
+      },
+    ],
+    habits: [],
+    pomodoroSessions: [],
+    hourOverrides: { 'task-1': 14 },
+  })
+
+  const block = result.blocks.find((entry) => entry.hour === 14)
+  assert.ok(block?.items.some((item) => item.title === '写项目方案' && item.meta === '已手动排程'))
+})
+

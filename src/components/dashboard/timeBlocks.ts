@@ -23,6 +23,8 @@ export interface TodayTimeBlocksInput {
   tasks: PlanningTask[]
   habits: PlanningHabit[]
   pomodoroSessions: PlanningPomodoroSession[]
+  /** Manual hour placements keyed by task id (8–21). */
+  hourOverrides?: Record<string, number>
 }
 
 export interface TodayTimeBlocks {
@@ -100,12 +102,21 @@ export function buildTodayTimeBlocks(input: TodayTimeBlocksInput): TodayTimeBloc
     .slice(0, 6)
 
   for (const task of scheduleTasks) {
-    const hour = findLightestWorkHour(blocks, 9, 16)
+    const overrideHour = input.hourOverrides?.[task.id]
+    const hour =
+      typeof overrideHour === 'number'
+        ? Math.min(21, Math.max(8, Math.round(overrideHour)))
+        : findLightestWorkHour(blocks, 9, 16)
     pushIntoHour(blocks, hour, {
       id: `task-${task.id}`,
       type: 'task',
       title: task.title,
-      meta: task.dueDate && task.dueDate < input.todayStr ? '逾期任务' : '今日任务',
+      meta:
+        typeof overrideHour === 'number'
+          ? '已手动排程'
+          : task.dueDate && task.dueDate < input.todayStr
+            ? '逾期任务'
+            : '今日任务',
       tone: task.priority === 'urgent' || task.priority === 'high' ? 'danger' : 'primary',
     })
   }

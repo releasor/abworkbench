@@ -6,6 +6,7 @@ import { Icon } from './Icon';
 import { api } from '../utils/api';
 import { showToast } from '../utils/toastEvent';
 import { useTaskStore } from '../hooks/useTaskStore';
+import { useStore } from '../../../store';
 
 const STATE_LABELS: Record<string, string> = {
   idle: '准备开始',
@@ -15,10 +16,10 @@ const STATE_LABELS: Record<string, string> = {
 };
 
 const STATE_COLORS: Record<string, string> = {
-  idle: 'text-gray-500',
-  running: 'text-green-500',
-  paused: 'text-yellow-500',
-  break: 'text-blue-500',
+  idle: 'text-text-muted',
+  running: 'text-success',
+  paused: 'text-warning',
+  break: 'text-primary',
 };
 
 interface PomodoroTimerProps {
@@ -28,6 +29,7 @@ interface PomodoroTimerProps {
 }
 
 export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTimerProps) {
+  const addPomodoroSession = useStore((s) => s.addPomodoroSession)
   const [config, setConfig] = useState<PomodoroConfig>(() => {
     try {
       const raw = localStorage.getItem('taskflow-pomodoro-config');
@@ -35,20 +37,42 @@ export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTime
     } catch {
       // Ignore invalid local config and fall back to defaults.
     }
-    return { workMinutes: 25, breakMinutes: 5, longBreakMinutes: 15, sessionsBeforeLongBreak: 4 };
+    const store = useStore.getState()
+    return {
+      workMinutes: store.pomodoroWorkDuration || 25,
+      breakMinutes: store.pomodoroShortBreakDuration || 5,
+      longBreakMinutes: store.pomodoroLongBreakDuration || 15,
+      sessionsBeforeLongBreak: 4,
+    };
   });
 
   const handleWorkComplete = useCallback((durationSeconds: number) => {
-    if (!taskId) return;
-    // Stop the running time entry on the task
-    api.tasks.stopTime(taskId).catch((err) => {
-      console.error('Failed to stop time entry:', err);
-      showToast('停止计时失败', 'error');
-    });
+    const endedAt = Date.now()
+    try {
+      addPomodoroSession({
+        startedAt: endedAt - Math.max(1, durationSeconds) * 1000,
+        endedAt,
+        type: 'work',
+        completed: true,
+        taskId: taskId || undefined,
+      })
+    } catch (err) {
+      console.error('Failed to save pomodoro session:', err)
+    }
+    if (taskId) {
+      api.tasks.stopTime(taskId).catch((err) => {
+        console.error('Failed to stop time entry:', err);
+        showToast('停止计时失败', 'error');
+      });
+    }
     showToast(`番茄钟完成，已记录 ${Math.round(durationSeconds / 60)} 分钟`, 'success');
-  }, [taskId]);
+  }, [addPomodoroSession, taskId]);
 
-  const { state, minutes, seconds, progress, sessionsCompleted, isLongBreak, start, pause, resume, reset } = usePomodoro(config, { onWorkComplete: handleWorkComplete });
+  const { state, minutes, seconds, progress, sessionsCompleted, isLongBreak, foreignActive, start, pause, resume, reset } = usePomodoro(config, {
+    onWorkComplete: handleWorkComplete,
+    source: 'taskflow',
+    taskId,
+  });
   const [expanded, setExpanded] = useState(false);
   const [showSettings, setShowSettings] = useState(false);
   const prevStateRef = useRef(state);
@@ -108,10 +132,10 @@ export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTime
       <div className="flex items-center justify-between mb-3">
         <h3 className="text-sm font-semibold" id="pomodoro-title">番茄钟</h3>
         <div className="flex items-center gap-1">
-          <button onClick={() => setShowSettings(!showSettings)} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" aria-label="番茄钟设置" aria-expanded={showSettings}>
+          <button onClick={() => setShowSettings(!showSettings)} className="text-text-muted hover:text-text" aria-label="番茄钟设置" aria-expanded={showSettings}>
             <Icon name="settings" className="w-4 h-4" />
           </button>
-          <button onClick={() => { setExpanded(false); setShowSettings(false); }} className="text-gray-400 hover:text-gray-600 dark:hover:text-gray-300" aria-label="关闭番茄钟">
+          <button onClick={() => { setExpanded(false); setShowSettings(false); }} className="text-text-muted hover:text-text" aria-label="关闭番茄钟">
             <Icon name="close" className="w-4 h-4" />
           </button>
         </div>
@@ -131,6 +155,7 @@ export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTime
         </div>
         <div className={`text-xs font-medium ${STATE_COLORS[state]}`}>
           {state === 'break' && isLongBreak ? '长休息' : STATE_LABELS[state]}
+          {foreignActive && state === 'paused' ? ' · 其它入口进行中' : ''}
         </div>
       </div>
 
@@ -144,7 +169,7 @@ export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTime
             fill="none"
             stroke="currentColor"
             strokeWidth="6"
-            className="text-gray-200 dark:text-gray-700"
+            className="text-text"
             aria-hidden="true"
           />
           <circle
@@ -192,7 +217,7 @@ export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTime
       </div>
 
       {/* Sessions */}
-      <div className="mt-3 text-center text-xs text-gray-500">
+      <div className="mt-3 text-center text-xs text-text-muted">
         已完成 {sessionsCompleted} 个番茄
       </div>
 
@@ -203,6 +228,11 @@ export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTime
           onSave={(newConfig) => {
             setConfig(newConfig);
             savePomodoroConfig(newConfig);
+            useStore.getState().setPomodoroDurations(
+              newConfig.workMinutes,
+              newConfig.breakMinutes,
+              newConfig.longBreakMinutes,
+            )
             setShowSettings(false);
           }}
           onClose={() => setShowSettings(false)}
@@ -226,56 +256,56 @@ function PomodoroSettings({ config, onSave, onClose }: { config: PomodoroConfig;
   };
 
   return (
-    <div className="mt-3 pt-3 border-t border-gray-200 dark:border-gray-700" role="group" aria-label="番茄钟设置">
-      <p className="text-xs font-medium text-gray-600 dark:text-gray-400 mb-2">自定义时长</p>
+    <div className="mt-3 pt-3 border-t border-border" role="group" aria-label="番茄钟设置">
+      <p className="text-xs font-medium text-text-muted mb-2">自定义时长</p>
       <div className="grid grid-cols-2 gap-2 text-xs">
         <label className="flex items-center gap-1.5">
-          <span className="text-gray-500">专注</span>
+          <span className="text-text-muted">专注</span>
           <input
             type="number"
             min={1}
             max={120}
             value={localConfig.workMinutes}
             onChange={(e) => setLocalConfig({ ...localConfig, workMinutes: +e.target.value })}
-            className="w-14 px-1.5 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-center"
+            className="w-14 px-1.5 py-1 rounded border border-border bg-white text-center"
           />
-          <span className="text-gray-400">分</span>
+          <span className="text-text-muted">分</span>
         </label>
         <label className="flex items-center gap-1.5">
-          <span className="text-gray-500">短休</span>
+          <span className="text-text-muted">短休</span>
           <input
             type="number"
             min={1}
             max={30}
             value={localConfig.breakMinutes}
             onChange={(e) => setLocalConfig({ ...localConfig, breakMinutes: +e.target.value })}
-            className="w-14 px-1.5 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-center"
+            className="w-14 px-1.5 py-1 rounded border border-border bg-white text-center"
           />
-          <span className="text-gray-400">分</span>
+          <span className="text-text-muted">分</span>
         </label>
         <label className="flex items-center gap-1.5">
-          <span className="text-gray-500">长休</span>
+          <span className="text-text-muted">长休</span>
           <input
             type="number"
             min={1}
             max={60}
             value={localConfig.longBreakMinutes}
             onChange={(e) => setLocalConfig({ ...localConfig, longBreakMinutes: +e.target.value })}
-            className="w-14 px-1.5 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-center"
+            className="w-14 px-1.5 py-1 rounded border border-border bg-white text-center"
           />
-          <span className="text-gray-400">分</span>
+          <span className="text-text-muted">分</span>
         </label>
         <label className="flex items-center gap-1.5">
-          <span className="text-gray-500">轮次</span>
+          <span className="text-text-muted">轮次</span>
           <input
             type="number"
             min={1}
             max={10}
             value={localConfig.sessionsBeforeLongBreak}
             onChange={(e) => setLocalConfig({ ...localConfig, sessionsBeforeLongBreak: +e.target.value })}
-            className="w-14 px-1.5 py-1 rounded border border-gray-300 dark:border-gray-600 bg-white dark:bg-gray-700 text-center"
+            className="w-14 px-1.5 py-1 rounded border border-border bg-white text-center"
           />
-          <span className="text-gray-400">次</span>
+          <span className="text-text-muted">次</span>
         </label>
       </div>
       <div className="flex gap-2 mt-2">

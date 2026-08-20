@@ -9,6 +9,7 @@ import { getRelativeTimeShort, durationMinutes, fmtMin, dayNumToDateStr, fmtHHmm
 import { playPomodoroCompleteSound } from '../../utils/audio'
 import { setPomodoroTitleActive } from '../../utils/documentTitle'
 import { showToast } from '../../modules/taskflow/utils/toastEvent'
+import { clearActivePomodoro, writeActivePomodoro, ACTIVE_POMODORO_EVENT, getActiveRemainingSec, type ActivePomodoroState } from '../../utils/activePomodoro'
 import AmbientSounds from '../common/AmbientSounds'
 import PomodoroStats from './PomodoroStats'
 import { Kbd } from '../common/Kbd'
@@ -70,6 +71,20 @@ export default function PomodoroTimer() {
   const autoStartWork = pomodoroAutoStartWork
   const setAutoStartWork = setPomodoroAutoStartWork
   const { todayMidnightMs: todayMidnightMsHook, tomorrowMidnightMs: tomorrowMidnightMsHook } = useToday()
+  const todayCompletedFromStore = useMemo(
+    () => pomodoroSessions.filter((s) => (
+      s.type === 'work' &&
+      s.completed &&
+      s.startedAt >= todayMidnightMsHook &&
+      s.startedAt < tomorrowMidnightMsHook
+    )).length,
+    [pomodoroSessions, todayMidnightMsHook, tomorrowMidnightMsHook],
+  )
+  useEffect(() => {
+    queueMicrotask(() => {
+      setCompletedPomodoros((prev) => Math.max(prev, todayCompletedFromStore))
+    })
+  }, [todayCompletedFromStore])
   const [ambientExpanded, setAmbientExpanded] = useState(false)
   const [justCompleted, setJustCompleted] = useState(false)
   const [clockNow, setClockNow] = useState(() => Date.now())
@@ -90,6 +105,57 @@ export default function PomodoroTimer() {
   const autoStartBreaksRef = useRef(autoStartBreaks)
   const autoStartWorkRef = useRef(autoStartWork)
   const targetEndTimeRef = useRef<number>(0)
+  const POMODORO_ACTIVE_KEY = 'abworkbench-pomodoro-active'
+
+  useEffect(() => {
+    queueMicrotask(() => {
+      try {
+        const raw = sessionStorage.getItem(POMODORO_ACTIVE_KEY)
+        if (!raw) return
+        const saved = JSON.parse(raw) as {
+          mode?: Mode
+          targetEnd?: number
+          completed?: number
+          selectedTaskId?: string
+          isRunning?: boolean
+        }
+        if (!saved?.isRunning || !saved.targetEnd || saved.targetEnd <= Date.now()) {
+          sessionStorage.removeItem(POMODORO_ACTIVE_KEY)
+          return
+        }
+        const remaining = Math.max(1, Math.ceil((saved.targetEnd - Date.now()) / 1000))
+        if (saved.mode === 'work' || saved.mode === 'shortBreak' || saved.mode === 'longBreak') {
+          setMode(saved.mode)
+        }
+        setTimeLeft(remaining)
+        targetEndTimeRef.current = saved.targetEnd
+        if (typeof saved.completed === 'number') setCompletedPomodoros(saved.completed)
+        if (typeof saved.selectedTaskId === 'string') setSelectedTaskId(saved.selectedTaskId)
+        setIsRunning(true)
+        startTimeRef.current = saved.targetEnd - remaining * 1000
+      } catch {
+        sessionStorage.removeItem(POMODORO_ACTIVE_KEY)
+      }
+    })
+  }, [])
+
+  useEffect(() => {
+    try {
+      if (!isRunning) {
+        sessionStorage.removeItem(POMODORO_ACTIVE_KEY)
+        return
+      }
+      sessionStorage.setItem(POMODORO_ACTIVE_KEY, JSON.stringify({
+        mode,
+        targetEnd: targetEndTimeRef.current,
+        completed: completedPomodoros,
+        selectedTaskId,
+        isRunning: true,
+      }))
+    } catch {
+      // ignore storage failures
+    }
+  }, [completedPomodoros, isRunning, mode, selectedTaskId, timeLeft])
 
   useEffect(() => {
     modeRef.current = mode
@@ -324,6 +390,23 @@ export default function PomodoroTimer() {
     if (!isRunningRef.current) {
       startTimeRef.current = Date.now()
       targetEndTimeRef.current = Date.now() + timeLeftRef.current * 1000
+      writeActivePomodoro({
+        source: 'main',
+        mode: modeRef.current === 'work' ? 'work' : modeRef.current === 'longBreak' ? 'longBreak' : 'shortBreak',
+        targetEnd: targetEndTimeRef.current,
+        remainingSec: timeLeftRef.current,
+        taskId: selectedTaskIdRef.current || undefined,
+        updatedAt: Date.now(),
+      })
+    } else {
+      writeActivePomodoro({
+        source: 'main',
+        mode: modeRef.current === 'work' ? 'work' : modeRef.current === 'longBreak' ? 'longBreak' : 'shortBreak',
+        targetEnd: null,
+        remainingSec: timeLeftRef.current,
+        taskId: selectedTaskIdRef.current || undefined,
+        updatedAt: Date.now(),
+      })
     }
     setIsRunning(!isRunningRef.current)
   }, [])
@@ -334,6 +417,58 @@ export default function PomodoroTimer() {
       intervalRef.current = null
     }
     setIsRunning(false)
+    clearActivePomodoro('main')
+  }, [])
+
+  // Mutual exclusion: foreign claim pauses us; Header/Mini pause-resume syncs us.
+  const suppressActiveWriteRef = useRef(false)
+  useEffect(() => {
+    const onChange = (event: Event) => {
+      const detail = (event as CustomEvent<ActivePomodoroState | null>).detail
+      if (detail === undefined) return
+      if (!detail) return
+      if (detail.source !== 'main') {
+        if (!isRunningRef.current) return
+        suppressActiveWriteRef.current = true
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
+        }
+        setIsRunning(false)
+        const remaining = getActiveRemainingSec({
+          ...detail,
+          source: 'main',
+          targetEnd: null,
+          remainingSec: timeLeftRef.current,
+        })
+        // Keep our own remaining; foreign timer owns the shared slot.
+        void remaining
+        suppressActiveWriteRef.current = false
+        showToast('番茄已由其它入口接管', 'info')
+        return
+      }
+      const remaining = getActiveRemainingSec(detail)
+      if (detail.targetEnd == null) {
+        if (!isRunningRef.current) return
+        suppressActiveWriteRef.current = true
+        if (intervalRef.current) {
+          clearInterval(intervalRef.current)
+          intervalRef.current = null
+        }
+        setTimeLeft(remaining || timeLeftRef.current)
+        setIsRunning(false)
+        suppressActiveWriteRef.current = false
+      } else if (!isRunningRef.current) {
+        suppressActiveWriteRef.current = true
+        setTimeLeft(remaining)
+        targetEndTimeRef.current = detail.targetEnd
+        startTimeRef.current = detail.targetEnd - remaining * 1000
+        setIsRunning(true)
+        suppressActiveWriteRef.current = false
+      }
+    }
+    window.addEventListener(ACTIVE_POMODORO_EVENT, onChange as EventListener)
+    return () => window.removeEventListener(ACTIVE_POMODORO_EVENT, onChange as EventListener)
   }, [])
 
   const switchMode = useCallback(
@@ -446,6 +581,14 @@ export default function PomodoroTimer() {
     return () => window.removeEventListener('keydown', handler)
   }, [toggleTimer, resetTimer, switchMode, shortcutOverrides])
 
+  useEffect(() => {
+    const start = () => {
+      if (!isRunningRef.current) toggleTimer()
+    }
+    window.addEventListener('abworkbench:pomodoro-start', start)
+    return () => window.removeEventListener('abworkbench:pomodoro-start', start)
+  }, [toggleTimer])
+
   const strokeDashoffset = RING_CIRCUMFERENCE * (1 - progress)
   const estimatedEndTime = timeLeft < currentConfig.duration ? fmtHHmm(clockNow + timeLeft * 1000) : null
 
@@ -507,7 +650,7 @@ export default function PomodoroTimer() {
             </div>
 
             <div className="order-1 flex flex-col items-center lg:order-2">
-              <div className={`relative h-[260px] w-[260px] transition-transform duration-300 md:h-[310px] md:w-[310px] ${justCompleted ? 'scale-105' : ''}`}>
+              <div className={`relative h-[260px] w-[260px] transition-transform duration-300 md:h-[310px] md:w-[310px] ${justCompleted ? 'scale-105 pomo-ceremony' : ''}`}>
                 <div className={clsx('absolute inset-3 rounded-full blur-2xl', isRunning ? 'bg-primary/20' : 'bg-white/5')} />
                 <svg viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} className={`relative h-full w-full -rotate-90 ${isRunning && timeLeft <= 10 && timeLeft > 0 ? 'animate-pulse' : ''}`}>
                   <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} fill="none" stroke="var(--color-surface-lighter)" strokeWidth={RING_STROKE_WIDTH} />
