@@ -9,6 +9,7 @@ test('buildDataHealthReport detects duplicate tasks and empty notes', () => {
     notes: [
       { id: 'n1', title: '空笔记', content: '' },
       { id: 'n2', title: '有效笔记', content: 'hello' },
+      { id: 'n3', title: '', content: '有正文无标题' },
     ],
     pomodoroSessions: [],
     habits: [],
@@ -22,6 +23,7 @@ test('buildDataHealthReport detects duplicate tasks and empty notes', () => {
   assert.equal(report.backupStatus, 'ok')
   assert.equal(report.duplicateTaskCount, 1)
   assert.equal(report.emptyNoteCount, 1)
-  assert.equal(report.issues.length >= 2, true)
+  assert.ok(report.issues.some((issue) => issue.id === 'untitled-notes'))
+  assert.equal(report.issues.length >= 3, true)
 })
 

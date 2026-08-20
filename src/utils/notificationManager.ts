@@ -1,26 +1,35 @@
 import type { Task } from '../modules/taskflow/types'
 import type { Habit } from '../store'
+import { todayStr as localTodayStr, nextDateStr, dayKeyFromMs } from '../modules/taskflow/dateUtils'
+import { readLocalCollection, readLocalValue } from './localData'
+import { shouldMuteReminder } from './focusDnd'
+import { FOCUS_DND_KEY } from './workspaceModeEffects'
 
 export interface NotificationItem {
   id: string
-  type: 'task-overdue' | 'task-due-today' | 'task-due-tomorrow' | 'habit-reminder'
+  type: 'task-overdue' | 'task-due-today' | 'task-due-tomorrow' | 'habit-reminder' | 'custom-reminder'
   title: string
   body: string
   timestamp: number
   read: boolean
 }
 
+export interface ReminderLike {
+  id: string
+  title: string
+  dueAt: string
+  done?: boolean
+}
+
 const STORAGE_KEY = 'abworkbench-notifications'
 const CHECK_INTERVAL_MS = 5 * 60 * 1000 // 5 minutes
 
 function todayStr(): string {
-  return new Date().toISOString().slice(0, 10)
+  return localTodayStr()
 }
 
 function tomorrowStr(): string {
-  const d = new Date()
-  d.setDate(d.getDate() + 1)
-  return d.toISOString().slice(0, 10)
+  return nextDateStr(todayStr())
 }
 
 function showBrowserNotification(title: string, body: string) {
@@ -35,7 +44,11 @@ export function requestNotificationPermission(): Promise<NotificationPermission>
   return Notification.requestPermission()
 }
 
-export function checkNotifications(tasks: Task[], habits: Habit[]): NotificationItem[] {
+export function checkNotifications(
+  tasks: Task[],
+  habits: Habit[],
+  reminders: ReminderLike[] = readLocalCollection<ReminderLike>('abworkbench-reminders', []),
+): NotificationItem[] {
   const today = todayStr()
   const tomorrow = tomorrowStr()
   const now = Date.now()
@@ -75,18 +88,40 @@ export function checkNotifications(tasks: Task[], habits: Habit[]): Notification
     }
   }
 
-  // Check incomplete habits for today
-  for (const habit of habits) {
-    if (!habit.completedDates.includes(today)) {
-      notifications.push({
-        id: `habit-${habit.id}-${today}`,
-        type: 'habit-reminder',
-        title: '习惯提醒',
-        body: `今天还没有完成「${habit.name}」`,
-        timestamp: now,
-        read: false,
-      })
+  // Check incomplete habits for today (evening nudge only — avoid all-day spam)
+  const hour = new Date().getHours()
+  if (hour >= 18) {
+    for (const habit of habits) {
+      if (!habit.completedDates.includes(today)) {
+        notifications.push({
+          id: `habit-${habit.id}-${today}`,
+          type: 'habit-reminder',
+          title: '习惯提醒',
+          body: `今天还没有完成「${habit.name}」`,
+          timestamp: now,
+          read: false,
+        })
+      }
     }
+  }
+
+  for (const reminder of reminders) {
+    if (reminder.done) continue
+    const dueMs = Date.parse(reminder.dueAt)
+    if (!Number.isFinite(dueMs) || dueMs > now) continue
+    const dndOn = readLocalValue(FOCUS_DND_KEY) === 'true'
+    if (shouldMuteReminder({ enabled: dndOn, reminder: { title: reminder.title, dueAt: reminder.dueAt }, now })) {
+      continue
+    }
+    const dayKey = dayKeyFromMs(dueMs)
+    notifications.push({
+      id: `reminder-${reminder.id}-${dayKey}`,
+      type: 'custom-reminder',
+      title: '到点提醒',
+      body: `「${reminder.title}」已到时间`,
+      timestamp: now,
+      read: false,
+    })
   }
 
   return notifications

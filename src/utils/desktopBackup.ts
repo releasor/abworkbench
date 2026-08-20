@@ -1,6 +1,7 @@
 const TASKFLOW_TASKS_KEY = 'taskflow-offline-tasks';
 const TASKFLOW_CATEGORIES_KEY = 'taskflow-offline-categories';
 const TASKFLOW_BACKUPS_KEY = 'taskflow-offline-backups';
+const LOCAL_COLLECTION_KEYS = ['abworkbench-reminders'] as const;
 const TASKFLOW_PREFERENCE_KEYS = [
   'taskflow-viewMode',
   'taskflow-sort-by',
@@ -27,6 +28,7 @@ export interface DesktopBackupPayload {
     backups: unknown[];
     preferences: Record<string, string>;
   };
+  localCollections?: Record<string, unknown[]>;
 }
 
 function readJsonArray(key: string): unknown[] {
@@ -53,6 +55,10 @@ function writeJson(key: string, value: unknown): void {
 }
 
 export function createDesktopBackup(data: JsonRecord): DesktopBackupPayload {
+  const localCollections: Record<string, unknown[]> = {};
+  for (const key of LOCAL_COLLECTION_KEYS) {
+    localCollections[key] = readJsonArray(key);
+  }
   return {
     version: 2,
     app: 'Abworkbench',
@@ -64,6 +70,7 @@ export function createDesktopBackup(data: JsonRecord): DesktopBackupPayload {
       backups: readJsonArray(TASKFLOW_BACKUPS_KEY),
       preferences: readPreferences(),
     },
+    localCollections,
   };
 }
 
@@ -78,21 +85,46 @@ export function downloadJsonBackup(payload: unknown, filename: string): void {
 }
 
 export function restoreTaskFlowBackup(raw: unknown): boolean {
-  const source = raw as { taskFlow?: Partial<DesktopBackupPayload['taskFlow']>; data?: JsonRecord } | null;
+  const source = raw as { taskFlow?: Partial<DesktopBackupPayload['taskFlow']>; data?: JsonRecord; localCollections?: Record<string, unknown> } | null;
   const taskFlow = source?.taskFlow;
-  if (!taskFlow) return false;
+  let restored = false;
 
-  if (Array.isArray(taskFlow.tasks)) writeJson(TASKFLOW_TASKS_KEY, taskFlow.tasks);
-  if (Array.isArray(taskFlow.categories)) writeJson(TASKFLOW_CATEGORIES_KEY, taskFlow.categories);
-  if (Array.isArray(taskFlow.backups)) writeJson(TASKFLOW_BACKUPS_KEY, taskFlow.backups);
-  if (taskFlow.preferences && typeof taskFlow.preferences === 'object') {
-    for (const [key, value] of Object.entries(taskFlow.preferences)) {
-      if (TASKFLOW_PREFERENCE_KEYS.includes(key as typeof TASKFLOW_PREFERENCE_KEYS[number]) && typeof value === 'string') {
-        localStorage.setItem(key, value);
+  if (taskFlow) {
+    if (Array.isArray(taskFlow.tasks)) writeJson(TASKFLOW_TASKS_KEY, taskFlow.tasks);
+    if (Array.isArray(taskFlow.categories)) writeJson(TASKFLOW_CATEGORIES_KEY, taskFlow.categories);
+    if (Array.isArray(taskFlow.backups)) writeJson(TASKFLOW_BACKUPS_KEY, taskFlow.backups);
+    if (taskFlow.preferences && typeof taskFlow.preferences === 'object') {
+      for (const [key, value] of Object.entries(taskFlow.preferences)) {
+        if (TASKFLOW_PREFERENCE_KEYS.includes(key as typeof TASKFLOW_PREFERENCE_KEYS[number]) && typeof value === 'string') {
+          localStorage.setItem(key, value);
+        }
       }
     }
+    restored = true;
   }
-  return true;
+  if (source?.localCollections) {
+    restoreLocalCollections(source.localCollections);
+    restored = true;
+  }
+  return restored;
+}
+
+export function restoreLocalCollections(collections: Record<string, unknown> | undefined): void {
+  if (!collections || typeof collections !== 'object') return;
+  for (const key of LOCAL_COLLECTION_KEYS) {
+    const value = collections[key];
+    if (Array.isArray(value)) writeJson(key, value);
+  }
+}
+
+export function clearLocalCollections(): void {
+  try {
+    for (const key of LOCAL_COLLECTION_KEYS) {
+      localStorage.removeItem(key);
+    }
+  } catch {
+    // Ignore storage failures
+  }
 }
 
 export function getLegacyOrCurrentData(raw: unknown): JsonRecord {
@@ -112,6 +144,7 @@ export function clearTaskFlowLocalData(): void {
     for (const key of TASKFLOW_PREFERENCE_KEYS) {
       localStorage.removeItem(key);
     }
+    clearLocalCollections();
   } catch {
     // Ignore storage failures
   }

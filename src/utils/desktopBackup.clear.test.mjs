@@ -20,6 +20,7 @@ test('clearTaskFlowLocalData removes tasks, categories, backups and prefs', () =
     'taskflow-offline-backups': '[]',
     'taskflow-viewMode': 'kanban',
     'taskflow-sort-by': 'priority',
+    'abworkbench-reminders': '[{"id":"r1"}]',
     'dashboard-storage': '{}',
   })
   globalThis.localStorage = storage
@@ -31,6 +32,7 @@ test('clearTaskFlowLocalData removes tasks, categories, backups and prefs', () =
   assert.equal(storage.getItem('taskflow-offline-backups'), null)
   assert.equal(storage.getItem('taskflow-viewMode'), null)
   assert.equal(storage.getItem('taskflow-sort-by'), null)
+  assert.equal(storage.getItem('abworkbench-reminders'), null)
   assert.equal(storage.getItem('dashboard-storage'), '{}')
 
   delete globalThis.localStorage

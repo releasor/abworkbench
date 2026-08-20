@@ -5,6 +5,7 @@ export interface DataHealthInput {
   habits: unknown[]
   taskFlowTasks: Array<{ id: string; title: string; status?: string; archived?: boolean }>
   backups: Array<{ modified?: string }>
+  reminders?: Array<{ id: string; done?: boolean; dueAt?: string }>
 }
 
 export interface DataHealthIssue {
@@ -64,6 +65,16 @@ export function buildDataHealthReport(input: DataHealthInput): DataHealthReport 
   }
   if (emptyNoteCount > 0) {
     issues.push({ id: 'empty-notes', title: '空笔记', detail: `${emptyNoteCount} 篇笔记没有正文`, severity: 'info' })
+  }
+  const untitledNoteCount = input.notes.filter((note) => !note.title.trim() && note.content.trim()).length
+  if (untitledNoteCount > 0) {
+    issues.push({ id: 'untitled-notes', title: '无标题笔记', detail: `${untitledNoteCount} 篇有内容但无标题`, severity: 'info' })
+  }
+  const reminders = input.reminders || []
+  const openReminders = reminders.filter((r) => !r.done)
+  const overdueReminders = openReminders.filter((r) => r.dueAt && Date.parse(r.dueAt) < Date.now()).length
+  if (overdueReminders > 0) {
+    issues.push({ id: 'overdue-reminders', title: '逾期提醒', detail: `${overdueReminders} 条提醒已过期未完成`, severity: 'warning' })
   }
   if (!lastBackup) {
     issues.push({ id: 'backup-missing', title: '暂无自动备份', detail: '编辑任务后会自动生成快照', severity: 'warning' })
