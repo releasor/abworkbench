@@ -5,7 +5,15 @@ import type { Habit } from '../../store'
 import { MILESTONE_LABELS } from './habitConstants'
 import type { WeekGridDay } from './habitUtils'
 import { getStreakMilestone } from './habitUtils'
+import { getScheduleLabel } from './habitSchedule'
 import { MonthHabitCalendar, WeekHabitGrid } from './HabitCalendar'
+
+interface HabitProgress {
+  count: number
+  target: number
+  met: boolean
+  canCheckIn: boolean
+}
 
 interface HabitCardProps {
   habit: Habit
@@ -14,6 +22,7 @@ interface HabitCardProps {
   todayStr: string
   hour: number
   streak: number
+  todayProgress: HabitProgress
   completedThisWeek: number
   isEditing: boolean
   isDeleting: boolean
@@ -36,6 +45,7 @@ export function HabitCard({
   todayStr,
   hour,
   streak,
+  todayProgress,
   completedThisWeek,
   isEditing,
   isDeleting,
@@ -52,15 +62,24 @@ export function HabitCard({
 }: HabitCardProps) {
   if (isEditing) return <>{editForm}</>
 
-  const isCompletedToday = dateSet.has(todayStr)
+  const isCompletedToday = todayProgress.met
   const streakAtRisk = streak >= 2 && !isCompletedToday
   const streakMilestone = streak >= 7 ? getStreakMilestone(streak) : undefined
+  const totalCheckIns = habit.checkIns?.length ?? habit.completedDates.length
+  const scheduleLabel = getScheduleLabel(habit.schedule)
+  const checkInLabel = habit.schedule.mode === 'once'
+    ? (isCompletedToday ? '今日已打卡' : '立即打卡')
+    : isCompletedToday
+      ? `今日已完成 ${todayProgress.count}/${todayProgress.target}`
+      : todayProgress.count > 0
+        ? `继续打卡 ${todayProgress.count}/${todayProgress.target}`
+        : `打卡 0/${todayProgress.target}`
 
   return (
     <article
       data-habit-id={habit.id}
       className={clsx(
-        'group overflow-hidden rounded-[28px] border bg-surface/75 shadow-xl shadow-black/10 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35',
+        'group overflow-hidden rounded-[28px] border bg-surface/75 shadow-xl shadow-black/10 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 active:scale-[0.995]',
         isCompletedToday ? 'border-success/35' : streakAtRisk ? 'border-warning/35' : 'border-border',
       )}
     >
@@ -100,7 +119,8 @@ export function HabitCard({
                   {streak} 天连续
                 </MetaPill>
                 <MetaPill>{completedThisWeek}/7 本周</MetaPill>
-                <MetaPill>累计 {habit.completedDates.length} 次</MetaPill>
+                <MetaPill>{scheduleLabel}</MetaPill>
+                <MetaPill>累计 {totalCheckIns} 次</MetaPill>
                 {streakAtRisk && (
                   <span className="text-warning">
                     {hour >= 20 ? '今晚别断签，补一次就稳了' : hour >= 16 ? '今日还未打卡' : ''}
@@ -114,15 +134,18 @@ export function HabitCard({
             <button
               type="button"
               onClick={() => onToggleToday(habit.id)}
+              disabled={!todayProgress.canCheckIn && todayProgress.count === 0}
               className={clsx(
                 'inline-flex h-11 items-center gap-2 rounded-2xl px-4 text-sm font-semibold transition-all',
                 isCompletedToday
                   ? 'bg-success/15 text-success hover:bg-success/25'
-                  : 'bg-primary text-white shadow-lg shadow-primary/25 hover:-translate-y-0.5 hover:bg-primary-hover',
+                  : todayProgress.canCheckIn
+                    ? 'bg-primary text-on-primary shadow-lg shadow-primary/25 hover:-translate-y-0.5 hover:bg-primary-dark'
+                    : 'cursor-not-allowed bg-surface-lighter text-text-muted',
               )}
             >
               {isCompletedToday && <Check size={16} />}
-              {isCompletedToday ? '今日已打卡' : '立即打卡'}
+              {checkInLabel}
             </button>
             <IconButton
               onClick={() => onToggleMonth(habit.id)}
@@ -205,10 +228,11 @@ export function HabitCard({
                 dateSet={dateSet}
                 todayStr={todayStr}
                 color={habit.color}
+                habit={habit}
               />
             </div>
           ) : (
-            <WeekHabitGrid days={weekDays} dateSet={dateSet} color={habit.color} />
+              <WeekHabitGrid days={weekDays} dateSet={dateSet} color={habit.color} habit={habit} />
           )}
         </div>
       </div>
@@ -244,7 +268,7 @@ function IconButton({
       title={title}
       aria-label={title}
       className={clsx(
-        'flex h-10 w-10 items-center justify-center rounded-2xl border transition-all',
+        'flex h-10 w-10 items-center justify-center rounded-2xl border transition-all duration-200 active:scale-95',
         active
           ? 'border-primary/35 bg-primary/10 text-primary'
           : danger

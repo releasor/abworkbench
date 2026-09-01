@@ -1,6 +1,6 @@
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
 import { Plus, Sparkles, Target, BarChart3 } from 'lucide-react'
-import type { Habit } from '../../store'
+import type { Habit, HabitSchedule } from '../../store'
 import { useStore } from '../../store'
 import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { playHabitSound } from '../../utils/audio'
@@ -11,19 +11,24 @@ import { HABIT_COLORS, HABIT_ICONS, HABIT_TEMPLATES } from './habitConstants'
 import { HabitCard } from './HabitCard'
 import { HabitForm } from './HabitForm'
 import { HabitStats } from './HabitStats'
+import { createDefaultSchedule } from './HabitScheduleSelector'
+import { getHabitProgress } from './habitSchedule'
 import {
   getHabitComputedStats,
   getWeekDayNums,
   getWeekGridDays,
 } from './habitUtils'
 import { dayNumToDateStr } from '../../utils/format'
+import PanelSwitch from '../common/PanelSwitch'
+import { smoothNavigate } from '../../utils/smoothNavigate'
 
 const HabitAnalytics = lazy(() => import('./HabitAnalytics'))
 
 export default function HabitTracker() {
   const habits = useStore((state) => state.habits)
   const addHabit = useStore((state) => state.addHabit)
-  const toggleHabitDate = useStore((state) => state.toggleHabitDate)
+  const checkInHabit = useStore((state) => state.checkInHabit)
+  const undoHabitCheckIn = useStore((state) => state.undoHabitCheckIn)
   const deleteHabit = useStore((state) => state.deleteHabit)
   const updateHabit = useStore((state) => state.updateHabit)
   const lastDeletedHabitRef = useRef<Habit | null>(null)
@@ -37,6 +42,7 @@ export default function HabitTracker() {
   const [newName, setNewName] = useState('')
   const [newIcon, setNewIcon] = useState(HABIT_ICONS[0])
   const [newColor, setNewColor] = useState(HABIT_COLORS[0])
+  const [newSchedule, setNewSchedule] = useState<HabitSchedule>(createDefaultSchedule)
   const nameInputRef = useRef<HTMLInputElement>(null)
   const { todayStr, todayMidnightMs } = useToday()
   const todayDayNum = Math.floor(todayMidnightMs / 86400000)
@@ -70,12 +76,13 @@ export default function HabitTracker() {
     setNewName('')
     setNewIcon(HABIT_ICONS[0])
     setNewColor(HABIT_COLORS[0])
+    setNewSchedule(createDefaultSchedule())
   }
 
   const handleAdd = () => {
     const name = newName.trim()
     if (!name) return
-    addHabit(name, newIcon, newColor)
+    addHabit(name, newIcon, newColor, newSchedule)
     resetForm()
     setShowAddForm(false)
   }
@@ -85,39 +92,60 @@ export default function HabitTracker() {
     setNewName(habit.name)
     setNewIcon(habit.icon)
     setNewColor(habit.color)
+    setNewSchedule(habit.schedule)
   }
 
   const saveEdit = () => {
     const name = newName.trim()
     if (editingId && name) {
-      updateHabit(editingId, { name, icon: newIcon, color: newColor })
+      updateHabit(editingId, { name, icon: newIcon, color: newColor, schedule: newSchedule })
     }
     setEditingId(null)
     resetForm()
   }
 
   const handleToggleToday = (habitId: string) => {
-    const index = habits.findIndex((habit) => habit.id === habitId)
-    if (index === -1) return
-    const habit = habits[index]
-    const wasDone = habitDateSets[index].has(todayStr)
+    const habit = habits.find((item) => item.id === habitId)
+    if (!habit) return
+    const progress = getHabitProgress(habit, todayStr)
+    const shouldUndo = progress.met || (progress.count > 0 && !progress.canCheckIn)
+
+    if (!progress.canCheckIn && progress.count === 0) {
+      showToast('当前不在打卡时段内', 'info')
+      return
+    }
+
     try {
-      playHabitSound(!wasDone)
+      playHabitSound(!shouldUndo)
     } catch {
       // Sound playback is non-critical, ignore errors
     }
-    toggleHabitDate(habitId, todayStr)
-    if (!wasDone) {
-      showToast(`已打卡：${habit.name}`, 'success', {
-        label: '撤销',
-        onClick: () => toggleHabitDate(habitId, todayStr),
-      })
-    } else {
-      showToast(`已取消打卡：${habit.name}`, 'info', {
-        label: '恢复',
-        onClick: () => toggleHabitDate(habitId, todayStr),
-      })
+
+    if (shouldUndo) {
+      undoHabitCheckIn(habitId, todayStr)
+      const nextCount = Math.max(0, progress.count - 1)
+      showToast(
+        nextCount > 0 ? `已撤销 1 次：${habit.name}（${nextCount}/${progress.target}）` : `已取消打卡：${habit.name}`,
+        'info',
+        {
+          label: '恢复',
+          onClick: () => checkInHabit(habitId),
+        },
+      )
+      return
     }
+
+    checkInHabit(habitId)
+    const nextCount = progress.count + 1
+    const nextMet = nextCount >= progress.target
+    showToast(
+      nextMet ? `今日目标达成：${habit.name}` : `已打卡：${habit.name}（${nextCount}/${progress.target}）`,
+      'success',
+      {
+        label: '撤销',
+        onClick: () => undoHabitCheckIn(habitId, todayStr),
+      },
+    )
   }
 
   const restoreDeletedHabit = useCallback(() => {
@@ -194,28 +222,29 @@ export default function HabitTracker() {
         <button
           role="tab"
           aria-selected={!showAnalytics}
-          onClick={() => setShowAnalytics(false)}
-          className={`rounded-xl px-3 py-1.5 text-xs font-medium transition ${!showAnalytics ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          onClick={() => smoothNavigate(() => setShowAnalytics(false))}
+          className={`segment-tab rounded-xl px-3 py-1.5 text-xs font-medium ${!showAnalytics ? 'bg-primary text-on-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
         >
           打卡
         </button>
         <button
           role="tab"
           aria-selected={showAnalytics}
-          onClick={() => setShowAnalytics(true)}
-          className={`inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium transition ${showAnalytics ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          onClick={() => smoothNavigate(() => setShowAnalytics(true))}
+          className={`segment-tab inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium ${showAnalytics ? 'bg-primary text-on-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
         >
           <BarChart3 size={12} />
           分析
         </button>
       </div>
 
+      <PanelSwitch panelKey={showAnalytics ? 'analytics' : 'checkin'}>
       {showAnalytics ? (
         <Suspense fallback={<div className="flex justify-center py-8"><div className="animate-spin rounded-full h-6 w-6 border-b-2 border-primary" /></div>}>
           <HabitAnalytics habits={habits} />
         </Suspense>
       ) : (
-        <>
+        <div className="flex flex-col gap-5">
           <HabitStats
             habits={habits}
             habitDateSets={habitDateSets}
@@ -231,10 +260,12 @@ export default function HabitTracker() {
           name={newName}
           icon={newIcon}
           color={newColor}
+          schedule={newSchedule}
           inputRef={nameInputRef}
           onNameChange={setNewName}
           onIconChange={setNewIcon}
           onColorChange={setNewColor}
+          onScheduleChange={setNewSchedule}
           onSubmit={handleAdd}
           onClose={closeAddForm}
         />
@@ -245,7 +276,7 @@ export default function HabitTracker() {
           className="group flex w-full items-center justify-between rounded-[26px] border border-dashed border-primary/45 bg-primary/10 px-5 py-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary hover:bg-primary/20"
         >
           <span className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-white shadow-lg shadow-primary/25">
+            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-lg shadow-primary/25">
               <Plus size={20} />
             </span>
             <span>
@@ -271,7 +302,7 @@ export default function HabitTracker() {
               <button
                 key={template.name}
                 type="button"
-                onClick={() => addHabit(template.name, template.icon, template.color)}
+                onClick={() => addHabit(template.name, template.icon, template.color, template.schedule)}
                 aria-label={`创建习惯: ${template.name}`}
                 className="flex items-center gap-3 rounded-2xl border border-border bg-background/50 px-4 py-3 text-sm text-text-muted transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:text-text"
               >
@@ -287,7 +318,7 @@ export default function HabitTracker() {
           </div>
         </div>
       ) : (
-        <div className="space-y-4">
+        <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 text-sm font-medium text-text-muted">
             <Sparkles size={16} className="text-primary" />
             今日打卡清单
@@ -301,6 +332,7 @@ export default function HabitTracker() {
               todayStr={todayStr}
               hour={hour}
               streak={streakMap.get(habit.id) || 0}
+              todayProgress={getHabitProgress(habit, todayStr)}
               completedThisWeek={perHabitStats.get(habit.id)?.completedThisWeek || 0}
               isEditing={editingId === habit.id}
               isDeleting={deletingId === habit.id}
@@ -331,9 +363,11 @@ export default function HabitTracker() {
                   name={newName}
                   icon={newIcon}
                   color={newColor}
+                  schedule={newSchedule}
                   onNameChange={setNewName}
                   onIconChange={setNewIcon}
                   onColorChange={setNewColor}
+                  onScheduleChange={setNewSchedule}
                   onSubmit={saveEdit}
                   onClose={closeEditForm}
                 />
@@ -342,8 +376,9 @@ export default function HabitTracker() {
           ))}
         </div>
       )}
-        </>
+        </div>
       )}
+      </PanelSwitch>
     </div>
   )
 }

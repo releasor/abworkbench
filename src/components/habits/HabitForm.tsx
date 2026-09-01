@@ -1,6 +1,8 @@
 import type { RefObject } from 'react'
 import { Plus, Sparkles, X } from 'lucide-react'
+import type { HabitSchedule } from '../../store'
 import { IconSelector, ColorSelector } from './HabitSelectors'
+import { HabitScheduleSelector } from './HabitScheduleSelector'
 
 interface HabitFormProps {
   title: string
@@ -8,10 +10,12 @@ interface HabitFormProps {
   name: string
   icon: string
   color: string
+  schedule: HabitSchedule
   inputRef?: RefObject<HTMLInputElement | null>
   onNameChange: (name: string) => void
   onIconChange: (icon: string) => void
   onColorChange: (color: string) => void
+  onScheduleChange: (schedule: HabitSchedule) => void
   onSubmit: () => void
   onClose: () => void
 }
@@ -22,15 +26,17 @@ export function HabitForm({
   name,
   icon,
   color,
+  schedule,
   inputRef,
   onNameChange,
   onIconChange,
   onColorChange,
+  onScheduleChange,
   onSubmit,
   onClose,
 }: HabitFormProps) {
   return (
-    <div className="overflow-hidden rounded-[28px] border border-border bg-surface/85 shadow-2xl shadow-black/20 backdrop-blur-xl">
+    <div className="overflow-visible rounded-[28px] border border-border bg-surface/85 shadow-2xl shadow-black/20 backdrop-blur-xl">
       <div
         className="border-b border-border/70 p-5"
         style={{ background: `linear-gradient(135deg, ${color}22, transparent 62%)` }}
@@ -80,6 +86,7 @@ export function HabitForm({
 
         <IconSelector selected={icon} onSelect={onIconChange} />
         <ColorSelector selected={color} onSelect={onColorChange} />
+        <HabitScheduleSelector schedule={schedule} onChange={onScheduleChange} />
 
         <button
           type="button"

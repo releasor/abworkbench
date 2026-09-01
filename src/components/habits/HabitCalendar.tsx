@@ -1,13 +1,16 @@
 import type { CSSProperties } from 'react'
 import clsx from 'clsx'
+import type { Habit } from '../../store'
 import type { WeekGridDay } from './habitUtils'
 import { getMonthGridDays } from './habitUtils'
+import { getEffectiveCheckIns } from './habitSchedule'
 import { WEEKDAY_SHORT_LABELS } from './habitConstants'
 
 interface WeekHabitGridProps {
   days: WeekGridDay[]
   dateSet: Set<string>
   color: string
+  habit?: Habit
 }
 
 interface MonthHabitCalendarProps {
@@ -16,13 +19,21 @@ interface MonthHabitCalendarProps {
   dateSet: Set<string>
   todayStr: string
   color: string
+  habit?: Habit
 }
 
-export function WeekHabitGrid({ days, dateSet, color }: WeekHabitGridProps) {
+function getDayCount(habit: Habit | undefined, dateStr: string): number {
+  if (!habit) return 0
+  return getEffectiveCheckIns(habit, dateStr).length
+}
+
+export function WeekHabitGrid({ days, dateSet, color, habit }: WeekHabitGridProps) {
   return (
     <div className="grid grid-cols-7 gap-2">
       {days.map((day) => {
         const isCompleted = dateSet.has(day.dateStr)
+        const count = getDayCount(habit, day.dateStr)
+        const showCount = count > 1 || (habit?.schedule.mode !== 'once' && count > 0)
         return (
           <div
             key={day.dateStr}
@@ -42,8 +53,8 @@ export function WeekHabitGrid({ days, dateSet, color }: WeekHabitGridProps) {
             <div className={clsx('mt-2 text-lg font-semibold', isCompleted ? 'text-white' : 'text-text')}>
               {day.day}
             </div>
-            <div className={clsx('absolute bottom-2 right-2 flex h-5 w-5 items-center justify-center rounded-full text-[11px]', isCompleted ? 'bg-white/20 text-white' : 'bg-surface-lighter text-text-muted')}>
-              {isCompleted ? '✓' : ''}
+            <div className={clsx('absolute bottom-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px]', isCompleted ? 'bg-white/20 text-white' : 'bg-surface-lighter text-text-muted')}>
+              {showCount ? count : isCompleted ? '✓' : ''}
             </div>
           </div>
         )
@@ -52,7 +63,7 @@ export function WeekHabitGrid({ days, dateSet, color }: WeekHabitGridProps) {
   )
 }
 
-export function MonthHabitCalendar({ year, month, dateSet, todayStr, color }: MonthHabitCalendarProps) {
+export function MonthHabitCalendar({ year, month, dateSet, todayStr, color, habit }: MonthHabitCalendarProps) {
   return (
     <div className="rounded-3xl border border-border/70 bg-background/40 p-3">
       <div className="mb-2 grid grid-cols-7 gap-1.5">
@@ -63,6 +74,8 @@ export function MonthHabitCalendar({ year, month, dateSet, todayStr, color }: Mo
       <div className="grid grid-cols-7 gap-1.5">
         {getMonthGridDays(year, month).map((day, index) => {
           const isCompleted = dateSet.has(day.dateStr)
+          const count = getDayCount(habit, day.dateStr)
+          const showCount = count > 1 || (habit?.schedule.mode !== 'once' && count > 0)
           const isToday = day.dateStr === todayStr
           const style: CSSProperties = isCompleted && day.isCurrentMonth
             ? { background: `linear-gradient(145deg, ${color}, color-mix(in srgb, ${color} 55%, #050505))` }
@@ -85,7 +98,7 @@ export function MonthHabitCalendar({ year, month, dateSet, todayStr, color }: Mo
               style={style}
               title={day.dateStr}
             >
-              {isCompleted && day.isCurrentMonth ? '✓' : day.day}
+              {isCompleted && day.isCurrentMonth ? (showCount ? count : '✓') : day.day}
             </div>
           )
         })}

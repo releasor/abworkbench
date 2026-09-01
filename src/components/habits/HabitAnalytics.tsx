@@ -123,7 +123,7 @@ export default function HabitAnalytics({ habits }: HabitAnalyticsProps) {
       </div>
 
       {/* Weekly trend */}
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+      <div className="glass-card p-4">
         <div className="flex items-center gap-2 mb-4">
           <BarChart3 size={16} className="text-primary" />
           <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">近 4 周完成率趋势</h3>
@@ -149,7 +149,7 @@ export default function HabitAnalytics({ habits }: HabitAnalyticsProps) {
           const doneCount = days.filter((d) => d.done).length
           const rate = Math.round((doneCount / 30) * 100)
           return (
-            <div key={habit.id} className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
+            <div key={habit.id} className="glass-card p-4">
               <div className="flex items-center gap-2 mb-3">
                 <span
                   className="h-6 w-6 rounded-lg flex items-center justify-center text-sm"
@@ -183,7 +183,7 @@ export default function HabitAnalytics({ habits }: HabitAnalyticsProps) {
 
 function Card({ icon, label, value }: { icon: React.ReactNode; label: string; value: string }) {
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+    <div className="glass-card p-3">
       <div className="flex items-center gap-2 mb-1">{icon}<span className="text-xs text-gray-500">{label}</span></div>
       <div className="text-lg font-bold text-gray-800 dark:text-gray-200">{value}</div>
     </div>

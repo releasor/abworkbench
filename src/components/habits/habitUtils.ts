@@ -1,6 +1,7 @@
 import type { Habit } from '../../store'
 import { getHabitStreak, dayNumToDateStr, WEEKDAY_NAMES } from '../../utils/format'
 import { STREAK_MILESTONES } from './habitConstants'
+import { timestampToDateStr } from './habitSchedule'
 
 export interface WeekGridDay {
   dateStr: string
@@ -117,7 +118,7 @@ export function getHabitComputedStats(
     streakMap.set(habit.id, streak)
     if (streak > totalStreak) totalStreak = streak
     if (streak > 0) activeStreaks++
-    totalCompletions += habit.completedDates.length
+    totalCompletions += habit.checkIns?.length ?? habit.completedDates.length
 
     let completedThisWeek = 0
     for (const dateStr of thisWeekDateStrs) {
@@ -140,6 +141,23 @@ export function getHabitComputedStats(
     streakMap,
     weekCompletions,
     perHabitStats,
+  }
+}
+
+export interface HabitDayCountMap {
+  get(dateStr: string): number
+}
+
+export function createHabitDayCountMap(habit: Habit): HabitDayCountMap {
+  const counts = new Map<string, number>()
+  for (const ts of habit.checkIns ?? []) {
+    const dateStr = timestampToDateStr(ts)
+    counts.set(dateStr, (counts.get(dateStr) || 0) + 1)
+  }
+  return {
+    get(dateStr: string) {
+      return counts.get(dateStr) || 0
+    },
   }
 }
 
