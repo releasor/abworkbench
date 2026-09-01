@@ -1,0 +1,257 @@
+.hotlist-page {
+  display: flex;
+  flex-direction: column;
+  gap: 1rem;
+  width: 100%;
+}
+
+.hotlist-page--state {
+  min-height: 360px;
+}
+
+.hotlist-toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.hotlist-toolbar__copy {
+  min-width: 0;
+}
+
+.hotlist-toolbar__title {
+  margin: 0;
+  font-size: 1.35rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.hotlist-toolbar__sub {
+  margin: 0.25rem 0 0;
+  font-size: 0.82rem;
+  color: var(--color-text-muted);
+}
+
+.hotlist-toolbar__actions {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.hotlist-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.4rem;
+  height: 2rem;
+  padding: 0 0.85rem;
+  border-radius: 999px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
+  background: color-mix(in srgb, var(--color-surface-light) 88%, transparent);
+  color: var(--color-text-secondary);
+  font-size: 0.78rem;
+  font-weight: 600;
+  cursor: pointer;
+  transition: background 0.18s, border-color 0.18s, color 0.18s;
+}
+
+.hotlist-btn:hover:not(:disabled) {
+  background: color-mix(in srgb, var(--color-surface-lighter) 90%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+  color: var(--color-text);
+}
+
+.hotlist-btn:disabled {
+  opacity: 0.55;
+  cursor: not-allowed;
+}
+
+.hotlist-grid {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow: auto;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
+  gap: 0.85rem;
+  align-content: start;
+  padding-bottom: 0.5rem;
+}
+
+@media (min-width: 1280px) {
+  .hotlist-grid {
+    grid-template-columns: repeat(5, minmax(0, 1fr));
+  }
+}
+
+.hotlist-card {
+  display: flex;
+  flex-direction: column;
+  min-height: 320px;
+  border-radius: 18px;
+  border: 1px solid color-mix(in srgb, var(--color-border) 75%, transparent);
+  background: color-mix(in srgb, var(--color-surface-light) 72%, transparent);
+  box-shadow:
+    0 8px 28px color-mix(in srgb, #000 12%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 8%, transparent);
+  overflow: hidden;
+}
+
+html[data-theme='light'] .hotlist-card {
+  background: var(--color-surface-light);
+  border-color: color-mix(in srgb, var(--color-border) 65%, #0f172a);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #0f172a 6%, transparent),
+    0 8px 24px color-mix(in srgb, #0f172a 8%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 90%, transparent);
+}
+
+.hotlist-card__head {
+  display: flex;
+  align-items: flex-start;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.85rem 0.9rem 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 60%, transparent);
+}
+
+.hotlist-card__title-wrap {
+  min-width: 0;
+}
+
+.hotlist-card__title {
+  margin: 0;
+  font-size: 0.95rem;
+  font-weight: 700;
+  color: var(--color-text);
+}
+
+.hotlist-card__subtitle {
+  display: block;
+  margin-top: 0.15rem;
+  font-size: 0.68rem;
+  color: var(--color-text-muted);
+}
+
+.hotlist-card__time {
+  flex: 0 0 auto;
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.hotlist-card__list {
+  list-style: none;
+  margin: 0;
+  padding: 0.35rem 0;
+  flex: 1 1 auto;
+}
+
+.hotlist-card__item {
+  margin: 0;
+}
+
+.hotlist-card__link {
+  width: 100%;
+  display: grid;
+  grid-template-columns: auto minmax(0, 1fr) auto;
+  align-items: center;
+  gap: 0.45rem;
+  padding: 0.42rem 0.85rem;
+  border: 0;
+  background: transparent;
+  text-align: left;
+  cursor: pointer;
+  color: inherit;
+  font: inherit;
+  transition: background 0.16s;
+}
+
+.hotlist-card__link:hover {
+  background: color-mix(in srgb, var(--color-surface-lighter) 55%, transparent);
+}
+
+html[data-theme='light'] .hotlist-card__link:hover {
+  background: color-mix(in srgb, var(--color-primary) 6%, var(--color-surface-lighter));
+}
+
+.hotlist-rank {
+  width: 1.1rem;
+  font-size: 0.72rem;
+  font-weight: 700;
+  font-variant-numeric: tabular-nums;
+  color: var(--color-text-muted);
+}
+
+.hotlist-rank--1 {
+  color: #ef4444;
+}
+
+.hotlist-rank--2 {
+  color: #f97316;
+}
+
+.hotlist-rank--3 {
+  color: #fb923c;
+}
+
+.hotlist-card__text {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-size: 0.78rem;
+  line-height: 1.35;
+  color: var(--color-text-secondary);
+}
+
+html[data-theme='light'] .hotlist-card__text {
+  color: var(--color-text);
+}
+
+.hotlist-card__hot {
+  font-size: 0.62rem;
+  color: var(--color-text-muted);
+  white-space: nowrap;
+}
+
+.hotlist-card__error {
+  margin: 0;
+  padding: 1rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--color-danger);
+}
+
+.hotlist-card__loading {
+  margin: 0;
+  padding: 1rem 0.9rem;
+  font-size: 0.78rem;
+  color: var(--color-text-muted);
+}
+
+.hotlist-banner {
+  margin: 0;
+  padding: 0.55rem 0.85rem;
+  border-radius: 12px;
+  font-size: 0.78rem;
+}
+
+.hotlist-banner--error {
+  color: var(--color-danger);
+  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
+  border: 1px solid color-mix(in srgb, var(--color-danger) 28%, transparent);
+}
+
+.hotlist-state {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: 0.65rem;
+  color: var(--color-text-muted);
+  font-size: 0.85rem;
+}
+
+.hotlist-state--error {
+  color: var(--color-danger);
+}
