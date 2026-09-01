@@ -23,15 +23,17 @@ interface KanbanBoardProps {
 
 export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }: KanbanBoardProps) {
   const { t, tWith } = useTranslation();
-  const getFilteredTasks = useTaskStore((state) => state.getFilteredTasks);
   const moveTask = useTaskStore((state) => state.moveTask);
   const createTask = useTaskStore((state) => state.createTask);
   const reorderTasks = useTaskStore((state) => state.reorderTasks);
   const isLoading = useTaskStore((state) => state.isLoading);
   const filters = useTaskStore((state) => state.filters);
+  // Call selector so board re-renders when tasks/filters/sort change
+  const tasks = useTaskStore((state) => state.getFilteredTasks());
   const [dragOverColumn, setDragOverColumn] = useState<Status | null>(null);
   const [draggingTaskId, setDraggingTaskId] = useState<string | null>(null);
   const [dropTarget, setDropTarget] = useState<{ taskId: string; position: 'before' | 'after' } | null>(null);
+  const dragStartedRef = useRef(false);
   const [quickAddStatus, setQuickAddStatus] = useState<Status | null>(null);
   const [quickAddTitle, setQuickAddTitle] = useState('');
   const quickAddRef = useRef<HTMLInputElement>(null);
@@ -48,7 +50,6 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
       return next;
     });
   };
-  const tasks = useMemo(() => getFilteredTasks(), [getFilteredTasks]);
   const totalTasks = tasks.length;
   const categoryMap = useCategoryMap();
   const taskTitleById = useMemo(() => new Map(tasks.map((t) => [t.id, t.title])), [tasks]);
@@ -87,9 +88,19 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
   }
 
   const handleDragStart = (e: DragEvent, task: Task) => {
+    dragStartedRef.current = true;
     e.dataTransfer.setData('taskId', task.id);
     e.dataTransfer.effectAllowed = 'move';
     setDraggingTaskId(task.id);
+  };
+
+  const handleEditTask = (task: Task) => {
+    // Ignore the synthetic click that some engines fire after a drag ends.
+    if (dragStartedRef.current) {
+      dragStartedRef.current = false;
+      return;
+    }
+    onEditTask(task);
   };
 
   const handleDragOver = (e: DragEvent, status: Status) => {
@@ -201,7 +212,7 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
         return (
           <div
             key={status}
-            className={`relative flex flex-col overflow-hidden rounded-[30px] border shadow-2xl shadow-black/5 transition-all duration-200 dark:shadow-black/25 ${ isOver ? 'border-blue-400 bg-blue-50/70 ring-4 ring-blue-500/10 dark:border-blue-500/70 dark:bg-blue-500/10' : 'border-border bg-white/80 dark:border-white/10 dark:bg-white/[0.035]' } ${isCollapsed ? 'min-h-[360px] w-16 min-w-0 xl:w-auto' : 'min-h-[420px]'}`}
+            className={`relative flex flex-col overflow-hidden rounded-[30px] border shadow-2xl transition-all duration-200 ${ isOver ? 'border-blue-400 bg-blue-50/70 ring-4 ring-blue-500/10 dark:border-blue-500/70 dark:bg-blue-500/10' : 'border-border glass-card' } ${isCollapsed ? 'min-h-[360px] w-16 min-w-0 xl:w-auto' : 'min-h-[420px]'}`}
             role="region"
             aria-label={tWith('taskflow.board.columnLabel', statusLabel, columnTasks.length)}
             onDragOver={(e) => handleDragOver(e, status)}
@@ -293,11 +304,33 @@ export const KanbanBoard = memo(function KanbanBoard({ onEditTask, onFocusTask }
                     draggable
                     role="listitem"
                     aria-label={`任务: ${task.title}`}
-                    onDragStart={(e) => handleDragStart(e, task)}
+                    className="cursor-grab active:cursor-grabbing"
+                    onDragStart={(e) => {
+                      const target = e.target as HTMLElement;
+                      if (target.closest('button, a, input, textarea, [data-no-drag]')) {
+                        e.preventDefault();
+                        return;
+                      }
+                      handleDragStart(e, task);
+                    }}
                     onDragOver={(e) => handleTaskDragOver(e, task)}
-                    onDragEnd={() => { setDraggingTaskId(null); setDropTarget(null); }}
+                    onDragEnd={() => {
+                      setDraggingTaskId(null);
+                      setDropTarget(null);
+                      window.setTimeout(() => {
+                        dragStartedRef.current = false;
+                      }, 50);
+                    }}
                   >
-                    <TaskCard task={task} onEdit={onEditTask} isDragging={draggingTaskId === task.id} onFocus={onFocusTask} categoryMap={categoryMap} taskTitleById={taskTitleById} searchQuery={filters.search} />
+                    <TaskCard
+                      task={task}
+                      onEdit={handleEditTask}
+                      isDragging={draggingTaskId === task.id}
+                      onFocus={onFocusTask}
+                      categoryMap={categoryMap}
+                      taskTitleById={taskTitleById}
+                      searchQuery={filters.search}
+                    />
                   </div>
                   {dropTarget?.taskId === task.id && dropTarget.position === 'after' && (
                     <div className="h-0.5 bg-blue-500 rounded-full mx-2 mt-1" aria-hidden="true" />

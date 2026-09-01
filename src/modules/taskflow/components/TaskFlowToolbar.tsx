@@ -12,6 +12,7 @@ import {
 import type { ViewMode } from '../types'
 import { useTranslation } from '../../../i18n'
 import type { TranslationKey } from '../../../i18n'
+import { smoothNavigate } from '../../../utils/smoothNavigate'
 
 interface TaskFlowToolbarProps {
   viewMode: ViewMode
@@ -61,12 +62,12 @@ export function TaskFlowToolbar({
           {viewModeOptions.map((option) => (
             <button
               key={option.id}
-              onClick={() => onViewModeChange(option.id)}
+              onClick={() => smoothNavigate(() => onViewModeChange(option.id))}
               role="tab"
               aria-selected={viewMode === option.id}
               aria-label={t(option.labelKey)}
               className={clsx(
-                'flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold transition-all',
+                'segment-tab flex h-10 items-center gap-2 rounded-xl px-3 text-sm font-semibold',
                 viewMode === option.id
                   ? 'bg-primary text-white shadow-lg shadow-primary/25'
                   : 'text-text-muted hover:bg-surface-lighter hover:text-text'

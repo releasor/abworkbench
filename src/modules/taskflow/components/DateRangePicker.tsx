@@ -96,7 +96,7 @@ export function DateRangePicker({ from, to, onChange }: DateRangePickerProps) {
 
       {open && (
         <div
-          className="absolute left-0 top-full z-50 mt-3 w-[34rem] overflow-hidden rounded-3xl border border-border bg-white shadow-2xl shadow-black/15 dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60"
+          className="absolute left-0 top-full z-50 mt-3 w-[34rem] overflow-hidden rounded-3xl border border-border glass-card shadow-2xl"
           role="dialog"
           aria-label="日期范围日历"
         >

@@ -69,7 +69,7 @@ export function CategoryManager({ onClose }: CategoryManagerProps) {
   return (
     <div ref={trapRef} className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="分类管理">
       <div className="absolute inset-0 bg-black/60 backdrop-blur-md animate-fade-in" onClick={onClose} aria-hidden="true" />
-      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-border bg-white shadow-2xl shadow-black/20 animate-bounce-in dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
+      <div className="relative w-full max-w-2xl overflow-hidden rounded-3xl border border-border glass-card shadow-2xl animate-bounce-in">
         <div className="flex items-center justify-between border-b border-border px-6 py-5 dark:border-white/10">
           <div>
             <h2 className="text-xl font-black text-text dark:text-white">分类管理</h2>

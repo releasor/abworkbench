@@ -1,5 +1,6 @@
 import { lazy, Suspense } from 'react'
 import type { Task, ViewMode } from '../types'
+import PanelSwitch from '../../../components/common/PanelSwitch'
 
 const KanbanBoard = lazy(() => import('./KanbanBoard').then(m => ({ default: m.KanbanBoard })))
 const ListView = lazy(() => import('./ListView').then(m => ({ default: m.ListView })))
@@ -29,22 +30,24 @@ export function TaskFlowView({
   onCreateTaskForDate,
 }: TaskFlowViewProps) {
   return (
-    <Suspense fallback={<LoadingFallback />}>
-      {viewMode === 'list' && (
-        <ListView onEditTask={onEditTask} onFocusTask={onFocusTask} />
-      )}
-      {viewMode === 'calendar' && (
-        <CalendarView onEditTask={onEditTask} onCreateTaskForDate={onCreateTaskForDate} />
-      )}
-      {viewMode === 'board' && (
-        <KanbanBoard onEditTask={onEditTask} onFocusTask={onFocusTask} />
-      )}
-      {viewMode === 'archive' && (
-        <ArchiveView onEditTask={onEditTask} />
-      )}
-      {viewMode === 'matrix' && (
-        <MatrixView onEditTask={onEditTask} />
-      )}
-    </Suspense>
+    <PanelSwitch panelKey={viewMode}>
+      <Suspense fallback={<LoadingFallback />}>
+        {viewMode === 'list' && (
+          <ListView onEditTask={onEditTask} onFocusTask={onFocusTask} />
+        )}
+        {viewMode === 'calendar' && (
+          <CalendarView onEditTask={onEditTask} onCreateTaskForDate={onCreateTaskForDate} />
+        )}
+        {viewMode === 'board' && (
+          <KanbanBoard onEditTask={onEditTask} onFocusTask={onFocusTask} />
+        )}
+        {viewMode === 'archive' && (
+          <ArchiveView onEditTask={onEditTask} />
+        )}
+        {viewMode === 'matrix' && (
+          <MatrixView onEditTask={onEditTask} />
+        )}
+      </Suspense>
+    </PanelSwitch>
   )
 }

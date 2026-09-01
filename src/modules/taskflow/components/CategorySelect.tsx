@@ -68,7 +68,7 @@ export function CategorySelect({ categories, value, onChange, counts, allLabel =
 
       {open && (
         <div
-          className="absolute left-0 top-full z-50 mt-2 w-[22rem] overflow-hidden rounded-3xl border border-border bg-white p-2 shadow-2xl shadow-black/15 dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60"
+          className="absolute left-0 top-full z-50 mt-2 w-[22rem] overflow-hidden rounded-3xl border border-border glass-card p-2 shadow-2xl"
           role="listbox"
           aria-label={label}
         >

@@ -221,7 +221,7 @@ export function BatchToolbar({ onSuccess }: BatchToolbarProps) {
             分类
           </button>
           {showCategoryMenu && (
-            <div className="absolute bottom-full left-1/2 z-50 mb-2 w-72 -translate-x-1/2 rounded-3xl border border-border bg-white p-2 shadow-2xl shadow-black/15 dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
+            <div className="absolute bottom-full left-1/2 z-50 mb-2 w-72 -translate-x-1/2 rounded-3xl border border-border glass-card p-2 shadow-2xl">
               {categories.map((cat) => (
                 <button
                   key={cat.id}

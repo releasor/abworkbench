@@ -349,7 +349,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
             <div className="hidden sm:flex items-center bg-surface-lighter rounded-lg p-0.5" role="group" aria-label="视图切换">
               <button
                 onClick={() => onChangeViewMode('board')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'board' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'board' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="看板视图"
                 aria-label="切换到看板视图"
                 aria-pressed={viewMode === 'board'}
@@ -358,7 +358,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('list')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="列表视图"
                 aria-label="切换到列表视图"
                 aria-pressed={viewMode === 'list'}
@@ -367,7 +367,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('calendar')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="日历视图"
                 aria-label="切换到日历视图"
                 aria-pressed={viewMode === 'calendar'}
@@ -376,7 +376,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('archive')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="归档视图"
                 aria-label="切换到归档视图"
                 aria-pressed={viewMode === 'archive'}
@@ -385,7 +385,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => onChangeViewMode('matrix')}
-                className={`p-1.5 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`p-1.5 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 title="四象限视图"
                 aria-label="切换到四象限视图"
                 aria-pressed={viewMode === 'matrix'}
@@ -527,7 +527,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
             <div className="flex items-center bg-surface-lighter rounded-lg p-0.5 w-full" role="group" aria-label="视图切换">
               <button
                 onClick={() => { onChangeViewMode('board'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'board' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'board' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="看板视图"
                 aria-pressed={viewMode === 'board'}
               >
@@ -535,7 +535,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('list'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'list' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="列表视图"
                 aria-pressed={viewMode === 'list'}
               >
@@ -543,7 +543,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('calendar'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'calendar' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="日历视图"
                 aria-pressed={viewMode === 'calendar'}
               >
@@ -551,7 +551,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('archive'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'archive' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="归档视图"
                 aria-pressed={viewMode === 'archive'}
               >
@@ -559,7 +559,7 @@ export function Header({ darkMode, viewMode, showCompleted, onToggleDarkMode, on
               </button>
               <button
                 onClick={() => { onChangeViewMode('matrix'); setShowMobileMenu(false); }}
-                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-white shadow-sm' : 'hover:bg-surface-lighter '}`}
+                className={`flex-1 p-2 rounded-md transition-colors ${viewMode === 'matrix' ? 'bg-primary/15 text-primary shadow-sm' : 'hover:bg-surface-lighter '}`}
                 aria-label="四象限视图"
                 aria-pressed={viewMode === 'matrix'}
               >

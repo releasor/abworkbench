@@ -28,8 +28,7 @@ function classifyTask(task: Task, today: string): Quadrant {
 }
 
 export function MatrixView({ onEditTask }: MatrixViewProps) {
-  const getFilteredTasks = useTaskStore((s) => s.getFilteredTasks)
-  const tasks = useMemo(() => getFilteredTasks(), [getFilteredTasks])
+  const tasks = useTaskStore((s) => s.getFilteredTasks())
   const categoryMap = useCategoryMap()
 
   const quadrants = useMemo(() => {

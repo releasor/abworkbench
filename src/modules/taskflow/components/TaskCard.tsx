@@ -1,8 +1,8 @@
-import { useState, useMemo, memo, useRef, lazy, Suspense, useCallback } from 'react';
+import { useState, useMemo, memo, useRef, lazy, Suspense, useCallback, useEffect } from 'react';
+import { createPortal } from 'react-dom';
 import type { Task, Priority, Status } from '../types'
 import { STATUS_CYCLE, PRIORITY_CYCLE } from '../types'
 import { useTaskStore, getTimeSpentTotal } from '../hooks/useTaskStore';
-import { useClickOutside } from '../hooks/useClickOutside';
 import { ConfirmDialog } from './ConfirmDialog';
 import { highlightText } from '../utils/highlight';
 import { api } from '../utils/api';
@@ -71,9 +71,29 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
   const setFilters = useTaskStore((state) => state.setFilters);
   const [showConfirm, setShowConfirm] = useState(false);
   const [showSnooze, setShowSnooze] = useState(false);
+  const [snoozePos, setSnoozePos] = useState<{ top: number; left: number } | null>(null);
   const [contextMenu, setContextMenu] = useState<{ x: number; y: number } | null>(null);
-  const snoozeRef = useRef<HTMLDivElement>(null);
-  useClickOutside(snoozeRef, () => setShowSnooze(false), showSnooze);
+  const snoozeBtnRef = useRef<HTMLButtonElement>(null);
+  const snoozeMenuRef = useRef<HTMLDivElement>(null);
+
+  useEffect(() => {
+    if (!showSnooze) return;
+    const onDown = (e: MouseEvent) => {
+      const target = e.target as Node;
+      if (snoozeBtnRef.current?.contains(target)) return;
+      if (snoozeMenuRef.current?.contains(target)) return;
+      setShowSnooze(false);
+    };
+    const onKey = (e: KeyboardEvent) => {
+      if (e.key === 'Escape') setShowSnooze(false);
+    };
+    document.addEventListener('mousedown', onDown);
+    document.addEventListener('keydown', onKey);
+    return () => {
+      document.removeEventListener('mousedown', onDown);
+      document.removeEventListener('keydown', onKey);
+    };
+  }, [showSnooze]);
   const priorityLabel = t(PRIORITY_LABEL_KEYS[task.priority]);
   const statusLabel = t(STATUS_LABEL_KEYS[task.status]);
   const categoryMap = categoryMapProp || new Map();
@@ -148,9 +168,11 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
 
   const handleSnooze = async (days: number) => {
     const newDueDate = nextDateStrN(todayStr(), days) + 'T00:00:00.000Z';
+    const label = SNOOZE_PRESETS.find((p) => p.days === days)?.label ?? `${days}天后`;
     try {
       await updateTask(task.id, { dueDate: newDueDate });
       playClickSound();
+      showToast(`已推迟到${label}`, 'success');
     } catch {
       showToast('推迟任务失败', 'error');
     }
@@ -159,27 +181,43 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
 
   const handleSnoozeClick = (e: React.MouseEvent) => {
     e.stopPropagation();
-    setShowSnooze(!showSnooze);
+    if (showSnooze) {
+      setShowSnooze(false);
+      return;
+    }
+    const rect = snoozeBtnRef.current?.getBoundingClientRect();
+    if (rect) {
+      const menuWidth = 148;
+      const left = Math.max(8, Math.min(rect.right - menuWidth, window.innerWidth - menuWidth - 8));
+      const top = Math.min(rect.bottom + 6, window.innerHeight - 220);
+      setSnoozePos({ top, left });
+    }
+    setShowSnooze(true);
   };
 
   const handleCycleStatus = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     const nextStatus = STATUS_CYCLE[task.status];
     if (!nextStatus) return;
     try {
       await moveTask(task.id, nextStatus);
       if (nextStatus === 'done') playCompletionSound(); else playClickSound();
+      showToast(`状态 → ${t(STATUS_LABEL_KEYS[nextStatus])}`, 'success');
     } catch {
       showToast('更新状态失败', 'error');
     }
   };
 
   const handleCyclePriority = async (e: React.MouseEvent) => {
+    e.preventDefault();
     e.stopPropagation();
     const nextPriority = PRIORITY_CYCLE[task.priority];
+    if (!nextPriority) return;
     try {
       await updateTask(task.id, { priority: nextPriority });
       playClickSound();
+      showToast(`优先级 → ${t(PRIORITY_LABEL_KEYS[nextPriority])}`, 'success');
     } catch {
       showToast('更新优先级失败', 'error');
     }
@@ -246,7 +284,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
       <div
         onClick={handleEdit}
         onContextMenu={handleContextMenu}
-        role="button"
+        role="article"
         tabIndex={0}
         aria-label={`${t('todo.task')}: ${task.title}, ${t('taskflow.sort.priority')}: ${priorityLabel}, ${t('taskflow.status.label')}: ${statusLabel}${task.pinned ? `, ${t('taskflow.filter.pinned')}` : ''}${isOverdue ? `, ${t('taskflow.filter.overdue')}` : ''}${isDueSoon ? `, ${t('taskflow.filter.dueSoon')}` : ''}`}
         onKeyDown={(e) => {
@@ -255,11 +293,11 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
             handleEdit();
           }
         }}
-        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-border bg-white/80 p-3.5 shadow-lg shadow-black/5 transition-all before:absolute before:inset-y-4 before:left-0 before:w-1 before:rounded-r-full hover:-translate-y-0.5 hover:border-blue-300/70 hover:shadow-xl hover:shadow-blue-500/10 active:scale-[0.98] dark:border-white/10 dark:bg-white/[0.04] dark:shadow-black/30 dark:hover:border-blue-500/50 ${PRIORITY_BORDER[task.priority]} ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
+        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-border glass-card p-3.5 transition-all before:absolute before:inset-y-4 before:left-0 before:w-1 before:rounded-r-full hover:-translate-y-0.5 hover:border-blue-300/70 active:scale-[0.98] ${PRIORITY_BORDER[task.priority]} ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
       >
         {/* Priority & Category */}
-        <div className="flex items-center justify-between mb-2">
-          <div className="flex items-center gap-1.5">
+        <div className="relative mb-2 flex items-start gap-2">
+          <div className="flex min-w-0 flex-1 flex-wrap items-center gap-1.5">
             <span className={`rounded-full px-2 py-1 text-[11px] font-bold ${PRIORITY_STYLES[task.priority]}`}>
               {priorityLabel}
             </span>
@@ -284,8 +322,14 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
               </span>
             )}
           </div>
-          <div className="flex items-center gap-0.5 rounded-xl border border-border bg-white/80 p-0.5 opacity-0 shadow-sm transition-opacity group-hover:opacity-100 dark:border-white/10 bg-surface/80">
+          {/* Absolute + pointer-events-none when hidden: invisible toolbar was eating clicks / covering tags */}
+          <div
+            className={`absolute right-0 top-0 z-20 flex items-center gap-0.5 rounded-xl border border-border bg-white/95 p-0.5 shadow-sm transition-opacity dark:border-white/10 dark:bg-surface/95 ${showSnooze ? 'pointer-events-auto opacity-100' : 'pointer-events-none opacity-0 group-hover:pointer-events-auto group-hover:opacity-100 focus-within:pointer-events-auto focus-within:opacity-100'}`}
+            onMouseDown={(e) => e.stopPropagation()}
+            onClick={(e) => e.stopPropagation()}
+          >
             <button
+              type="button"
               onClick={handleCycleStatus}
               className="rounded-lg p-1 transition hover:bg-blue-100 dark:hover:bg-blue-900/30"
               aria-label={`${t('taskflow.status.change')}: ${statusLabel}`}
@@ -294,6 +338,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
               <Icon name="refresh" className="w-3.5 h-3.5 text-blue-500" />
             </button>
             <button
+              type="button"
               onClick={handleCyclePriority}
               className="rounded-lg p-1 transition hover:bg-yellow-100 dark:hover:bg-yellow-900/30"
               aria-label={`${t('taskflow.priority.change')}: ${priorityLabel}`}
@@ -301,27 +346,19 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
             >
               <Icon name="lightning" className="w-3.5 h-3.5 text-yellow-500" />
             </button>
-            <div className="relative" ref={snoozeRef}>
+            <div className="relative">
               <button
+                ref={snoozeBtnRef}
+                type="button"
                 onClick={handleSnoozeClick}
-                className="rounded-lg p-1 transition hover:bg-indigo-100 dark:hover:bg-indigo-900/30"
+                className={`rounded-lg p-1 transition hover:bg-indigo-100 dark:hover:bg-indigo-900/30 ${showSnooze ? 'bg-indigo-100 dark:bg-indigo-900/30' : ''}`}
                 aria-label={t('taskflow.task.snooze')}
                 title={t('taskflow.task.snooze')}
+                aria-expanded={showSnooze}
+                aria-haspopup="menu"
               >
                 <Icon name="clock" className="w-3.5 h-3.5 text-indigo-500" />
               </button>
-              {showSnooze && (
-                <div
-                  className="absolute right-0 top-7 z-10 min-w-[140px] rounded-2xl border border-border bg-white p-1.5 shadow-2xl shadow-black/10 dark:border-white/10 bg-surface dark:shadow-black/40"
-                  onClick={(e) => e.stopPropagation()}
-                >
-                  {SNOOZE_PRESETS.map((p) => (
-                    <button key={p.days} onClick={() => handleSnooze(p.days)} className="w-full rounded-xl px-3 py-2 text-left text-xs text-text transition hover:bg-surface-lighter dark:hover:bg-white/10">
-                      {p.label}
-                    </button>
-                  ))}
-                </div>
-              )}
             </div>
             <button
               onClick={handleTogglePin}
@@ -539,6 +576,31 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
           onConfirm={handleDelete}
           onCancel={() => setShowConfirm(false)}
         />
+      )}
+
+      {showSnooze && snoozePos && createPortal(
+        <div
+          ref={snoozeMenuRef}
+          className="fixed z-[80] min-w-[148px] rounded-2xl border border-border bg-white p-1.5 shadow-2xl shadow-black/30 dark:border-white/10 dark:bg-surface dark:shadow-black/60"
+          style={{ top: snoozePos.top, left: snoozePos.left }}
+          role="menu"
+          aria-label={t('taskflow.task.snooze')}
+          onClick={(e) => e.stopPropagation()}
+          onMouseDown={(e) => e.stopPropagation()}
+        >
+          {SNOOZE_PRESETS.map((p) => (
+            <button
+              key={p.days}
+              type="button"
+              role="menuitem"
+              onClick={() => handleSnooze(p.days)}
+              className="w-full rounded-xl px-3 py-2 text-left text-xs text-text transition hover:bg-surface-lighter dark:hover:bg-white/10"
+            >
+              {p.label}
+            </button>
+          ))}
+        </div>,
+        document.body,
       )}
 
       {contextMenu && (

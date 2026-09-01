@@ -52,7 +52,6 @@ const PRIORITY_COLORS: Record<Priority, string> = {
 };
 
 export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
-  const getFilteredTasks = useTaskStore((state) => state.getFilteredTasks);
   const moveTask = useTaskStore((state) => state.moveTask);
   const isLoading = useTaskStore((state) => state.isLoading);
   const filters = useTaskStore((state) => state.filters);
@@ -66,7 +65,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
   const createTask = useTaskStore((state) => state.createTask);
   const updateTask = useTaskStore((state) => state.updateTask);
   const deleteTask = useTaskStore((state) => state.deleteTask);
-  const tasks = useMemo(() => getFilteredTasks(), [getFilteredTasks]);
+  const tasks = useTaskStore((state) => state.getFilteredTasks());
   const searchQuery = filters.search;
   const [editingId, setEditingId] = useState<string | null>(null);
   const [editTitle, setEditTitle] = useState('');

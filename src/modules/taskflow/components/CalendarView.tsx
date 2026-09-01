@@ -38,11 +38,10 @@ interface CalendarViewProps {
 }
 
 export function CalendarView({ onEditTask, onCreateTaskForDate }: CalendarViewProps) {
-  const getFilteredTasks = useTaskStore((state) => state.getFilteredTasks);
   const filters = useTaskStore((state) => state.filters);
   const createTask = useTaskStore((state) => state.createTask);
   const [currentMonth, setCurrentMonth] = useState(new Date());
-  const tasks = useMemo(() => getFilteredTasks(), [getFilteredTasks]);
+  const tasks = useTaskStore((state) => state.getFilteredTasks());
   const searchQuery = filters.search;
 
   const prevMonth = useCallback(() => setCurrentMonth(d => new Date(d.getFullYear(), d.getMonth() - 1, 1)), []);

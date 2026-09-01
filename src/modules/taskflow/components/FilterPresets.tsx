@@ -99,7 +99,7 @@ export function FilterPresets() {
           aria-label="保存筛选预设"
         >
           <div className="absolute inset-0 bg-black/60 backdrop-blur-md" onClick={() => setShowSaveDialog(false)} aria-hidden="true" />
-          <div className="relative w-full max-w-sm rounded-3xl border border-border bg-white p-5 shadow-2xl shadow-black/20 animate-bounce-in dark:border-white/10 dark:bg-[#0d0d0f] dark:shadow-black/60">
+          <div className="relative w-full max-w-sm rounded-3xl border border-border glass-card p-5 shadow-2xl animate-bounce-in">
             <div className="mb-4 flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-500/10 text-blue-500">
                 <Icon name="filter" className="h-4 w-4" />
