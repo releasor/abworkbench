@@ -1,5 +1,6 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Music2, RefreshCw } from 'lucide-react'
+import { useStore } from '../../store'
 
 type MineradioStatus = {
   ok: boolean
@@ -20,12 +21,45 @@ type BridgeRequest = {
   args?: unknown
 }
 
+type EmbedTheme = 'light' | 'dark'
+
+type MineradioWebview = HTMLElement & {
+  executeJavaScript?: (code: string) => Promise<unknown>
+  addEventListener: HTMLElement['addEventListener']
+  removeEventListener: HTMLElement['removeEventListener']
+}
+
+function withEmbedTheme(url: string, theme: EmbedTheme): string {
+  try {
+    const next = new URL(url)
+    next.searchParams.set('theme', theme)
+    return next.toString()
+  } catch {
+    const join = url.includes('?') ? '&' : '?'
+    return `${url}${join}theme=${theme}`
+  }
+}
+
+function themeShellBackground(theme: EmbedTheme): string {
+  return theme === 'light' ? '#f1f5f9' : '#050505'
+}
+
+function applyThemeScript(theme: EmbedTheme): string {
+  return `(function(t){try{if(window.__abwbApplyTheme){window.__abwbApplyTheme(t);return;}var r=document.documentElement;r.dataset.theme=t;r.classList.toggle('abwb-theme-light',t==='light');r.classList.toggle('abwb-theme-dark',t!=='light');if(document.body)document.body.dataset.theme=t;r.style.colorScheme=t;}catch(e){}})(${JSON.stringify(theme)})`
+}
+
 export default function MineradioPage() {
+  const themeMode = useStore((s) => s.themeMode)
+  const embedTheme: EmbedTheme = themeMode === 'light' ? 'light' : 'dark'
   const [status, setStatus] = useState<MineradioStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
   const mountRef = useRef<HTMLDivElement>(null)
   const iframeRef = useRef<HTMLIFrameElement | null>(null)
+  const webviewRef = useRef<MineradioWebview | null>(null)
+  const webviewReadyRef = useRef(false)
+  const embedThemeRef = useRef(embedTheme)
+  embedThemeRef.current = embedTheme
   const useNative = Boolean(status?.preloadPath && status.embedEngine === 'webview-native')
 
   const start = useCallback(async () => {
@@ -59,12 +93,17 @@ export default function MineradioPage() {
     const host = mountRef.current
     if (!host || !status?.url || loading || error) return
 
+    const src = withEmbedTheme(status.url, embedThemeRef.current)
+    const shellBg = themeShellBackground(embedThemeRef.current)
+
     host.replaceChildren()
     iframeRef.current = null
+    webviewRef.current = null
+    webviewReadyRef.current = false
 
     if (useNative) {
-      const el = document.createElement('webview')
-      el.setAttribute('src', status.url)
+      const el = document.createElement('webview') as MineradioWebview
+      el.setAttribute('src', src)
       el.setAttribute('partition', 'persist:abwb-mineradio-embed')
       el.setAttribute('webpreferences', 'contextIsolation=yes, nodeIntegration=no, sandbox=no')
       el.className = 'mineradio-embed__frame'
@@ -73,9 +112,21 @@ export default function MineradioPage() {
       el.style.display = 'flex'
       el.style.flex = '1'
       el.style.border = '0'
-      el.style.background = '#050505'
+      el.style.background = shellBg
+      const onDomReady = () => {
+        if (webviewRef.current !== el) return
+        webviewReadyRef.current = true
+        el.style.background = themeShellBackground(embedThemeRef.current)
+        if (!el.isConnected || !el.executeJavaScript) return
+        void el.executeJavaScript(applyThemeScript(embedThemeRef.current)).catch(() => {})
+      }
+      el.addEventListener('dom-ready', onDomReady)
+      webviewRef.current = el
       host.appendChild(el)
       return () => {
+        el.removeEventListener('dom-ready', onDomReady)
+        webviewReadyRef.current = false
+        webviewRef.current = null
         host.replaceChildren()
       }
     }
@@ -83,13 +134,13 @@ export default function MineradioPage() {
     const frame = document.createElement('iframe')
     frame.title = 'Mineradio'
     frame.className = 'mineradio-embed__frame'
-    frame.src = status.url
+    frame.src = src
     frame.allow = 'autoplay; clipboard-read; clipboard-write; fullscreen'
     frame.style.width = '100%'
     frame.style.height = '100%'
     frame.style.border = '0'
     frame.style.flex = '1'
-    frame.style.background = '#050505'
+    frame.style.background = shellBg
     host.appendChild(frame)
     iframeRef.current = frame
 
@@ -97,7 +148,37 @@ export default function MineradioPage() {
       host.replaceChildren()
       iframeRef.current = null
     }
+    // Intentionally omit embedTheme: live theme sync uses postMessage / executeJavaScript.
+    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once per status/engine
   }, [status, loading, error, useNative])
+
+  useEffect(() => {
+    const shellBg = themeShellBackground(embedTheme)
+
+    if (useNative) {
+      const webview = webviewRef.current
+      if (!webview) return
+      webview.style.background = shellBg
+      // executeJavaScript requires attached DOM + prior dom-ready
+      if (!webviewReadyRef.current || !webview.isConnected || !webview.executeJavaScript) return
+      void webview.executeJavaScript(applyThemeScript(embedTheme)).catch(() => {})
+      return
+    }
+
+    const frame = iframeRef.current
+    if (!frame) return
+    frame.style.background = shellBg
+    const pushTheme = () => {
+      try {
+        frame.contentWindow?.postMessage({ source: 'abwb-theme', theme: embedTheme }, '*')
+      } catch {
+        // ignore
+      }
+    }
+    pushTheme()
+    frame.addEventListener('load', pushTheme)
+    return () => frame.removeEventListener('load', pushTheme)
+  }, [embedTheme, useNative, status, loading, error])
 
   useEffect(() => {
     if (useNative) return
@@ -148,7 +229,7 @@ export default function MineradioPage() {
       <div className="mineradio-embed mineradio-embed--state">
         <Music2 className="w-8 h-8 text-[var(--accent,#00f5d4)] animate-pulse" />
         <p className="text-sm text-[var(--text-secondary)]">正在启动 Mineradio…</p>
-        <p className="text-xs text-[var(--text-muted)]">首次打开可能需要安装依赖，请稍候</p>
+        <p className="text-xs text-[var(--text-muted)]">正在拉起本地音乐服务，稍候即可播放</p>
       </div>
     )
   }
@@ -171,7 +252,7 @@ export default function MineradioPage() {
   }
 
   return (
-    <div className="mineradio-embed">
+    <div className="mineradio-embed" data-embed-theme={embedTheme}>
       {status.mode === 'static' && status.message ? (
         <div className="mineradio-embed__banner" title={status.message}>
           {status.message}

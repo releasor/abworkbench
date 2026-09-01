@@ -7,44 +7,1944 @@ html.abwb-embedded body {
   overflow: hidden;
   background: #050505;
 }
+
+html.abwb-embedded[data-theme="light"],
+html.abwb-embedded[data-theme="light"] body,
+html.abwb-embedded.abwb-theme-light,
+html.abwb-embedded.abwb-theme-light body {
+  background: #f1f5f9;
+  color: #0f172a;
+  color-scheme: light;
+}
+
+html.abwb-embedded[data-theme="light"] {
+  --fc-bg: #f1f5f9;
+  --fc-paper: #ffffff;
+  --fc-ink: #0f172a;
+  --fc-ink-2: #1e293b;
+  --fc-muted: #64748b;
+  --fc-hair: #e2e8f0;
+  --fc-hair-2: #cbd5e1;
+  --fc-accent: #1e40af;
+  --fc-accent-hov: #1e3a8a;
+  --fc-accent-rgb: 30, 64, 175;
+  --home-accent: #1e40af;
+  --home-accent-rgb: 30, 64, 175;
+  --home-icon-color: #1e40af;
+  --home-icon-rgb: 30, 64, 175;
+  --visual-icon-color: #2563eb;
+  --visual-icon-rgb: 37, 99, 235;
+  --glass-bg: linear-gradient(118deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.96) 52%, rgba(241, 245, 249, 0.92));
+  --glass-bg-focus: linear-gradient(118deg, #fff, #f8fafc 50%, #f1f5f9);
+  --glass-border: rgba(15, 23, 42, 0.14);
+  --glass-border-soft: rgba(15, 23, 42, 0.12);
+  --glass-shadow:
+    0 12px 36px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --glass-shadow-focus:
+    0 14px 42px rgba(15, 23, 42, 0.14),
+    0 0 0 1px rgba(30, 64, 175, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  --saved-panel-glass-bg: rgba(255, 255, 255, 0.88);
+  --saved-panel-glass-filter: blur(16px) saturate(1.2) brightness(1.01);
+  --saved-panel-glass-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.9),
+    0 1px 0 rgba(15, 23, 42, 0.04),
+    0 10px 32px rgba(15, 23, 42, 0.1);
+  --saved-button-glass-bg: rgba(241, 245, 249, 0.92);
+  --saved-button-glass-filter: blur(10px) saturate(1.15);
+  --saved-button-glass-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.85),
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 6px 16px rgba(15, 23, 42, 0.08);
+  --saved-button-glass-hover-bg: rgba(226, 232, 240, 0.98);
+  --saved-button-glass-hover-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.95),
+    0 8px 22px rgba(15, 23, 42, 0.12);
+}
+
 html.abwb-embedded #desktop-titlebar,
 body.abwb-embedded #desktop-titlebar,
 html.abwb-embedded body.desktop-shell #desktop-titlebar {
   display: none !important;
 }
+
 html.abwb-embedded #desktop-window-shell,
 body.abwb-embedded #desktop-window-shell,
 html.abwb-embedded body.desktop-shell #desktop-window-shell {
   height: 100vh;
   min-height: 100vh;
   border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
   box-shadow: none !important;
   border: 0 !important;
+  filter: none !important;
   overflow: hidden;
 }
-html.abwb-embedded #empty-home {
-  overflow: visible;
+
+html.abwb-embedded[data-theme="light"] #desktop-window-shell,
+html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell {
+  background: #f1f5f9 !important;
 }
-html.abwb-embedded .empty-home-shell,
+
+
+/* ---- Top chrome: search vs home/account must not collide ---- */
+html.abwb-embedded #search-area {
+  z-index: 20;
+  /* Leave room on the right for home + account pills */
+  --search-offset: 0px;
+  width: min(440px, calc(100vw - 260px));
+}
+
+html.abwb-embedded #search-area.peek,
+html.abwb-embedded body.desktop-shell #search-area.peek {
+  top: 14px;
+}
+
+html.abwb-embedded #search-stack {
+  width: 100%;
+  max-width: 100%;
+}
+
+html.abwb-embedded #search-area:hover,
+html.abwb-embedded #search-area:focus-within,
+html.abwb-embedded #search-area.has-results {
+  z-index: 36;
+}
+
+html.abwb-embedded #top-right,
+html.abwb-embedded body.desktop-shell #top-right {
+  top: 14px;
+  right: 14px;
+  z-index: 34;
+  gap: 8px;
+  align-items: center;
+  flex-wrap: nowrap;
+  max-width: min(220px, 38vw);
+}
+
+html.abwb-embedded #home-btn {
+  flex: 0 0 44px;
+}
+
+html.abwb-embedded #user-btn.multi-account,
+html.abwb-embedded #user-btn.multi-account.external-account-pills {
+  flex-direction: row;
+  align-items: center;
+  max-width: 168px;
+  max-height: none;
+  overflow: hidden;
+}
+
+html.abwb-embedded #user-btn.multi-account.external-account-pills .top-account-pill {
+  width: auto;
+  min-width: 0;
+  max-width: 168px;
+}
+
+html.abwb-embedded #user-btn.multi-account.external-account-pills .top-account-name {
+  max-width: 88px;
+}
+
+html.abwb-embedded #upload-actions {
+  /* Keep upload away from the account cluster in embed */
+  margin-left: 0;
+}
+
+
+/* ---- Home layout: left hero aligns with right column top & bottom ---- */
+html.abwb-embedded #empty-home,
+html.abwb-embedded body.desktop-shell #empty-home,
+html.abwb-embedded body.empty-home-active #empty-home,
+html.abwb-embedded body.desktop-shell.empty-home-active #empty-home,
+html.abwb-embedded body.empty-home-active.controls-visible #empty-home,
+html.abwb-embedded body.desktop-shell.empty-home-active.controls-visible #empty-home {
+  top: 84px;
+  bottom: 122px;
+  overflow: hidden;
+}
+
+html.abwb-embedded #empty-home .empty-home-shell {
+  overflow: hidden;
+  position: relative;
+  z-index: 2;
+  min-height: 0;
+  height: 100%;
+  padding-top: 16px;
+  gap: 12px;
+  grid-template-rows: auto minmax(0, 1fr);
+  align-items: stretch;
+}
+
 html.abwb-embedded .home-grid,
 html.abwb-embedded .home-quick-grid {
   overflow: visible;
   position: relative;
   z-index: 2;
 }
+
+html.abwb-embedded #empty-home .home-grid.home-quick-grid {
+  margin-top: 0;
+  padding-top: 0;
+  align-content: start;
+  align-self: start;
+}
+
+html.abwb-embedded #empty-home .home-hero {
+  grid-row: 1 / span 2;
+  align-self: stretch;
+  height: auto;
+  min-height: 0 !important;
+  margin-top: 0;
+  padding: 0;
+}
+
+html.abwb-embedded body.desktop-shell .home-hero {
+  min-height: 0 !important;
+}
+
+html.abwb-embedded #empty-home .daily-review-card {
+  min-height: 0 !important;
+  height: 100%;
+}
+
+html.abwb-embedded #empty-home .home-insight-rail {
+  align-self: stretch;
+  min-height: 0;
+  height: 100%;
+  overflow: auto;
+  padding-top: 12px;
+  padding-bottom: 0;
+  overscroll-behavior: contain;
+}
+
+/* ---- Embed home: light trim + bottom-aligned dock (match left hero) ---- */
+html.abwb-embedded #empty-home .home-grid.home-quick-grid {
+  gap: 12px;
+}
+
+html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card {
+  min-height: 152px;
+  padding: 19px;
+}
+
+html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured {
+  min-height: 170px;
+}
+
+html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured .home-card-art {
+  width: 118px;
+  height: 118px;
+  right: 19px;
+  bottom: 19px;
+  border-radius: 25px;
+}
+
+html.abwb-embedded #empty-home .home-insight-dock {
+  height: 100%;
+  min-height: 0;
+  gap: 12px;
+  grid-template-columns: minmax(0, 1.12fr) minmax(260px, .88fr);
+  grid-template-rows: auto 1fr auto;
+  align-content: stretch;
+}
+
+html.abwb-embedded #empty-home .home-listen-card {
+  grid-column: 1;
+  grid-row: 1;
+}
+
+html.abwb-embedded #empty-home .home-next-card {
+  grid-column: 2;
+  grid-row: 1;
+}
+
+html.abwb-embedded #empty-home .home-discovery-strip {
+  grid-column: 1 / -1;
+  grid-row: 2;
+  min-height: 0;
+  height: 100%;
+  align-self: stretch;
+  overflow: hidden;
+}
+
+html.abwb-embedded #empty-home .home-ranking-entry:not(.home-radio-entry) {
+  grid-column: 1;
+  grid-row: 3;
+  align-self: end;
+}
+
+html.abwb-embedded #empty-home .home-radio-entry {
+  grid-column: 2;
+  grid-row: 3;
+  align-self: end;
+}
+
+html.abwb-embedded #empty-home .home-insight-card {
+  min-height: 124px;
+}
+
+html.abwb-embedded #empty-home .home-discovery-list {
+  min-height: 0;
+}
+
+html.abwb-embedded #empty-home .home-discovery-song {
+  min-height: 64px;
+  height: auto;
+  max-height: 78px;
+}
+
+html.abwb-embedded #empty-home .home-ranking-entry {
+  min-height: 90px;
+}
+
+@media (max-height: 700px) {
+  html.abwb-embedded #empty-home,
+  html.abwb-embedded body.desktop-shell #empty-home,
+  html.abwb-embedded body.empty-home-active #empty-home,
+  html.abwb-embedded body.desktop-shell.empty-home-active #empty-home {
+    top: 78px;
+    bottom: 126px;
+  }
+
+  html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card {
+    min-height: 140px;
+    padding: 17px;
+  }
+
+  html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured {
+    min-height: 156px;
+  }
+
+  html.abwb-embedded #empty-home .home-insight-card {
+    min-height: 112px;
+  }
+
+  html.abwb-embedded #empty-home .home-ranking-entry {
+    min-height: 84px;
+  }
+}
+
 html.abwb-embedded .home-card {
   position: relative;
   z-index: 2;
 }
+
+
+/* Prefer a slight downward settle instead of lifting into the search bar */
 html.abwb-embedded .home-card:hover,
-html.abwb-embedded .home-card:focus-visible {
-  z-index: 40;
+html.abwb-embedded .home-card:focus-visible,
+html.abwb-embedded body.empty-home-active .home-card:hover {
+  z-index: 28;
+  transform: translateY(2px) !important;
 }
-html.abwb-embedded #search-area {
-  z-index: 5;
+
+html.abwb-embedded body.empty-home-active .home-card {
+  animation: none !important;
 }
-html.abwb-embedded #search-area:hover,
-html.abwb-embedded #search-area:focus-within,
-html.abwb-embedded #search-area.has-results {
-  z-index: 30;
+
+
+/* ---- Light theme surfaces ---- */
+html.abwb-embedded[data-theme="light"] #search-box,
+html.abwb-embedded[data-theme="light"] .glass-saved-panel,
+html.abwb-embedded[data-theme="light"] .glass-saved-button,
+html.abwb-embedded[data-theme="light"] #home-btn,
+html.abwb-embedded[data-theme="light"] #user-btn,
+html.abwb-embedded[data-theme="light"] .top-account-pill,
+html.abwb-embedded[data-theme="light"] #bottom-bar,
+html.abwb-embedded[data-theme="light"] #bottom-bar.visible {
+  color: #0f172a;
 }
+
+html.abwb-embedded[data-theme="light"] #search-input,
+html.abwb-embedded[data-theme="light"] #search-box input,
+html.abwb-embedded[data-theme="light"] #search-box ::placeholder {
+  color: #0f172a;
+}
+
+html.abwb-embedded[data-theme="light"] #search-box ::placeholder {
+  color: #64748b;
+  opacity: 1;
+}
+
+html.abwb-embedded[data-theme="light"] .home-hero {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.92), rgba(248, 250, 252, 0.94) 48%, rgba(241, 245, 249, 0.9));
+  box-shadow:
+    0 18px 48px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+}
+
+html.abwb-embedded[data-theme="light"] .home-hero::before {
+  background:
+    linear-gradient(118deg, rgba(30, 64, 175, 0.06), transparent 28%, rgba(148, 163, 184, 0.08) 62%, transparent 100%),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 0 1px, transparent 1px 48px),
+    linear-gradient(0deg, rgba(15, 23, 42, 0.03) 0 1px, transparent 1px 44px);
+  opacity: 0.9;
+}
+
+html.abwb-embedded[data-theme="light"] .home-card,
+html.abwb-embedded[data-theme="light"] .daily-review-card {
+  border-color: rgba(15, 23, 42, 0.12);
+  background: linear-gradient(142deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.92));
+  box-shadow:
+    0 14px 36px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  color: #0f172a;
+}
+
+/* Rail is a layout shell only — no outer white panel behind the dock cards */
+html.abwb-embedded[data-theme="light"] .home-rail,
+html.abwb-embedded[data-theme="light"] .home-insight-rail,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-rail,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-dock {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-card:hover,
+html.abwb-embedded[data-theme="light"] .home-card:focus-visible {
+  border-color: rgba(30, 64, 175, 0.28);
+  background: linear-gradient(142deg, #ffffff, rgba(241, 245, 249, 0.98));
+  box-shadow:
+    0 18px 44px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 1);
+}
+
+html.abwb-embedded[data-theme="light"] .home-card::before {
+  background:
+    linear-gradient(118deg, color-mix(in srgb, var(--tone-a) 12%, transparent), transparent 38%, color-mix(in srgb, var(--tone-b) 10%, transparent) 74%, transparent),
+    linear-gradient(90deg, rgba(15, 23, 42, 0.04) 0 1px, transparent 1px 38px);
+  opacity: 0.7;
+}
+
+html.abwb-embedded[data-theme="light"] .home-card-title,
+html.abwb-embedded[data-theme="light"] .home-hero-title,
+html.abwb-embedded[data-theme="light"] .home-kicker,
+html.abwb-embedded[data-theme="light"] .home-card-label,
+html.abwb-embedded[data-theme="light"] .home-card-sub,
+html.abwb-embedded[data-theme="light"] .home-hero-sub,
+html.abwb-embedded[data-theme="light"] .top-account-name,
+html.abwb-embedded[data-theme="light"] #track-title,
+html.abwb-embedded[data-theme="light"] #track-artist,
+html.abwb-embedded[data-theme="light"] .track-meta,
+html.abwb-embedded[data-theme="light"] .lyric-line,
+html.abwb-embedded[data-theme="light"] .search-result-item,
+html.abwb-embedded[data-theme="light"] .playlist-item {
+  color: #0f172a;
+}
+
+html.abwb-embedded[data-theme="light"] .home-card-sub,
+html.abwb-embedded[data-theme="light"] .home-hero-sub,
+html.abwb-embedded[data-theme="light"] .home-kicker,
+html.abwb-embedded[data-theme="light"] .home-card-label,
+html.abwb-embedded[data-theme="light"] #track-artist,
+html.abwb-embedded[data-theme="light"] .track-meta {
+  color: #475569;
+}
+
+html.abwb-embedded[data-theme="light"] #bottom-bar,
+html.abwb-embedded[data-theme="light"] #bottom-bar.visible {
+  background: var(--saved-panel-glass-bg);
+  box-shadow: var(--saved-panel-glass-shadow);
+}
+
+html.abwb-embedded[data-theme="light"] .icon-btn,
+html.abwb-embedded[data-theme="light"] .control-btn,
+html.abwb-embedded[data-theme="light"] #home-btn,
+html.abwb-embedded[data-theme="light"] #user-btn,
+html.abwb-embedded[data-theme="light"] .glass-saved-button {
+  color: #0f172a;
+}
+
+html.abwb-embedded[data-theme="light"] .icon-btn:hover,
+html.abwb-embedded[data-theme="light"] .control-btn:hover,
+html.abwb-embedded[data-theme="light"] .glass-saved-button:hover {
+  color: #0f172a;
+  background: var(--saved-button-glass-hover-bg);
+}
+
+html.abwb-embedded[data-theme="light"] .search-results,
+html.abwb-embedded[data-theme="light"] #search-results,
+html.abwb-embedded[data-theme="light"] .fx-panel,
+html.abwb-embedded[data-theme="light"] .modal,
+html.abwb-embedded[data-theme="light"] .login-modal,
+html.abwb-embedded[data-theme="light"] .playlist-panel,
+html.abwb-embedded[data-theme="light"] #playlist-panel,
+html.abwb-embedded[data-theme="light"] .side-panel {
+  background: rgba(255, 255, 255, 0.94);
+  border-color: rgba(15, 23, 42, 0.12);
+  color: #0f172a;
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.12);
+}
+
+html.abwb-embedded[data-theme="light"] .search-result-item:hover,
+html.abwb-embedded[data-theme="light"] .playlist-item:hover,
+html.abwb-embedded[data-theme="light"] .playlist-item.active {
+  background: rgba(226, 232, 240, 0.85);
+}
+
+
+/* ============================================================
+   Deep light theme — home dashboard, player, search, panels
+   ============================================================ */
+
+/* Hide dark wallpaper layers on home — do NOT use display:none on WebGL canvas
+   (breaks context when leaving home). Keep them invisible but mounted. */
+html.abwb-embedded[data-theme="light"] body.empty-home-active #canvas-container,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #custom-bg,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #custom-bg-video,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg.visible,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg-next,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg-next.visible,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #sonic-workshop-layer,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #wallpaper-engine-layer,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #hand-canvas,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #idle-guide-canvas,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #splash-canvas {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] body.empty-home-active #custom-bg::before,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #custom-bg::after {
+  opacity: 0 !important;
+}
+
+html.abwb-embedded[data-theme="light"] body.empty-home-active,
+html.abwb-embedded[data-theme="light"] html.abwb-embedded,
+html.abwb-embedded[data-theme="light"] html.abwb-embedded body {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] body.desktop-shell,
+html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell {
+  background: #f1f5f9 !important;
+}
+
+/* Never paint a body::after wash — #desktop-window-shell uses transform and
+   creates a stacking context, so a body-level overlay would cover all UI. */
+html.abwb-embedded[data-theme="light"] body.empty-home-active::before,
+html.abwb-embedded[data-theme="light"] body.empty-home-active::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ---- Unified flat card surfaces (opaque, no bleed-through) ---- */
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-grid.home-quick-grid .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry,
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-strip,
+html.abwb-embedded[data-theme="light"] #empty-home .home-radio-entry,
+html.abwb-embedded[data-theme="light"] .home-tile,
+html.abwb-embedded[data-theme="light"] .home-hero {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card::before,
+html.abwb-embedded[data-theme="light"] .home-tile::before,
+html.abwb-embedded[data-theme="light"] .home-hero::before,
+html.abwb-embedded[data-theme="light"] .home-hero::after {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-song {
+  background: #f8fafc !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card:focus-visible,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry:hover,
+html.abwb-embedded[data-theme="light"] .home-tile:hover {
+  background: #ffffff !important;
+  border-color: rgba(30, 64, 175, 0.22) !important;
+}
+
+/* ---- Left hero / daily review ---- */
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card {
+  background:
+    radial-gradient(520px 420px at 20% 12%, rgba(30, 64, 175, 0.1), transparent 64%),
+    radial-gradient(360px 320px at 96% 4%, rgba(148, 163, 184, 0.14), transparent 66%),
+    linear-gradient(160deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.94) 52%, rgba(241, 245, 249, 0.92)) !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+  box-shadow:
+    0 18px 48px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card::before {
+  background:
+    linear-gradient(180deg, rgba(255, 255, 255, 0.08), rgba(241, 245, 249, 0.72) 100%),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.035) 0 1px, transparent 1px 42px) !important;
+  opacity: 0.85 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-date,
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-source {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-time,
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-quote {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-actions button {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #334155 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-actions button:hover {
+  background: rgba(226, 232, 240, 0.95) !important;
+  color: #0f172a !important;
+}
+
+/* ---- Quick grid cards (Continue / Library / …) ---- */
+html.abwb-embedded[data-theme="light"] #empty-home .home-grid.home-quick-grid .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: linear-gradient(142deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92)) !important;
+  box-shadow:
+    0 14px 36px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card:focus-visible {
+  border-color: rgba(30, 64, 175, 0.28) !important;
+  background: linear-gradient(142deg, #ffffff, rgba(241, 245, 249, 0.98)) !important;
+  box-shadow:
+    0 18px 44px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-card-label {
+  color: #1e40af !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-card-title,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card-sub {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-card-sub {
+  color: #475569 !important;
+}
+
+/* ---- Insight rail: Listening Today / Next Up / For You ---- */
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: linear-gradient(142deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92)) !important;
+  box-shadow:
+    0 14px 36px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card::before {
+  background:
+    radial-gradient(340px 160px at 4% 0, rgba(30, 64, 175, 0.08), transparent 68%),
+    linear-gradient(112deg, rgba(255, 255, 255, 0.5), transparent 33%, rgba(148, 163, 184, 0.08)) !important;
+  opacity: 0.85 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-kicker {
+  color: #1e40af !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-link {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-link:hover {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-listen-metric + .home-listen-metric {
+  border-left-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-listen-value,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-title,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry-title {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-listen-label,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-sub,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry-sub {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-arrow {
+  background: rgba(226, 232, 240, 0.9) !important;
+  color: #334155 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry:hover {
+  border-color: rgba(30, 64, 175, 0.28) !important;
+  background: linear-gradient(142deg, #ffffff, rgba(241, 245, 249, 0.98)) !important;
+  box-shadow:
+    0 18px 44px rgba(15, 23, 42, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 1) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry-art {
+  background: linear-gradient(145deg, rgba(30, 64, 175, 0.12), rgba(226, 232, 240, 0.85)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry-art i {
+  background: linear-gradient(180deg, #1e40af, rgba(30, 64, 175, 0.45)) !important;
+  box-shadow: none !important;
+}
+
+/* ---- For You tiles ---- */
+html.abwb-embedded[data-theme="light"] .home-tile {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: linear-gradient(145deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.9)) !important;
+  box-shadow:
+    0 12px 32px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-tile::before {
+  background: linear-gradient(135deg, rgba(30, 64, 175, 0.08), transparent 48%, rgba(148, 163, 184, 0.08)) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-tile:hover {
+  border-color: rgba(30, 64, 175, 0.24) !important;
+  background: linear-gradient(145deg, #ffffff, rgba(241, 245, 249, 0.96)) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-tile-title {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-tile-sub {
+  color: #64748b !important;
+}
+
+/* ---- For You / discovery strip ---- */
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-strip {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: linear-gradient(120deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92)) !important;
+  box-shadow:
+    0 14px 36px rgba(15, 23, 42, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-title {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-sub,
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-kicker {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-song {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-song:hover {
+  border-color: rgba(30, 64, 175, 0.24) !important;
+  background: rgba(241, 245, 249, 0.98) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-song-name {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-song-artist {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-radio-entry {
+  background: linear-gradient(142deg, rgba(255, 255, 255, 0.96), rgba(248, 250, 252, 0.92)) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+}
+
+/* ---- Legacy hero layout (if shown) ---- */
+html.abwb-embedded[data-theme="light"] .home-title,
+html.abwb-embedded[data-theme="light"] .home-hero-title {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-sub,
+html.abwb-embedded[data-theme="light"] .home-kicker {
+  color: #475569 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-chip,
+html.abwb-embedded[data-theme="light"] .home-console-chip {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  background: rgba(255, 255, 255, 0.88) !important;
+  color: #334155 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-chip:hover,
+html.abwb-embedded[data-theme="light"] .home-console-chip {
+  border-color: rgba(30, 64, 175, 0.24) !important;
+  background: rgba(226, 232, 240, 0.95) !important;
+  color: #0f172a !important;
+  box-shadow: 0 8px 20px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-weather-pill {
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  background: rgba(255, 255, 255, 0.82) !important;
+  color: #475569 !important;
+}
+
+/* ---- Search chrome ---- */
+html.abwb-embedded[data-theme="light"] #search-box,
+html.abwb-embedded[data-theme="light"] #search-results,
+html.abwb-embedded[data-theme="light"] #search-results.show {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .search-mode-tabs button {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .search-mode-tabs button:hover,
+html.abwb-embedded[data-theme="light"] .search-mode-tabs button.active {
+  color: #0f172a !important;
+  background: rgba(226, 232, 240, 0.85) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .search-result,
+html.abwb-embedded[data-theme="light"] .search-result-title,
+html.abwb-embedded[data-theme="light"] .search-result-meta {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .search-result:hover {
+  background: rgba(226, 232, 240, 0.85) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #search-results::-webkit-scrollbar-thumb,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-rail::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18) !important;
+}
+
+/* ---- Bottom player bar ---- */
+html.abwb-embedded[data-theme="light"] #bottom-bar.visible,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok #bottom-bar.visible {
+  background: rgba(255, 255, 255, 0.88) !important;
+  backdrop-filter: blur(16px) saturate(1.15) brightness(1.02) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.15) brightness(1.02) !important;
+  box-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.95),
+    0 1px 0 rgba(15, 23, 42, 0.04),
+    0 12px 36px rgba(15, 23, 42, 0.12) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .control-title,
+html.abwb-embedded[data-theme="light"] .control-title-text,
+html.abwb-embedded[data-theme="light"] .control-artist,
+html.abwb-embedded[data-theme="light"] #track-title,
+html.abwb-embedded[data-theme="light"] #track-artist {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .control-artist,
+html.abwb-embedded[data-theme="light"] #track-artist {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #progress-bar {
+  background: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: inset 0 1px 1px rgba(255, 255, 255, 0.6) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #progress-bar:hover,
+html.abwb-embedded[data-theme="light"] #progress-bar.is-dragging {
+  background: rgba(15, 23, 42, 0.18) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #progress-fill {
+  background: linear-gradient(90deg, #1e40af, rgba(30, 64, 175, 0.72)) !important;
+  box-shadow: 0 0 10px rgba(30, 64, 175, 0.2) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .icon-btn,
+html.abwb-embedded[data-theme="light"] .control-btn,
+html.abwb-embedded[data-theme="light"] .transport-btn,
+html.abwb-embedded[data-theme="light"] #bottom-bar button {
+  color: #334155 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .icon-btn:hover,
+html.abwb-embedded[data-theme="light"] .control-btn:hover,
+html.abwb-embedded[data-theme="light"] .transport-btn:hover,
+html.abwb-embedded[data-theme="light"] #bottom-bar button:hover {
+  color: #0f172a !important;
+  background: rgba(226, 232, 240, 0.85) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .control-cover.cover-empty {
+  background-image:
+    radial-gradient(circle at 35% 28%, rgba(30, 64, 175, 0.12), transparent 24%),
+    linear-gradient(135deg, rgba(255, 255, 255, 0.9), rgba(241, 245, 249, 0.85)) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.9), 0 6px 16px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #bottom-handle {
+  background: rgba(148, 163, 184, 0.45) !important;
+}
+
+/* ---- Top-right account pills ---- */
+html.abwb-embedded[data-theme="light"] .top-account-pill,
+html.abwb-embedded[data-theme="light"] #user-btn {
+  background: rgba(255, 255, 255, 0.9) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #0f172a !important;
+  box-shadow: 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+}
+
+
+/* ---- Playback / stage view (playing, not on home) ---- */
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active),
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active).desktop-shell,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active).desktop-shell #desktop-window-shell {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #custom-bg {
+  background: #f1f5f9 !important;
+}
+
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #custom-bg::before,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #custom-bg::after {
+  opacity: 0.14 !important;
+  filter: blur(72px) brightness(1.04) saturate(0.72) !important;
+}
+
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg.visible,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg-next,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg-next.visible {
+  filter: blur(96px) brightness(1.06) saturate(0.68) !important;
+  opacity: 0.26 !important;
+}
+
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #sonic-workshop-layer,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #wallpaper-engine-layer,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #hand-canvas,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #idle-guide-canvas {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+/* Lift particle field toward paper; lyric readability handled via lyricBackgroundAdapt in abwb-theme.js */
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #canvas-container {
+  filter: brightness(1.2) saturate(0.8) contrast(0.9) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #bottom-bar.stage-mode,
+html.abwb-embedded[data-theme="light"] #bottom-bar.stage-mode.visible,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #bottom-bar.visible {
+  background: rgba(255, 255, 255, 0.94) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.95),
+    0 0 0 1px rgba(15, 23, 42, 0.06),
+    0 12px 36px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #search-area.stage-mode #search-box,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #search-box {
+  background: rgba(255, 255, 255, 0.94) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04), 0 8px 24px rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #search-input,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #search-box ::placeholder {
+  color: #64748b !important;
+  opacity: 1 !important;
+}
+
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #time-display,
+html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) .control-time {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .stage-lyric-line {
+  background: linear-gradient(180deg, #0f172a 0%, #1e3a8a 52%, #2563eb 100%) !important;
+  -webkit-background-clip: text !important;
+  background-clip: text !important;
+  -webkit-text-fill-color: transparent !important;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* ---- Splash / startup (light) ---- */
+html.abwb-embedded[data-theme="light"] #splash {
+  background: #f1f5f9;
+  box-shadow: inset 0 0 160px rgba(148, 163, 184, 0.22);
+}
+
+html.abwb-embedded[data-theme="light"] #splash::before {
+  background:
+    linear-gradient(115deg, transparent 0%, rgba(30, 64, 175, 0.06) 24%, transparent 42%, rgba(180, 83, 9, 0.05) 62%, transparent 82%),
+    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.035) 0 1px, transparent 1px 54px),
+    repeating-linear-gradient(0deg, rgba(15, 23, 42, 0.025) 0 1px, transparent 1px 46px),
+    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 42%, #e2e8f0 100%);
+  opacity: 0.95;
+}
+
+html.abwb-embedded[data-theme="light"] #splash::after {
+  background:
+    linear-gradient(90deg, rgba(241, 245, 249, 0.9), transparent 21%, transparent 79%, rgba(241, 245, 249, 0.9)),
+    linear-gradient(180deg, rgba(241, 245, 249, 0.72), transparent 32%, transparent 64%, rgba(226, 232, 240, 0.8));
+}
+
+html.abwb-embedded[data-theme="light"] .splash-bg-noise {
+  opacity: 0.05;
+  mix-blend-mode: multiply;
+}
+
+html.abwb-embedded[data-theme="light"] .splash-wordmark {
+  color: #0f172a;
+  text-shadow: 0 12px 36px rgba(15, 23, 42, 0.12);
+  filter: none;
+}
+
+html.abwb-embedded[data-theme="light"] .splash-word-mine {
+  text-shadow:
+    -1px 0 0 rgba(185, 28, 28, 0.18),
+    1px 0 0 rgba(30, 64, 175, 0.14),
+    0 14px 40px rgba(15, 23, 42, 0.12);
+}
+
+html.abwb-embedded[data-theme="light"] .splash-word-radio {
+  background: linear-gradient(94deg, #334155, #0f172a 26%, #1e40af 48%, #0f766e 68%, #334155);
+  background-size: 300% 100%;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  -webkit-text-fill-color: transparent;
+  text-shadow: none;
+}
+
+html.abwb-embedded[data-theme="light"] .splash-word-i::before {
+  background: linear-gradient(180deg, #1e40af 0%, #1e3a8a 100%);
+  box-shadow: 0 0 10px rgba(30, 64, 175, 0.2);
+}
+
+html.abwb-embedded[data-theme="light"] .splash-word-i::after {
+  background: #1e40af;
+  box-shadow: 0 0 12px rgba(30, 64, 175, 0.35);
+}
+
+html.abwb-embedded[data-theme="light"] .splash-word-o {
+  color: #b45309;
+  -webkit-text-fill-color: #b45309;
+}
+
+html.abwb-embedded[data-theme="light"] .splash-signal-line {
+  background: linear-gradient(90deg, transparent, rgba(30, 64, 175, 0.28), rgba(15, 23, 42, 0.55), rgba(180, 83, 9, 0.4), transparent);
+  box-shadow: 0 0 12px rgba(30, 64, 175, 0.15);
+}
+
+html.abwb-embedded[data-theme="light"] .splash-signal-line::after {
+  background: #1e40af;
+  box-shadow: 0 0 16px rgba(30, 64, 175, 0.35);
+}
+
+html.abwb-embedded[data-theme="light"] .splash-sub {
+  color: rgba(71, 85, 105, 0.85);
+}
+
+html.abwb-embedded[data-theme="light"] .splash-enter {
+  color: rgba(30, 41, 59, 0.78);
+  text-shadow: none;
+}
+
+html.abwb-embedded[data-theme="light"] #splash-canvas {
+  opacity: 0.22;
+  mix-blend-mode: multiply;
+}
+
+
+/* ---- Final pass: flat unified light home (wins over gradient rules above) ---- */
+html.abwb-embedded[data-theme="light"] body.empty-home-active::before,
+html.abwb-embedded[data-theme="light"] body.empty-home-active::after {
+  content: none !important;
+  display: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg.visible,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg-next,
+html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg-next.visible {
+  opacity: 0 !important;
+  visibility: hidden !important;
+  pointer-events: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-grid.home-quick-grid .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry,
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-strip,
+html.abwb-embedded[data-theme="light"] #empty-home .home-radio-entry,
+html.abwb-embedded[data-theme="light"] .home-tile,
+html.abwb-embedded[data-theme="light"] .home-hero,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card:focus-visible,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry:hover,
+html.abwb-embedded[data-theme="light"] .home-tile:hover {
+  background: #ffffff !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card::before,
+html.abwb-embedded[data-theme="light"] .home-tile::before,
+html.abwb-embedded[data-theme="light"] .home-hero::before,
+html.abwb-embedded[data-theme="light"] .home-hero::after {
+  opacity: 0 !important;
+  display: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-song {
+  background: #f8fafc !important;
+}
+
+/* ---- Embed light: single card chrome (no double shadow from hero + daily-review) ---- */
+html.abwb-embedded[data-theme="light"] #empty-home .home-hero {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 6px 20px rgba(15, 23, 42, 0.05) !important;
+  filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card::before {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card:hover {
+  filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card:hover::before {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-grid.home-quick-grid .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry,
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-strip,
+html.abwb-embedded[data-theme="light"] .home-tile {
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow:
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 6px 20px rgba(15, 23, 42, 0.05) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .home-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card:hover,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry:hover,
+html.abwb-embedded[data-theme="light"] .home-tile:hover {
+  box-shadow: none !important;
+  border-color: rgba(30, 64, 175, 0.18) !important;
+}
+
+/* ---- Seamless canvas: flat page + hairline cards (no shadow bands) ---- */
+html.abwb-embedded[data-theme="light"],
+html.abwb-embedded[data-theme="light"] body,
+html.abwb-embedded[data-theme="light"] body.desktop-shell,
+html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell,
+html.abwb-embedded[data-theme="light"] body.empty-home-active,
+html.abwb-embedded[data-theme="light"] #empty-home {
+  background: #f1f5f9 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #search-box,
+html.abwb-embedded[data-theme="light"] #search-results,
+html.abwb-embedded[data-theme="light"] #search-results.show,
+html.abwb-embedded[data-theme="light"] #home-btn,
+html.abwb-embedded[data-theme="light"] #user-btn,
+html.abwb-embedded[data-theme="light"] .top-account-pill {
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #bottom-bar.visible,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok #bottom-bar.visible {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.9),
+    0 -1px 0 rgba(15, 23, 42, 0.06) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-grid.home-quick-grid .home-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-next-card,
+html.abwb-embedded[data-theme="light"] #empty-home .home-ranking-entry,
+html.abwb-embedded[data-theme="light"] #empty-home .home-discovery-strip,
+html.abwb-embedded[data-theme="light"] .home-tile {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.07) !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-card::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-insight-card::before,
+html.abwb-embedded[data-theme="light"] .home-tile::before {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+/* ---- Playlist / queue panel: light theme + stable compositing (no edge flicker) ---- */
+html.abwb-embedded[data-theme="light"] #playlist-panel,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok #playlist-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  contain: none !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel.pinned {
+  border-color: rgba(30, 64, 175, 0.22) !important;
+  box-shadow: 0 0 0 1px rgba(30, 64, 175, 0.1) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .playlist-panel-sticky {
+  background: #ffffff !important;
+  border: 0 !important;
+  border-bottom: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .playlist-panel-sticky::after {
+  display: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .playlist-panel-sticky .fx-title {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .playlist-panel-sticky .fx-sub {
+  color: #64748b !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-toolbar {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .panel-tab {
+  background: #f1f5f9 !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  color: #64748b !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .panel-tab.active {
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-chip {
+  background: #f1f5f9 !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  color: #475569 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-item,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-card,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-detail-row,
+html.abwb-embedded[data-theme="light"] #playlist-panel .fx-mini-btn,
+html.abwb-embedded[data-theme="light"] #playlist-panel .song-action-btn,
+html.abwb-embedded[data-theme="light"] #playlist-panel .qi-act button {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0f172a !important;
+  will-change: auto !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-item:hover,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-card:hover,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-detail-row:hover {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-item.now,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-card.expanded {
+  background: #eff6ff !important;
+  border-color: rgba(30, 64, 175, 0.28) !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-card.expanded::before {
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-card.podcast-card,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-card.podcast-card:hover,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-card.podcast-child {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-name,
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-item .qi-title,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-detail-row .pl-name {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-sub,
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-item .qi-sub,
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-detail-row .pl-sub {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .pl-section-label {
+  color: #1e40af !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-hydration-status,
+html.abwb-embedded[data-theme="light"] #playlist-panel .playlist-catalog-status {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-hydration-spinner {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  border-top-color: #1e40af !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .queue-hydration-retry {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel .fx-mini-btn.active,
+html.abwb-embedded[data-theme="light"] #playlist-panel .fx-mini-btn.ghost.active,
+html.abwb-embedded[data-theme="light"] #playlist-panel .playlist-pin-btn.active {
+  background: #dbeafe !important;
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #playlist-panel::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18) !important;
+}
+
+/* ============================================================
+   All popups / modals / panels — embed light theme (final pass)
+   ============================================================ */
+
+/* ---- Modal scrim + shell ---- */
+html.abwb-embedded[data-theme="light"] .modal-mask {
+  background: rgba(15, 23, 42, 0.38) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok .modal,
+html.abwb-embedded[data-theme="light"] .dual-login-modal,
+html.abwb-embedded[data-theme="light"] .dual-user-modal,
+html.abwb-embedded[data-theme="light"] .collect-modal,
+html.abwb-embedded[data-theme="light"] .local-beat-modal,
+html.abwb-embedded[data-theme="light"] .custom-lyric-modal,
+html.abwb-embedded[data-theme="light"] .track-detail-modal,
+html.abwb-embedded[data-theme="light"] .update-modal,
+html.abwb-embedded[data-theme="light"] .cover-crop-modal,
+html.abwb-embedded[data-theme="light"] .background-crop-modal,
+html.abwb-embedded[data-theme="light"] .wallpaper-engine-library-modal,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-modal,
+html.abwb-embedded[data-theme="light"] .audio-output-workflow-modal {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04), 0 24px 64px rgba(15, 23, 42, 0.14) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #login-modal.login-easter-egg-locked .dual-login-modal {
+  background: #ffffff !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal h2,
+html.abwb-embedded[data-theme="light"] .modal h3,
+html.abwb-embedded[data-theme="light"] .modal .fx-title,
+html.abwb-embedded[data-theme="light"] .update-title {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal .desc,
+html.abwb-embedded[data-theme="light"] .modal p,
+html.abwb-embedded[data-theme="light"] .modal label,
+html.abwb-embedded[data-theme="light"] .update-version,
+html.abwb-embedded[data-theme="light"] .collect-sub,
+html.abwb-embedded[data-theme="light"] .collect-title {
+  color: #475569 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal .desc b,
+html.abwb-embedded[data-theme="light"] .collect-title {
+  color: #0f172a !important;
+}
+
+/* ---- Modal / panel buttons ---- */
+html.abwb-embedded[data-theme="light"] .modal-btn,
+html.abwb-embedded[data-theme="light"] .fx-mini-btn,
+html.abwb-embedded[data-theme="light"] .fx-toggle,
+html.abwb-embedded[data-theme="light"] .fx-seg button,
+html.abwb-embedded[data-theme="light"] .preset-card,
+html.abwb-embedded[data-theme="light"] .lyric-color-row,
+html.abwb-embedded[data-theme="light"] .quality-option,
+html.abwb-embedded[data-theme="light"] .search-mode-tabs button,
+html.abwb-embedded[data-theme="light"] .visual-guide-actions button,
+html.abwb-embedded[data-theme="light"] .home-chip,
+html.abwb-embedded[data-theme="light"] .local-beat-tab,
+html.abwb-embedded[data-theme="light"] .search-history-chip,
+html.abwb-embedded[data-theme="light"] .search-result .add-btn,
+html.abwb-embedded[data-theme="light"] .song-action-btn,
+html.abwb-embedded[data-theme="light"] .mini-queue-remove,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-tabs button,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-actions button,
+html.abwb-embedded[data-theme="light"] .collect-create button,
+html.abwb-embedded[data-theme="light"] .collect-item,
+html.abwb-embedded[data-theme="light"] .lyric-timing-actions button {
+  background: #f1f5f9 !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #334155 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal-btn:hover,
+html.abwb-embedded[data-theme="light"] .fx-mini-btn:hover,
+html.abwb-embedded[data-theme="light"] .preset-card:hover,
+html.abwb-embedded[data-theme="light"] .search-mode-tabs button:hover,
+html.abwb-embedded[data-theme="light"] .collect-item:hover {
+  background: #e2e8f0 !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal-btn.primary,
+html.abwb-embedded[data-theme="light"] #visual-guide-next.primary,
+html.abwb-embedded[data-theme="light"] .visual-guide-actions button.primary,
+html.abwb-embedded[data-theme="light"] .search-mode-tabs button.active,
+html.abwb-embedded[data-theme="light"] .preset-card.active,
+html.abwb-embedded[data-theme="light"] .fx-toggle.on,
+html.abwb-embedded[data-theme="light"] .local-beat-tab.active,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-tabs button.active {
+  background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.22) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal-btn.primary:hover {
+  filter: brightness(1.05);
+  color: #ffffff !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal input,
+html.abwb-embedded[data-theme="light"] .modal textarea,
+html.abwb-embedded[data-theme="light"] #collect-new-name,
+html.abwb-embedded[data-theme="light"] .collect-create input,
+html.abwb-embedded[data-theme="light"] .qq-cookie-panel textarea,
+html.abwb-embedded[data-theme="light"] .color-lab-hex {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.14) !important;
+  color: #0f172a !important;
+  box-shadow: inset 0 1px 2px rgba(15, 23, 42, 0.04) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .modal input::placeholder,
+html.abwb-embedded[data-theme="light"] .modal textarea::placeholder {
+  color: #94a3b8 !important;
+}
+
+/* ---- Login modal ---- */
+html.abwb-embedded[data-theme="light"] .login-node-providers.login-platform-tabs button,
+html.abwb-embedded[data-theme="light"] .login-mode-node,
+html.abwb-embedded[data-theme="light"] .workflow-node {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] .login-node-providers.login-platform-tabs button:hover,
+html.abwb-embedded[data-theme="light"] .login-mode-node:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .login-node-providers.login-platform-tabs button.active,
+html.abwb-embedded[data-theme="light"] .login-mode-node.active {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+  box-shadow: none !important;
+  color: #1e3a8a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .login-node-providers.login-platform-tabs button b,
+html.abwb-embedded[data-theme="light"] .login-mode-node b {
+  color: inherit !important;
+}
+
+html.abwb-embedded[data-theme="light"] .login-provider-sort-handle {
+  background: #f1f5f9 !important;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.08) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .login-provider-sort-handle i {
+  background: #64748b !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] .qq-cookie-panel {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #user-modal-vip {
+  color: #475569 !important;
+}
+
+/* ---- Collect / crop / detail modals ---- */
+html.abwb-embedded[data-theme="light"] .collect-current,
+html.abwb-embedded[data-theme="light"] .collect-item,
+html.abwb-embedded[data-theme="light"] .local-beat-track,
+html.abwb-embedded[data-theme="light"] .custom-lyric-track,
+html.abwb-embedded[data-theme="light"] .track-detail-body,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-item {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  color: #0f172a !important;
+}
+
+/* ---- Platform recommend modal (embed light) ---- */
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-head p {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-close {
+  background: #f1f5f9 !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  color: #334155 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-close:hover {
+  background: #e2e8f0 !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-tabs button,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-actions button {
+  background: #f1f5f9 !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  color: #334155 !important;
+  font-weight: 700 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-tabs button:hover,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-actions button:hover {
+  background: #e2e8f0 !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-tabs button.active,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-tabs button[aria-selected="true"] {
+  background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.22) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #home-platform-recommend-done {
+  background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+  border-color: #1e40af !important;
+  color: #ffffff !important;
+  box-shadow: 0 6px 18px rgba(37, 99, 235, 0.22) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #home-platform-recommend-done:hover {
+  filter: brightness(1.05);
+  color: #ffffff !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-status {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-status.is-error {
+  color: #b45309 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-list h3 {
+  color: #475569 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-card {
+  background: #f8fafc !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-card:hover {
+  background: #f1f5f9 !important;
+  border-color: rgba(30, 64, 175, 0.28) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-label {
+  color: #1e40af !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-copy strong {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-copy small {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-arrow {
+  color: #94a3b8 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-empty,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-loading {
+  border-color: rgba(15, 23, 42, 0.12) !important;
+  color: #475569 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-empty strong {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-empty span,
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-loading {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-list {
+  scrollbar-color: rgba(15, 23, 42, 0.18) transparent;
+}
+
+html.abwb-embedded[data-theme="light"] .home-platform-recommend-list::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .cover-crop-stage {
+  background: #e2e8f0 !important;
+  box-shadow: inset 0 0 0 1px rgba(15, 23, 42, 0.1) !important;
+}
+
+/* ---- FX console panel ---- */
+html.abwb-embedded[data-theme="light"] #fx-panel,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok #fx-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04), 0 16px 48px rgba(15, 23, 42, 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-title,
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-sub,
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-section-label,
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-color-row-label,
+html.abwb-embedded[data-theme="light"] #fx-panel .preset-card .pc-name,
+html.abwb-embedded[data-theme="light"] #fx-panel .preset-card .pc-desc {
+  color: #0f172a !important;
+  text-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-sub,
+html.abwb-embedded[data-theme="light"] #fx-panel .preset-card .pc-desc {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-fold,
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-console-toolbar,
+html.abwb-embedded[data-theme="light"] #fx-panel .fx-slider {
+  background: #f8fafc !important;
+  border-color: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #fx-panel::-webkit-scrollbar-thumb {
+  background: rgba(15, 23, 42, 0.18) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #fx-fab {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  color: #334155 !important;
+  box-shadow: 0 4px 16px rgba(15, 23, 42, 0.08) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #fx-fab:hover,
+html.abwb-embedded[data-theme="light"] #fx-fab.active {
+  background: #eff6ff !important;
+  border-color: #93c5fd !important;
+  color: #1e3a8a !important;
+}
+
+/* ---- Floating panels / popovers ---- */
+html.abwb-embedded[data-theme="light"] #search-results,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok #search-results,
+html.abwb-embedded[data-theme="light"] .search-mode-tabs,
+html.abwb-embedded[data-theme="light"] .mini-queue-popover,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok .mini-queue-popover,
+html.abwb-embedded[data-theme="light"] .volume-popover,
+html.abwb-embedded[data-theme="light"] .quality-popover,
+html.abwb-embedded[data-theme="light"] .lyric-timing-popover,
+html.abwb-embedded[data-theme="light"] .control-source-switcher,
+html.abwb-embedded[data-theme="light"] .cover-color-pop,
+html.abwb-embedded[data-theme="light"] .color-lab-pop,
+html.abwb-embedded[data-theme="light"] .upload-panel,
+html.abwb-embedded[data-theme="light"] .glass-saved-panel {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 0 0 1px rgba(15, 23, 42, 0.04), 0 12px 36px rgba(15, 23, 42, 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .mini-queue-title,
+html.abwb-embedded[data-theme="light"] .mini-queue-name,
+html.abwb-embedded[data-theme="light"] .lyric-timing-head strong,
+html.abwb-embedded[data-theme="light"] .color-lab-head span {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .mini-queue-count,
+html.abwb-embedded[data-theme="light"] .mini-queue-sub,
+html.abwb-embedded[data-theme="light"] .lyric-timing-head span,
+html.abwb-embedded[data-theme="light"] .lyric-timing-song,
+html.abwb-embedded[data-theme="light"] .cover-color-hint {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .mini-queue-item {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.08) !important;
+  box-shadow: none !important;
+  will-change: auto !important;
+}
+
+html.abwb-embedded[data-theme="light"] .mini-queue-item:hover {
+  background: #f8fafc !important;
+}
+
+html.abwb-embedded[data-theme="light"] .mini-queue-item.now {
+  background: #eff6ff !important;
+  border-color: rgba(30, 64, 175, 0.28) !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] .mini-queue-item.now .mini-queue-name {
+  color: #1e3a8a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .search-result,
+html.abwb-embedded[data-theme="light"] .search-result-title,
+html.abwb-embedded[data-theme="light"] .search-result-meta {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .search-result:hover {
+  background: #f8fafc !important;
+}
+
+/* ---- Toast / tips / banners ---- */
+html.abwb-embedded[data-theme="light"] #toast,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok #toast,
+html.abwb-embedded[data-theme="light"] #upload-tip,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok #upload-tip,
+html.abwb-embedded[data-theme="light"] #cuefield-feedback,
+html.abwb-embedded[data-theme="light"] #trial-banner,
+html.abwb-embedded[data-theme="light"] #source-fallback-notice,
+html.abwb-embedded[data-theme="light"] #ai-depth-chip,
+html.abwb-embedded[data-theme="light"] #beat-chip {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.1) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #upload-tip::before {
+  background: #ffffff !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .upload-tip-title,
+html.abwb-embedded[data-theme="light"] .cuefield-feedback-kicker {
+  color: #1e40af !important;
+}
+
+html.abwb-embedded[data-theme="light"] .upload-tip-close {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] .upload-tip-close:hover {
+  background: #f1f5f9 !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] #trial-banner .login-link {
+  color: #1e40af !important;
+}
+
+/* ---- Visual guide overlay ---- */
+html.abwb-embedded[data-theme="light"] .visual-guide-scrim {
+  background: rgba(15, 23, 42, 0.32) !important;
+}
+
+html.abwb-embedded[data-theme="light"] .visual-guide-card,
+html.abwb-embedded[data-theme="light"] html.control-glass-svg-ok .visual-guide-card {
+  background: #ffffff !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 16px 48px rgba(15, 23, 42, 0.12) !important;
+  backdrop-filter: none !important;
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .visual-guide-kicker {
+  color: #1e40af !important;
+}
+
+html.abwb-embedded[data-theme="light"] .visual-guide-title,
+html.abwb-embedded[data-theme="light"] .visual-guide-body {
+  color: #0f172a !important;
+}
+
+html.abwb-embedded[data-theme="light"] .visual-guide-hint,
+html.abwb-embedded[data-theme="light"] .visual-guide-progress {
+  color: #64748b !important;
+}
+
+html.abwb-embedded[data-theme="light"] #drop-overlay {
+  background: rgba(15, 23, 42, 0.28) !important;
+}
+
+html.abwb-embedded[data-theme="light"] #drop-overlay .drop-text {
+  background: #ffffff !important;
+  color: #0f172a !important;
+  border: 1px solid rgba(15, 23, 42, 0.1) !important;
+  box-shadow: 0 12px 36px rgba(15, 23, 42, 0.1) !important;
+}
+
+@media (max-width: 980px) {
+  html.abwb-embedded #search-area {
+    width: min(360px, calc(100vw - 220px));
+  }
+
+  html.abwb-embedded #top-right,
+  html.abwb-embedded body.desktop-shell #top-right {
+    max-width: min(200px, 42vw);
+  }
+}
+
+@media (max-width: 720px) {
+  html.abwb-embedded #search-area {
+    width: min(280px, calc(100vw - 168px));
+  }
+
+  html.abwb-embedded #empty-home .empty-home-shell {
+    padding-top: 16px;
+  }
+}
+

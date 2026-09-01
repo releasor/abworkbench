@@ -119,17 +119,60 @@ function findOpenPort(start = 37100): Promise<number> {
   })
 }
 
-function waitForHttp(port: number, timeoutMs = 45000): Promise<void> {
+function summarizeServerLog(text: string): string {
+  const lines = text
+    .split(/\r?\n/)
+    .map((line) => line.trim())
+    .filter(Boolean)
+  if (!lines.length) return ''
+  const interesting = lines.filter((line) =>
+    /error|cannot find module|enoent|eaddrinuse|not allowed|thrown|typeerror|referenceerror/i.test(
+      line,
+    ),
+  )
+  const picked = (interesting.length ? interesting : lines).slice(-6)
+  return picked.join(' | ').slice(0, 500)
+}
+
+function appendServerLog(filePath: string, chunk: string) {
+  try {
+    fs.appendFileSync(filePath, chunk, 'utf8')
+  } catch {
+    // ignore
+  }
+}
+
+function waitForHttp(
+  port: number,
+  options: {
+    timeoutMs?: number
+    isDead?: () => boolean
+    getLog?: () => string
+  } = {},
+): Promise<void> {
+  const timeoutMs = options.timeoutMs ?? 45000
   const started = Date.now()
   return new Promise((resolve, reject) => {
+    const fail = (reason: string) => {
+      const detail = summarizeServerLog(options.getLog?.() || '')
+      reject(new Error(detail ? `${reason} (${detail})` : reason))
+    }
     const tick = () => {
+      if (options.isDead?.()) {
+        fail('Mineradio server exited before becoming ready')
+        return
+      }
       const req = http.get({ host: '127.0.0.1', port, path: '/', timeout: 2000 }, (res) => {
         res.resume()
         resolve()
       })
       req.on('error', () => {
+        if (options.isDead?.()) {
+          fail('Mineradio server exited before becoming ready')
+          return
+        }
         if (Date.now() - started > timeoutMs) {
-          reject(new Error('Mineradio server did not become ready in time'))
+          fail('Mineradio server did not become ready in time')
           return
         }
         setTimeout(tick, 400)
@@ -171,7 +214,7 @@ function startStaticServer(root: string, port: number): Promise<http.Server> {
       try {
         const rawUrl = req.url || '/'
         const pathname = decodeURIComponent(rawUrl.split('?')[0] || '/')
-        let rel = pathname === '/' ? '/index.html' : pathname
+        const rel = pathname === '/' ? '/index.html' : pathname
         if (rel.includes('..')) {
           res.writeHead(400)
           res.end('Bad request')
@@ -308,38 +351,82 @@ function mineradioServerCwd(root: string, preferSystemNode: boolean): string {
   return preferSystemNode ? root : path.dirname(process.execPath)
 }
 
+function mineradioServerLogPath(): string {
+  return path.join(mineradioDataDir(), 'server.log')
+}
+
 async function startFullServer(root: string, port: number): Promise<void> {
   stopChild()
   const preferSystemNode = Boolean(process.env.MINERADIO_NODE)
   const nodeBin = process.env.MINERADIO_NODE || process.execPath
   const serverScript = path.join(root, 'server.js')
+  const runnerScript = path.join(root, 'abwb-server-runner.cjs')
+  if (!fs.existsSync(serverScript)) {
+    throw new Error(`Mineradio server.js missing: ${serverScript}`)
+  }
+  if (!fs.existsSync(runnerScript)) {
+    throw new Error(`Mineradio abwb-server-runner.cjs missing: ${runnerScript}`)
+  }
+
   const env: NodeJS.ProcessEnv = {
     ...process.env,
     PORT: String(port),
     HOST: '127.0.0.1',
   }
+  // Avoid leaking parent Chromium/Electron switches into the Node-mode child.
+  delete env.ELECTRON_NO_ATTACH_CONSOLE
+  delete env.ELECTRON_FORCE_WINDOW_MENU_BARS
   if (!preferSystemNode) {
     env.ELECTRON_RUN_AS_NODE = '1'
   } else {
     delete env.ELECTRON_RUN_AS_NODE
   }
 
-  let stderr = ''
-  child = spawn(nodeBin, [serverScript], {
-    cwd: mineradioServerCwd(root, preferSystemNode),
+  const cwd = mineradioServerCwd(root, preferSystemNode)
+  const logPath = mineradioServerLogPath()
+  try {
+    fs.writeFileSync(
+      logPath,
+      `[abwb] start ${new Date().toISOString()} port=${port}\nnodeBin=${nodeBin}\nrunner=${runnerScript}\nscript=${serverScript}\ncwd=${cwd}\n\n`,
+      'utf8',
+    )
+  } catch {
+    // ignore
+  }
+
+  let output = ''
+  let exited = false
+  let exitCode: number | null = null
+
+  // Runner stubs require('electron') so qishui-auth can load in ELECTRON_RUN_AS_NODE.
+  child = spawn(nodeBin, [runnerScript, serverScript], {
+    cwd,
     env: mineradioProcessEnv(root, env),
     stdio: ['ignore', 'pipe', 'pipe'],
     windowsHide: true,
     shell: false,
   })
 
-  child.stderr?.on('data', (chunk) => {
+  const onChunk = (chunk: Buffer | string) => {
     const text = String(chunk)
-    stderr += text
-    console.warn('[Mineradio server]', text.trim())
+    output += text
+    if (output.length > 80_000) output = output.slice(-60_000)
+    appendServerLog(logPath, text)
+    const trimmed = text.trim()
+    if (trimmed) console.warn('[Mineradio server]', trimmed)
+  }
+  child.stdout?.on('data', onChunk)
+  child.stderr?.on('data', onChunk)
+
+  child.on('error', (error) => {
+    exited = true
+    output += `\n[abwb] spawn error: ${error.message}\n`
+    appendServerLog(logPath, `\n[abwb] spawn error: ${error.message}\n`)
   })
 
-  child.on('exit', () => {
+  child.on('exit', (code) => {
+    exited = true
+    exitCode = code
     if (activeMode === 'full' && activePort === port) {
       activePort = 0
       activeMode = null
@@ -348,16 +435,15 @@ async function startFullServer(root: string, port: number): Promise<void> {
   })
 
   try {
-    await waitForHttp(port)
+    await waitForHttp(port, {
+      timeoutMs: 45000,
+      isDead: () => exited,
+      getLog: () => output,
+    })
   } catch (error) {
     stopChild()
-    const tail = stderr.trim().split(/\r?\n/).slice(-2).join(' ').trim()
-    if (tail) {
-      throw new Error(
-        `${error instanceof Error ? error.message : 'Mineradio server failed'} (${tail})`,
-      )
-    }
-    throw error
+    const base = error instanceof Error ? error.message : 'Mineradio server failed'
+    throw new Error(`${base} [exit=${exitCode ?? 'n/a'}] log=${logPath}`, { cause: error })
   }
 }
 

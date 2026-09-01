@@ -26,8 +26,10 @@ const SKIP_NAMES = new Set([
 
 const PRESERVE_RELATIVE = [
   'public/js/abwb-desktop-bridge.js',
+  'public/js/abwb-theme.js',
   'public/js/modules/08-account/00-login-easter-egg.js',
   'public/css/abwb-embed.css',
+  'abwb-server-runner.cjs',
 ]
 
 function findSource() {
@@ -144,6 +146,13 @@ function ensureAbwbIndexHooks() {
     html = html.replace(
       '<script src="js/preload-mode.js"></script>',
       '<script src="js/preload-mode.js"></script>\n  <script src="js/abwb-desktop-bridge.js"></script>',
+    )
+    changed = true
+  }
+  if (!html.includes('js/abwb-theme.js')) {
+    html = html.replace(
+      '<script src="js/abwb-desktop-bridge.js"></script>',
+      '<script src="js/abwb-desktop-bridge.js"></script>\n  <script src="js/abwb-theme.js"></script>',
     )
     changed = true
   }

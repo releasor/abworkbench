@@ -40,6 +40,12 @@ src = src.replace(
     if (params.get('embedded') === '1') {
       document.documentElement.classList.add('abwb-embedded');
       document.body.classList.add('abwb-embedded');
+      const theme = params.get('theme') === 'light' ? 'light' : 'dark';
+      document.documentElement.dataset.theme = theme;
+      document.body.dataset.theme = theme;
+      document.documentElement.classList.toggle('abwb-theme-light', theme === 'light');
+      document.documentElement.classList.toggle('abwb-theme-dark', theme === 'dark');
+      try { document.documentElement.style.colorScheme = theme; } catch (_) {}
     }
   } catch (_) {}
 });`,

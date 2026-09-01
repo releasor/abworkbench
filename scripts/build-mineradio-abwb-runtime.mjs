@@ -30,9 +30,44 @@ src = src.replace(
   "const STABLE_USER_DATA_PATH = STARTUP_QA_USER_DATA_PATH || path.join(app.getPath('appData'), APP_NAME);",
   "const STABLE_USER_DATA_PATH = process.env.MINERADIO_ABWB_USER_DATA\n  ? path.resolve(String(process.env.MINERADIO_ABWB_USER_DATA))\n  : (STARTUP_QA_USER_DATA_PATH || path.join(app.getPath('appData'), APP_NAME));",
 )
-src = src.replace(
+// replaceAll: main.js sets userData in more than one place; only the first was guarded before.
+src = src.replaceAll(
   "app.setPath('userData', STABLE_USER_DATA_PATH);",
   "if (process.env.MINERADIO_ABWB_HOST !== '1') app.setPath('userData', STABLE_USER_DATA_PATH);",
+)
+
+src = src.replace(
+  `try {
+  // \`sessionData\` owns Chromium cookies/storage/cache. \`userData\` stays on the
+  // stable roaming path so changing the cache directory never logs accounts out.
+  app.setPath('cache', cacheSettings.chromiumPath);
+  app.setPath('sessionData', chromiumSessionDataPath(cacheSettings));
+  if (process.env.MINERADIO_ABWB_HOST !== '1') app.setPath('userData', STABLE_USER_DATA_PATH);
+} catch (error) {
+  console.warn('[CacheSettings] Chromium cache path fallback:', error.message);
+}`,
+  `try {
+  // Never rewrite Abworkbench cache/session paths when embedded as a host module.
+  if (process.env.MINERADIO_ABWB_HOST !== '1') {
+    // \`sessionData\` owns Chromium cookies/storage/cache. \`userData\` stays on the
+    // stable roaming path so changing the cache directory never logs accounts out.
+    app.setPath('cache', cacheSettings.chromiumPath);
+    app.setPath('sessionData', chromiumSessionDataPath(cacheSettings));
+    app.setPath('userData', STABLE_USER_DATA_PATH);
+  }
+} catch (error) {
+  console.warn('[CacheSettings] Chromium cache path fallback:', error.message);
+}`,
+)
+
+src = src.replace(
+  'for (const [name, value] of CHROMIUM_SAFE_PERFORMANCE_SWITCHES) appendChromiumSwitch(name, value);\nfor (const [name, value, envName] of CHROMIUM_OPT_IN_PERFORMANCE_SWITCHES) {\n  if (process.env[envName] === \'1\') appendChromiumSwitch(name, value);\n}',
+  `if (process.env.MINERADIO_ABWB_HOST !== '1') {
+  for (const [name, value] of CHROMIUM_SAFE_PERFORMANCE_SWITCHES) appendChromiumSwitch(name, value);
+  for (const [name, value, envName] of CHROMIUM_OPT_IN_PERFORMANCE_SWITCHES) {
+    if (process.env[envName] === '1') appendChromiumSwitch(name, value);
+  }
+}`,
 )
 
 src = src.replace(

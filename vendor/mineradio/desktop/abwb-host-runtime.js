@@ -458,11 +458,14 @@ async function pruneLyricCache() {
 
 let cacheSettings = INITIAL_CACHE_SETTINGS;
 try {
-  // `sessionData` owns Chromium cookies/storage/cache. `userData` stays on the
-  // stable roaming path so changing the cache directory never logs accounts out.
-  app.setPath('cache', cacheSettings.chromiumPath);
-  app.setPath('sessionData', chromiumSessionDataPath(cacheSettings));
-  app.setPath('userData', STABLE_USER_DATA_PATH);
+  // Never rewrite Abworkbench cache/session paths when embedded as a host module.
+  if (process.env.MINERADIO_ABWB_HOST !== '1') {
+    // `sessionData` owns Chromium cookies/storage/cache. `userData` stays on the
+    // stable roaming path so changing the cache directory never logs accounts out.
+    app.setPath('cache', cacheSettings.chromiumPath);
+    app.setPath('sessionData', chromiumSessionDataPath(cacheSettings));
+    app.setPath('userData', STABLE_USER_DATA_PATH);
+  }
 } catch (error) {
   console.warn('[CacheSettings] Chromium cache path fallback:', error.message);
 }
@@ -486,9 +489,11 @@ function appendChromiumSwitch(name, value) {
   if (value == null) app.commandLine.appendSwitch(name);
   else app.commandLine.appendSwitch(name, value);
 }
-for (const [name, value] of CHROMIUM_SAFE_PERFORMANCE_SWITCHES) appendChromiumSwitch(name, value);
-for (const [name, value, envName] of CHROMIUM_OPT_IN_PERFORMANCE_SWITCHES) {
-  if (process.env[envName] === '1') appendChromiumSwitch(name, value);
+if (process.env.MINERADIO_ABWB_HOST !== '1') {
+  for (const [name, value] of CHROMIUM_SAFE_PERFORMANCE_SWITCHES) appendChromiumSwitch(name, value);
+  for (const [name, value, envName] of CHROMIUM_OPT_IN_PERFORMANCE_SWITCHES) {
+    if (process.env[envName] === '1') appendChromiumSwitch(name, value);
+  }
 }
 const gotSingleInstanceLock = process.env.MINERADIO_ABWB_HOST === '1' ? true : app.requestSingleInstanceLock();
 

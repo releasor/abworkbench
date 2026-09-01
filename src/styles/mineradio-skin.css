@@ -1,41 +1,27 @@
-/* Closer Mineradio skin for Abworkbench — cyan glass, chill dark, home disc/cards. */
+/* Abworkbench ← Mineradio control glass (exact tokens).
+   Transparent black glass + white rim — no cyan tint on panels. */
 
-html[data-theme="dark"] {
-  --home-accent: #00f5d4;
-  --home-accent-rgb: 0, 245, 212;
-  --chill-ink: #030608;
-  --chill-deep: #061116;
-  --chill-panel: #0a1218;
-  --tone-blue: #2442ff;
-  --tone-warm: #f8f4ee;
-  --champagne: #f4d28a;
+:root {
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
 
-  --color-surface: #030608;
-  --color-surface-light: #061116;
-  --color-surface-lighter: #0f1a22;
-  --color-background: #030608;
-  --color-bg: #030608;
-  --color-border: rgba(255, 255, 255, 0.08);
-  --color-text: rgba(255, 255, 255, 0.96);
-  --color-text-muted: rgba(255, 255, 255, 0.55);
-  --color-text-secondary: rgba(255, 255, 255, 0.55);
-
-  --glass-blur: 30px;
-  --glass-sat: 1.16;
-  --glass-bg: linear-gradient(145deg, rgba(33, 29, 34, 0.64), rgba(9, 10, 14, 0.76) 48%, rgba(17, 20, 25, 0.7));
-  --glass-border: color-mix(in srgb, var(--home-accent) 22%, rgba(255, 255, 255, 0.085));
+  /* Mineradio :root glass (neutral) */
+  --glass-bg: linear-gradient(112deg, rgba(72, 74, 76, 0.62), rgba(24, 27, 30, 0.7) 48%, rgba(8, 12, 14, 0.74));
+  --glass-bg-focus: linear-gradient(112deg, rgba(88, 91, 92, 0.68), rgba(28, 32, 35, 0.76) 50%, rgba(8, 13, 15, 0.82));
+  --glass-border: rgba(255, 255, 255, 0.095);
+  --glass-border-soft: rgba(255, 255, 255, 0.095);
   --glass-shadow:
-    0 28px 90px rgba(0, 0, 0, 0.34),
-    0 0 0 1px color-mix(in srgb, var(--home-accent) 7%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.065);
-  --glass-shadow-hover:
-    0 28px 84px rgba(0, 0, 0, 0.36),
-    0 0 34px color-mix(in srgb, var(--home-accent) 16%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.085);
+    0 22px 64px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -24px 58px rgba(0, 0, 0, 0.16);
+  --glass-shadow-focus:
+    0 24px 72px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
 
-  --saved-panel-glass-bg: rgba(0, 0, 0, 0.12);
+  /* Mineradio .glass-saved-panel / .glass-saved-button */
+  --saved-panel-glass-bg: rgba(0, 0, 0, 0.1);
   --saved-panel-glass-filter: blur(12px) saturate(1.8) brightness(1.16);
+  --saved-panel-glass-svg-filter: url(#abwb-control-glass-filter) saturate(1);
   --saved-panel-glass-shadow:
     inset 0 0 2px 1px rgba(255, 255, 255, 0.35),
     inset 0 0 10px 4px rgba(255, 255, 255, 0.15),
@@ -45,77 +31,208 @@ html[data-theme="dark"] {
     inset 0 4px 16px rgba(17, 17, 26, 0.05),
     inset 0 8px 24px rgba(17, 17, 26, 0.05),
     inset 0 16px 56px rgba(17, 17, 26, 0.05);
+  --saved-panel-glass-radius: var(--radius-frame);
+  --saved-button-glass-bg: rgba(0, 0, 0, 0.1);
+  --saved-button-glass-filter: blur(12px) saturate(1.8) brightness(1.16);
+  --saved-button-glass-svg-filter: url(#abwb-control-glass-filter) saturate(1);
+  --saved-button-glass-shadow:
+    inset 0 0 2px 1px rgba(255, 255, 255, 0.34),
+    inset 0 0 10px 4px rgba(255, 255, 255, 0.13),
+    0 10px 30px rgba(0, 0, 0, 0.18);
+  --saved-button-glass-hover-bg: rgba(255, 255, 255, 0.055);
+  --saved-button-glass-hover-shadow:
+    inset 0 0 2px 1px rgba(255, 255, 255, 0.42),
+    inset 0 0 12px 5px rgba(255, 255, 255, 0.17),
+    0 12px 34px rgba(0, 0, 0, 0.22),
+    0 0 18px rgba(255, 255, 255, 0.06);
+
+  --radius-sm: 14px;
+  --radius-md: 18px;
+  --radius-card: 22px;
+  --radius-panel: 22px;
+  --radius-shell: 22px;
+  --radius-frame: 22px;
+  --radius-window: 34px;
   --radius-pill: 50px;
-
-  --color-primary: #00f5d4;
-  --color-primary-light: #5ffbec;
-  --color-primary-dark: #00c4aa;
+  --glass-blur: 12px;
+  --glass-sat: 1.8;
 }
 
-:root {
-  --home-accent: #00f5d4;
-  --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
+html[data-theme="dark"] {
+  --color-primary: #e8eef2;
+  --color-primary-light: #ffffff;
+  --color-primary-dark: #c5cdd6;
+  --color-secondary: #f4d28a;
+  --color-surface: #050505;
+  --color-surface-light: rgba(12, 12, 14, 0.55);
+  --color-surface-lighter: rgba(255, 255, 255, 0.06);
+  --color-background: #050505;
+  --color-bg: #050505;
+  --color-border: rgba(255, 255, 255, 0.095);
+  --color-text: rgba(255, 255, 255, 0.96);
+  --color-text-muted: rgba(255, 255, 255, 0.55);
+  --color-text-secondary: rgba(255, 255, 255, 0.55);
+  --radius-card: 22px;
+  --radius-panel: 22px;
+  --radius-shell: 22px;
+  --radius-frame: 22px;
+  --radius-window: 34px;
+  --radius-pill: 50px;
+  --home-accent: #e8eef2;
 }
 
-html[data-theme="dark"] body,
+html[data-theme="light"] {
+  --saved-panel-glass-bg: rgba(255, 255, 255, 0.82);
+  --saved-panel-glass-filter: blur(16px) saturate(1.2) brightness(1.01);
+  --saved-panel-glass-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.9),
+    0 1px 0 rgba(15, 23, 42, 0.04),
+    0 10px 32px rgba(15, 23, 42, 0.1);
+  --saved-button-glass-bg: rgba(241, 245, 249, 0.92);
+  --saved-button-glass-filter: blur(10px) saturate(1.15);
+  --saved-button-glass-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.85),
+    0 1px 2px rgba(15, 23, 42, 0.06),
+    0 6px 16px rgba(15, 23, 42, 0.08);
+  --saved-button-glass-hover-bg: rgba(226, 232, 240, 0.98);
+  --saved-button-glass-hover-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.95),
+    0 8px 22px rgba(15, 23, 42, 0.12);
+  --glass-bg: linear-gradient(118deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.96) 52%, rgba(241, 245, 249, 0.92));
+  --glass-bg-focus: linear-gradient(118deg, #fff, #f8fafc 50%, #f1f5f9);
+  --glass-border: rgba(15, 23, 42, 0.14);
+  --glass-border-soft: rgba(15, 23, 42, 0.12);
+  --glass-shadow:
+    0 12px 36px rgba(15, 23, 42, 0.1),
+    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --color-primary: #1e40af;
+  --color-primary-light: #2563eb;
+  --color-primary-dark: #1e3a8a;
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-secondary: #334155;
+  --color-border: #94a3b8;
+  --home-accent: #1e40af;
+}
+
+html[data-theme="light"] body {
+  background: transparent !important;
+}
+
+html[data-theme="light"] .app-frame {
+  background: var(--color-surface) !important;
+}
+
+/* ---- Stage: keep canvas dark so glass can refract ---- */
+html[data-theme="dark"] body {
+  background: transparent !important;
+}
+
 html[data-theme="dark"] .app-frame {
-  background: radial-gradient(ellipse 80% 60% at 50% -10%, rgba(0, 245, 212, 0.08), transparent 55%),
-    radial-gradient(ellipse 50% 40% at 100% 20%, rgba(36, 66, 255, 0.1), transparent 50%),
-    var(--chill-ink) !important;
+  background:
+    radial-gradient(ellipse 70% 55% at 50% -12%, rgba(255, 255, 255, 0.06), transparent 55%),
+    radial-gradient(ellipse 42% 38% at 92% 18%, rgba(180, 50, 60, 0.1), transparent 52%),
+    radial-gradient(ellipse 40% 36% at 8% 78%, rgba(40, 50, 70, 0.2), transparent 55%),
+    #050505 !important;
 }
 
-/* ---- Mineradio glass cards ---- */
+html[data-theme="dark"] .app-shell::before {
+  background:
+    radial-gradient(ellipse 50% 50% at 14% 6%, rgba(255, 255, 255, 0.07), transparent 68%),
+    radial-gradient(ellipse 42% 38% at 88% 8%, rgba(120, 40, 50, 0.12), transparent 65%),
+    radial-gradient(ellipse 36% 32% at 50% 40%, rgba(255, 255, 255, 0.03), transparent 70%) !important;
+  opacity: 0.9;
+}
+
+.app-main-stage {
+  position: relative;
+  background: transparent !important;
+}
+
+html[data-theme="dark"] .app-main-stage:not(.app-main-stage--embed)::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  opacity: 0.4;
+  background:
+    radial-gradient(circle at 72% 18%, rgba(160, 40, 50, 0.09), transparent 44%),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.018) 0 1px, transparent 1px 56px),
+    linear-gradient(0deg, rgba(255, 255, 255, 0.014) 0 1px, transparent 1px 52px);
+  background-size: auto, 56px 56px, 52px 52px;
+}
+
+html[data-theme="dark"] .app-main-stage:not(.app-main-stage--embed) > * {
+  position: relative;
+  z-index: 1;
+}
+
+/* ---- Exact Mineradio panel glass ---- */
+.glass-saved-panel,
 .glass-card,
-.dashboard-hero {
-  background: var(--glass-bg) !important;
-  border: 1px solid var(--glass-border) !important;
-  border-radius: 28px !important;
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat)) !important;
-  box-shadow: var(--glass-shadow) !important;
+.panel-glass,
+.dashboard-hero,
+.wb-panel,
+.sidebar-glass,
+.header-glass,
+.modal-panel-cinematic,
+.search-pill,
+.shortcut-dock {
+  background: var(--saved-panel-glass-bg) !important;
+  border: 0 !important;
+  border-radius: var(--saved-panel-glass-radius) !important;
+  backdrop-filter: var(--saved-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
+  box-shadow: var(--saved-panel-glass-shadow) !important;
 }
 
-.glass-card:hover {
-  border-color: color-mix(in srgb, var(--home-accent) 42%, rgba(255, 255, 255, 0.18)) !important;
-  box-shadow: var(--glass-shadow-hover) !important;
+html.control-glass-svg-ok .glass-saved-panel,
+html.control-glass-svg-ok .glass-card,
+html.control-glass-svg-ok .panel-glass,
+html.control-glass-svg-ok .dashboard-hero,
+html.control-glass-svg-ok .wb-panel,
+html.control-glass-svg-ok .sidebar-glass,
+html.control-glass-svg-ok .header-glass,
+html.control-glass-svg-ok .modal-panel-cinematic,
+html.control-glass-svg-ok .search-pill,
+html.control-glass-svg-ok .shortcut-dock,
+html.control-glass-svg-ok .launcher-panel,
+html.control-glass-svg-ok .launcher-tile,
+html.control-glass-svg-ok .launcher-chip,
+html.control-glass-svg-ok .launcher-feature-card,
+html.control-glass-svg-ok .launcher-menu {
+  backdrop-filter: var(--saved-panel-glass-svg-filter) !important;
+  -webkit-backdrop-filter: var(--saved-panel-glass-svg-filter) !important;
+}
+
+/* Content cards: Mineradio home-card / glass-bg shape (still clear, not cyan) */
+.glass-card,
+.dashboard-hero,
+.wb-panel,
+.panel-glass {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border-soft) !important;
+  border-radius: var(--radius-card) !important;
+  box-shadow: var(--glass-shadow) !important;
+  backdrop-filter: blur(24px) saturate(1.12) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.12) !important;
+}
+
+.glass-card:hover,
+.wb-panel:hover,
+.panel-glass:hover {
+  background: var(--glass-bg-focus) !important;
+  border-color: rgba(255, 255, 255, 0.16) !important;
+  box-shadow: var(--glass-shadow-focus) !important;
   transform: translateY(-2px);
 }
 
-html.control-glass-svg-ok .glass-card,
-html.control-glass-svg-ok .sidebar-glass,
-html.control-glass-svg-ok .shortcut-dock {
-  backdrop-filter: url(#abwb-control-glass-filter) saturate(1.2) !important;
-  -webkit-backdrop-filter: url(#abwb-control-glass-filter) saturate(1.2) !important;
-}
-
-/* ---- Sidebar as frosted control rail ---- */
-.sidebar-glass {
-  background: var(--saved-panel-glass-bg) !important;
-  border-right: 1px solid color-mix(in srgb, var(--home-accent) 12%, rgba(255, 255, 255, 0.06)) !important;
-  backdrop-filter: var(--saved-panel-glass-filter) !important;
-  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
-  box-shadow: var(--saved-panel-glass-shadow);
-}
-
-.nav-item-spring[aria-current="page"] {
-  background: color-mix(in srgb, var(--home-accent) 12%, rgba(255, 255, 255, 0.04)) !important;
-  color: var(--home-accent) !important;
-  border: 1px solid color-mix(in srgb, var(--home-accent) 34%, rgba(255, 255, 255, 0.1));
-  box-shadow:
-    0 10px 26px color-mix(in srgb, var(--home-accent) 10%, transparent),
-    inset 0 1px 0 rgba(255, 255, 255, 0.08) !important;
-}
-
-.nav-item-spring[aria-current="page"] .absolute.left-0 {
-  background: var(--home-accent) !important;
-  box-shadow: 0 0 12px color-mix(in srgb, var(--home-accent) 60%, transparent);
-}
-
-/* ---- Home hero (Mineradio home-hero) ---- */
 .dashboard-hero {
+  border-radius: var(--radius-frame) !important;
+  min-height: 280px;
   position: relative;
   overflow: hidden;
-  min-height: 280px;
 }
 
 .dashboard-hero::before {
@@ -127,8 +244,8 @@ html.control-glass-svg-ok .shortcut-dock {
       118deg,
       rgba(255, 255, 255, 0.06),
       transparent 24%,
-      rgba(0, 245, 212, 0.07) 54%,
-      rgba(36, 66, 255, 0.06) 82%,
+      rgba(255, 83, 103, 0.07) 54%,
+      rgba(255, 255, 255, 0.04) 82%,
       transparent 100%
     ),
     linear-gradient(90deg, rgba(255, 255, 255, 0.032) 0 1px, transparent 1px 48px),
@@ -138,74 +255,847 @@ html.control-glass-svg-ok .shortcut-dock {
   z-index: 0;
 }
 
-.dashboard-hero::after {
-  content: '';
-  position: absolute;
-  left: 28px;
-  right: 28px;
-  bottom: 12px;
-  height: 1px;
-  background: linear-gradient(
-    90deg,
-    transparent,
-    color-mix(in srgb, var(--home-accent) 52%, transparent),
-    rgba(36, 66, 255, 0.24),
-    rgba(248, 244, 238, 0.18),
-    transparent
-  );
-  opacity: 0.45;
-  pointer-events: none;
-  z-index: 0;
+.dashboard-hero > * {
+  position: relative;
+  z-index: 1;
 }
 
+/* Floating chrome layout — one progress drives sidebar + gap + header inset (no pop) */
+@property --sidebar-open {
+  syntax: '<number>';
+  inherits: true;
+  initial-value: 1;
+}
+
+.app-shell--float {
+  --sidebar-dock-size: 3.5rem; /* match Header h-14 */
+  --sidebar-rail-width: 240px;
+  --sidebar-motion: 300ms;
+  --sidebar-ease: cubic-bezier(0.32, 0.72, 0, 1);
+  --sidebar-open: 1; /* 1 = expanded, 0 = collapsed */
+  display: flex;
+  gap: calc(12px * var(--sidebar-open));
+  padding: 12px;
+  height: 100%;
+  width: 100%;
+  overflow: hidden;
+  box-sizing: border-box;
+  transition: --sidebar-open var(--sidebar-motion) var(--sidebar-ease);
+}
+
+@media (min-width: 768px) {
+  .app-shell--float {
+    --sidebar-dock-size: 4rem; /* match Header md:h-16 */
+  }
+}
+
+.app-shell--float.app-shell--sidebar-collapsed {
+  --sidebar-open: 0;
+}
+
+.app-content-column {
+  flex: 1 1 0%;
+  min-width: 0;
+  min-height: 0;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+  overflow: hidden;
+}
+
+.app-shell--float .app-main-stage {
+  flex: 1 1 0%;
+  min-height: 0;
+  width: 100%;
+}
+
+/* Chrome rails: floating glass panels */
+.sidebar-glass,
+.sidebar-float {
+  border-radius: var(--radius-frame, 22px) !important;
+  border: 0 !important;
+  flex-shrink: 0;
+  z-index: 20;
+}
+
+/* Brand pin stays fixed; width is driven by --sidebar-open on the shell */
+.sidebar-stack {
+  --sidebar-dock-size: 3.5rem;
+  position: relative;
+  width: calc(var(--sidebar-rail-width, 240px) * var(--sidebar-open, 1));
+  height: 100%;
+  flex-shrink: 0;
+  align-self: stretch;
+  overflow: visible;
+  contain: layout style;
+}
+
+@media (min-width: 768px) {
+  .sidebar-stack {
+    --sidebar-dock-size: 4rem;
+  }
+}
+
+.sidebar-stack--collapsed {
+  /* Width already 0 via --sidebar-open; keep pin clickable */
+  pointer-events: none;
+}
+
+.sidebar-stack--collapsed .sidebar-brand-pin {
+  pointer-events: auto;
+}
+
+/* Clip the panel as width tweens; pin stays outside this clip */
+.sidebar-rail-clip {
+  width: 100%;
+  height: 100%;
+  overflow: hidden;
+  border-radius: var(--radius-frame, 22px);
+  pointer-events: none;
+}
+
+.sidebar-stack:not(.sidebar-stack--collapsed) .sidebar-rail-clip {
+  pointer-events: auto;
+}
+
+.sidebar-brand-pin {
+  position: absolute;
+  top: 0;
+  left: 0;
+  /* Above .sidebar-glass (z-index: 20) so expand+collapse clicks always hit the icon */
+  z-index: 30;
+  width: var(--sidebar-dock-size);
+  height: var(--sidebar-dock-size);
+  display: grid;
+  place-items: center;
+  margin: 0;
+  padding: 0;
+  border: 0;
+  /* Hit area only — never paint a glass square behind the glyph */
+  background: transparent !important;
+  box-shadow: none !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  color: inherit;
+  cursor: pointer;
+  pointer-events: auto;
+  transform: none !important;
+}
+
+.sidebar-brand-pin__glyph {
+  display: grid;
+  place-items: center;
+  width: 34px;
+  height: 34px;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.28);
+  transition: box-shadow 180ms ease;
+}
+
+.sidebar-brand-pin:hover .sidebar-brand-pin__glyph {
+  box-shadow:
+    inset 0 0 1px 1px rgba(255, 255, 255, 0.4),
+    0 8px 20px rgba(0, 0, 0, 0.28);
+}
+
+.sidebar-brand-spacer {
+  width: var(--sidebar-dock-size);
+  min-width: var(--sidebar-dock-size);
+  height: var(--sidebar-dock-size);
+  flex-shrink: 0;
+}
+
+.sidebar-rail {
+  width: var(--sidebar-rail-width);
+  min-width: var(--sidebar-rail-width);
+  height: 100%;
+  overflow: hidden;
+  opacity: 1;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0);
+  transition:
+    opacity 160ms ease,
+    transform var(--sidebar-motion, 300ms) var(--sidebar-ease, cubic-bezier(0.32, 0.72, 0, 1));
+}
+
+.sidebar-rail-inner {
+  width: var(--sidebar-rail-width);
+  min-width: var(--sidebar-rail-width);
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+}
+
+.sidebar-rail--collapsed {
+  opacity: 0;
+  transform: translate3d(-10px, 0, 0);
+  pointer-events: none;
+  box-shadow: none !important;
+}
+
+/* While tweening: kill expensive live blur so width/layout stays smooth */
+.sidebar-stack--animating .sidebar-rail.sidebar-glass,
+.sidebar-stack--animating .sidebar-rail {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  will-change: transform, opacity;
+}
+
+.sidebar-stack:not(.sidebar-stack--animating) .sidebar-rail {
+  will-change: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .app-shell--float {
+    transition: none !important;
+  }
+
+  .sidebar-rail {
+    transition: none !important;
+  }
+}
+
+.header-glass,
+.header-float {
+  border-radius: var(--radius-frame, 22px) !important;
+  border: 0 !important;
+  border-bottom: 0 !important;
+  z-index: 15;
+  position: relative;
+  /* Inset grows as sidebar closes — same --sidebar-open as width/gap, so no jump */
+  margin-left: calc((var(--sidebar-dock-size) + 12px) * (1 - var(--sidebar-open, 1)));
+}
+
+/* Light chrome: flat rails + bleed header across sidebar gap (no left-edge shadow seam) */
+html[data-theme="light"] .header-glass,
+html[data-theme="light"] .header-float {
+  margin-left: calc(
+    -12px * var(--sidebar-open, 1) +
+    (var(--sidebar-dock-size) + 12px) * (1 - var(--sidebar-open, 1))
+  );
+  padding-left: calc(1rem + 12px * var(--sidebar-open, 1)) !important;
+  border-radius: var(--radius-frame, 22px) !important;
+  background: #f1f5f9 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+@media (min-width: 768px) {
+  html[data-theme="light"] .header-glass,
+  html[data-theme="light"] .header-float {
+    padding-left: calc(1.25rem + 12px * var(--sidebar-open, 1)) !important;
+  }
+}
+
+html[data-theme="light"] .sidebar-glass,
+html[data-theme="light"] .sidebar-float {
+  border-radius: var(--radius-frame, 22px) !important;
+  background: #f1f5f9 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html.control-glass-svg-ok[data-theme="light"] .header-glass,
+html.control-glass-svg-ok[data-theme="light"] .sidebar-glass {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+.search-pill {
+  border-radius: var(--radius-pill) !important;
+  color: var(--color-text-muted);
+}
+
+.search-pill:hover {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+}
+
+.shortcut-dock {
+  border-radius: var(--radius-pill) !important;
+}
+
+html[data-theme="dark"] .shortcut-dock kbd,
+html.dark .shortcut-dock kbd {
+  color: rgba(255, 255, 255, 0.85) !important;
+  border: 0 !important;
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.2);
+  border-radius: 8px;
+}
+
+html[data-theme="light"] .shortcut-dock kbd {
+  color: #334155 !important;
+  border: 0 !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: inset 0 0 1px 1px rgba(15, 23, 42, 0.12);
+  border-radius: 8px;
+}
+
+/* ---- Buttons = Mineradio glass-saved-button ---- */
+.glass-saved-button,
+.btn-primary,
+.btn-secondary,
+.wb-btn-primary,
+.wb-btn,
+.icon-glass-btn {
+  border: 0 !important;
+  background: var(--saved-button-glass-bg) !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+  border-radius: var(--radius-md) !important;
+  font-weight: 600;
+  text-shadow: none !important;
+  filter: none !important;
+}
+
+/* White ink only on dark glass — light mode must not inherit this */
+html[data-theme="dark"] .glass-saved-button,
+html[data-theme="dark"] .btn-primary,
+html[data-theme="dark"] .btn-secondary,
+html[data-theme="dark"] .wb-btn-primary,
+html[data-theme="dark"] .wb-btn,
+html[data-theme="dark"] .icon-glass-btn,
+html.dark .glass-saved-button,
+html.dark .btn-primary,
+html.dark .btn-secondary,
+html.dark .wb-btn-primary,
+html.dark .wb-btn,
+html.dark .icon-glass-btn {
+  color: rgba(255, 255, 255, 0.92) !important;
+}
+
+html[data-theme="light"] .glass-saved-button,
+html[data-theme="light"] .btn-secondary,
+html[data-theme="light"] .wb-btn,
+html[data-theme="light"] .icon-glass-btn {
+  color: #334155 !important;
+}
+
+html.control-glass-svg-ok .glass-saved-button,
+html.control-glass-svg-ok .btn-primary,
+html.control-glass-svg-ok .btn-secondary,
+html.control-glass-svg-ok .wb-btn-primary,
+html.control-glass-svg-ok .wb-btn,
+html.control-glass-svg-ok .icon-glass-btn {
+  backdrop-filter: var(--saved-button-glass-svg-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-svg-filter) !important;
+}
+
+.glass-saved-button:hover,
+.btn-primary:hover,
+.btn-secondary:hover,
+.wb-btn-primary:hover:not(:disabled),
+.wb-btn:hover:not(:disabled),
+.icon-glass-btn:hover {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+  transform: translateY(-1px);
+  filter: none !important;
+}
+
+html[data-theme="dark"] .glass-saved-button:hover,
+html[data-theme="dark"] .btn-primary:hover,
+html[data-theme="dark"] .btn-secondary:hover,
+html[data-theme="dark"] .wb-btn-primary:hover:not(:disabled),
+html[data-theme="dark"] .wb-btn:hover:not(:disabled),
+html[data-theme="dark"] .icon-glass-btn:hover,
+html.dark .glass-saved-button:hover,
+html.dark .btn-primary:hover,
+html.dark .btn-secondary:hover,
+html.dark .wb-btn-primary:hover:not(:disabled),
+html.dark .wb-btn:hover:not(:disabled),
+html.dark .icon-glass-btn:hover {
+  color: #fff !important;
+}
+
+html[data-theme="light"] .glass-saved-button:hover,
+html[data-theme="light"] .btn-secondary:hover,
+html[data-theme="light"] .wb-btn:hover:not(:disabled),
+html[data-theme="light"] .icon-glass-btn:hover {
+  color: #0f172a !important;
+}
+
+/* Inputs as frosted glass */
+.input-field,
+.wb-input {
+  border: 0 !important;
+  background: var(--saved-button-glass-bg) !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+  border-radius: var(--radius-card) !important;
+  color: var(--color-text) !important;
+}
+
+.input-field:focus,
+.wb-input:focus {
+  outline: none;
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+}
+
+/* Soften solid Tailwind panels into the same glass */
+html[data-theme="dark"] .bg-surface,
+html.dark .bg-surface {
+  background-color: rgba(0, 0, 0, 0.18) !important;
+}
+
+html[data-theme="dark"] .bg-surface-light,
+html[data-theme="dark"] .bg-surface-lighter,
+html.dark .bg-surface-light,
+html.dark .bg-surface-lighter {
+  background-color: rgba(0, 0, 0, 0.12) !important;
+  backdrop-filter: var(--saved-panel-glass-filter);
+  -webkit-backdrop-filter: var(--saved-panel-glass-filter);
+  box-shadow: var(--saved-panel-glass-shadow);
+}
+
+html[data-theme="dark"] .rounded-xl.border.bg-surface,
+html[data-theme="dark"] .rounded-2xl.border.bg-surface,
+html[data-theme="dark"] .rounded-xl.bg-surface,
+html[data-theme="dark"] .rounded-2xl.bg-surface,
+html.dark .rounded-xl.border.bg-surface,
+html.dark .rounded-2xl.border.bg-surface,
+html.dark .rounded-xl.bg-surface,
+html.dark .rounded-2xl.bg-surface {
+  background: var(--glass-bg) !important;
+  border: 1px solid var(--glass-border-soft) !important;
+  backdrop-filter: blur(24px) saturate(1.12) !important;
+  -webkit-backdrop-filter: blur(24px) saturate(1.12) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+html[data-theme="dark"] .border-border,
+html.dark .border-border {
+  border-color: rgba(255, 255, 255, 0.095) !important;
+}
+
+/* =========================================================
+   Feature surfaces → Mineradio glass (every page / module)
+   ========================================================= */
+
+html.dark,
+html[data-theme="dark"] {
+  --feature-glass-bg: var(--glass-bg);
+  --feature-glass-border: var(--glass-border-soft);
+  --feature-glass-shadow: var(--glass-shadow);
+  --feature-glass-filter: blur(24px) saturate(1.12);
+  --feature-chip-bg: rgba(0, 0, 0, 0.14);
+  --feature-chip-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.14);
+}
+
+/* Soft fill chips / list rows */
+html.dark .bg-background\/30,
+html.dark .bg-background\/35,
+html.dark .bg-background\/40,
+html[data-theme="dark"] .bg-background\/30,
+html[data-theme="dark"] .bg-background\/35,
+html[data-theme="dark"] .bg-background\/40 {
+  background: var(--feature-chip-bg) !important;
+  backdrop-filter: var(--saved-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
+  box-shadow: var(--feature-chip-shadow) !important;
+}
+
+/* Mid / strong frosted panels used across settings, notes, pomodoro, weather */
+html.dark .bg-background\/45,
+html.dark .bg-background\/50,
+html.dark .bg-background\/55,
+html.dark .bg-background\/60,
+html.dark .bg-surface\/70,
+html.dark .bg-surface\/80,
+html[data-theme="dark"] .bg-background\/45,
+html[data-theme="dark"] .bg-background\/50,
+html[data-theme="dark"] .bg-background\/55,
+html[data-theme="dark"] .bg-background\/60,
+html[data-theme="dark"] .bg-surface\/70,
+html[data-theme="dark"] .bg-surface\/80 {
+  background: var(--feature-glass-bg) !important;
+  border-color: var(--feature-glass-border) !important;
+  backdrop-filter: var(--feature-glass-filter) !important;
+  -webkit-backdrop-filter: var(--feature-glass-filter) !important;
+  box-shadow: var(--feature-glass-shadow) !important;
+}
+
+/* Legacy opaque cards (taskflow / habits / stats) */
+html.dark .bg-white.rounded-2xl,
+html.dark .bg-white.rounded-3xl,
+html.dark .bg-white.rounded-\[26px\],
+html.dark .bg-white.rounded-\[28px\],
+html.dark .bg-white.rounded-\[30px\],
+html.dark .bg-white.rounded-\[34px\],
+html.dark .bg-white\/80.rounded-2xl,
+html.dark .bg-white\/80.rounded-3xl,
+html.dark .bg-white\/80.rounded-\[26px\],
+html.dark .bg-white\/80.rounded-\[28px\],
+html.dark .bg-white\/80.rounded-\[30px\],
+html.dark .bg-white\/80.rounded-\[34px\],
+html.dark .bg-white.shadow-2xl,
+html.dark .bg-white\/80.shadow-2xl,
+html.dark .dark\:bg-\[\#0d0d0f\],
+html.dark .dark\:bg-gray-800,
+html.dark .dark\:bg-gray-900,
+html.dark .dark\:bg-white\/\[0\.03\],
+html.dark .dark\:bg-white\/\[0\.035\],
+html.dark .dark\:bg-white\/\[0\.04\],
+html.dark .dark\:bg-white\/\[0\.05\] {
+  background: var(--feature-glass-bg) !important;
+  border-color: var(--feature-glass-border) !important;
+  backdrop-filter: var(--feature-glass-filter) !important;
+  -webkit-backdrop-filter: var(--feature-glass-filter) !important;
+  box-shadow: var(--feature-glass-shadow) !important;
+}
+
+/* Bordered rounded shells in content + overlays → glass card */
+html.dark .app-main-stage .rounded-xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
+html.dark .app-main-stage .rounded-2xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
+html.dark .app-main-stage .rounded-3xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
+html.dark .app-main-stage .rounded-\[20px\].border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-\[22px\].border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-\[24px\].border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-\[26px\].border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-\[28px\].border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-\[30px\].border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-\[34px\].border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-panel.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-main-stage .rounded-card.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a),
+html.dark .app-overlay-root .rounded-2xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full),
+html.dark .app-overlay-root .rounded-3xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full),
+html.dark .app-overlay-root .glass-card,
+html.dark .app-main-stage .glass-card,
+html.dark .app-main-stage .glass {
+  background: var(--feature-glass-bg) !important;
+  border-color: var(--feature-glass-border) !important;
+  backdrop-filter: var(--feature-glass-filter) !important;
+  -webkit-backdrop-filter: var(--feature-glass-filter) !important;
+  box-shadow: var(--feature-glass-shadow) !important;
+}
+
+/* Buttons / inputs that were left as solid chrome */
+html.dark .app-main-stage button.rounded-2xl.border.border-border,
+html.dark .app-main-stage button.rounded-xl.border.border-border,
+html.dark .app-main-stage button.bg-background\/45,
+html.dark .app-main-stage button.bg-background\/50,
+html.dark .app-main-stage button.bg-background\/60,
+html.dark .app-overlay-root button.rounded-2xl.border.border-border {
+  background: var(--saved-button-glass-bg) !important;
+  border: 0 !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+}
+
+html.dark .app-main-stage button.rounded-2xl.border.border-border:hover,
+html.dark .app-main-stage button.rounded-xl.border.border-border:hover,
+html.dark .app-main-stage button.bg-background\/45:hover,
+html.dark .app-main-stage button.bg-background\/50:hover,
+html.dark .app-main-stage button.bg-background\/60:hover {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+}
+
+html.dark .app-main-stage input.rounded-2xl.border,
+html.dark .app-main-stage select.rounded-2xl.border,
+html.dark .app-main-stage textarea.rounded-2xl.border,
+html.dark .app-main-stage input.rounded-xl.border,
+html.dark .app-main-stage select.rounded-xl.border,
+html.dark .app-overlay-root input.rounded-2xl.border,
+html.dark .app-overlay-root select.rounded-2xl.border,
+html.dark .app-overlay-root textarea.rounded-2xl.border {
+  background: var(--saved-button-glass-bg) !important;
+  border: 0 !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+}
+
+/* Popovers / menus / absolute panels */
+html.dark .app-main-stage .absolute.z-50.rounded-2xl,
+html.dark .app-main-stage .absolute.z-50.rounded-3xl,
+html.dark .app-main-stage .absolute.z-20.rounded-2xl,
+html.dark .app-overlay-root .absolute.z-50.rounded-2xl,
+html.dark .app-overlay-root .absolute.z-50.rounded-3xl,
+html.dark .app-overlay-root .relative.w-full.max-w-sm,
+html.dark .app-overlay-root .relative.w-full.max-w-2xl {
+  background: var(--feature-glass-bg) !important;
+  border-color: var(--feature-glass-border) !important;
+  backdrop-filter: var(--feature-glass-filter) !important;
+  -webkit-backdrop-filter: var(--feature-glass-filter) !important;
+  box-shadow: var(--feature-glass-shadow) !important;
+}
+
+/* Light theme: keep frosted white glass instead of opaque white cards */
+html[data-theme="light"] .app-main-stage .rounded-2xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full),
+html[data-theme="light"] .app-main-stage .rounded-3xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full),
+html[data-theme="light"] .app-overlay-root .rounded-2xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full),
+html[data-theme="light"] .app-overlay-root .rounded-3xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full),
+html[data-theme="light"] .glass-card,
+html[data-theme="light"] .bg-white.rounded-2xl,
+html[data-theme="light"] .bg-white.rounded-3xl,
+html[data-theme="light"] .bg-white\/80.rounded-2xl,
+html[data-theme="light"] .bg-white\/80.rounded-3xl {
+  background: var(--glass-bg) !important;
+  border-color: var(--glass-border) !important;
+  backdrop-filter: blur(20px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(20px) saturate(1.2) !important;
+  box-shadow: var(--glass-shadow) !important;
+}
+
+/* Nav: glass active pill — no left indicator bar */
+.nav-item-spring {
+  border-radius: var(--radius-sm) !important;
+  border: 1px solid transparent;
+  overflow: hidden;
+}
+
+.nav-item-spring:hover {
+  background: rgba(255, 255, 255, 0.04) !important;
+  box-shadow: none !important;
+}
+
+.nav-item-spring[aria-current="page"],
+.nav-item-spring.nav-item-spring--active {
+  background: rgba(255, 255, 255, 0.08) !important;
+  color: #fff !important;
+  border: 1px solid rgba(255, 255, 255, 0.14) !important;
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.12),
+    0 8px 20px rgba(0, 0, 0, 0.18) !important;
+}
+
+.nav-item-spring[aria-current="page"]::before,
+.nav-item-spring[aria-current="page"]::after,
+.nav-item-spring.nav-item-spring--active::before,
+.nav-item-spring.nav-item-spring--active::after {
+  content: none !important;
+  display: none !important;
+}
+
+/* ---- Light mode: readable contrast (fix washed-out glass text) ---- */
+html[data-theme="light"] .nav-item-spring {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .nav-item-spring:hover {
+  background: rgba(15, 23, 42, 0.06) !important;
+  color: #0f172a !important;
+}
+
+/* Selected nav: opaque blue wash + dark ink (never white-on-white) */
+html[data-theme="light"] .nav-item-spring[aria-current="page"],
+html[data-theme="light"] .nav-item-spring.nav-item-spring--active {
+  background: #dbeafe !important;
+  color: #1e3a8a !important;
+  border: 1px solid #93c5fd !important;
+  box-shadow: inset 0 1px 0 #fff, 0 4px 12px rgba(37, 99, 235, 0.18) !important;
+}
+
+html[data-theme="light"] .nav-item-spring[aria-current="page"] *,
+html[data-theme="light"] .nav-item-spring.nav-item-spring--active * {
+  color: #1e3a8a !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="light"] .nav-item-spring[aria-current="page"] kbd,
+html[data-theme="light"] .nav-item-spring.nav-item-spring--active kbd {
+  color: #1e40af !important;
+  background: rgba(30, 64, 175, 0.12) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme="light"] .sidebar-glass,
+html[data-theme="light"] .header-glass,
+html[data-theme="light"] .search-pill {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .search-pill,
+html[data-theme="light"] .text-text-muted,
+html[data-theme="light"] .shortcut-dock {
+  color: #475569 !important;
+}
+
+html[data-theme="light"] .shortcut-dock kbd,
+html[data-theme="light"] kbd {
+  color: #334155 !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: inset 0 0 1px 1px rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme="light"] .btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.28) !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+html[data-theme="light"] .btn-primary:hover {
+  color: #fff !important;
+  filter: brightness(1.05);
+}
+
+html[data-theme="light"] .btn-secondary,
+html[data-theme="light"] .wb-btn,
+html[data-theme="light"] .icon-glass-btn,
+html[data-theme="light"] .glass-saved-button {
+  color: #0f172a !important;
+  background: rgba(241, 245, 249, 0.95) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme="light"] .wb-btn-primary {
+  background: linear-gradient(135deg, #2563eb, #1e40af) !important;
+  color: #fff !important;
+}
+
+html[data-theme="light"] .home-kicker,
+html[data-theme="light"] .home-card-label {
+  color: rgba(15, 23, 42, 0.55) !important;
+}
+
+html[data-theme="light"] .home-card {
+  border: 1px solid rgba(15, 23, 42, 0.12);
+  background: linear-gradient(142deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.95));
+  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  color: #0f172a;
+}
+
+html[data-theme="light"] .home-card:hover {
+  border-color: rgba(30, 64, 175, 0.28);
+  background: linear-gradient(142deg, #fff, #f8fafc);
+  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14), inset 0 1px 0 #fff;
+}
+
+html[data-theme="light"] .home-card-title {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .home-card-sub {
+  color: #475569;
+}
+
+html[data-theme="light"] .launcher-kbd {
+  color: #334155 !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+  box-shadow: inset 0 0 1px 1px rgba(15, 23, 42, 0.12);
+}
+
+html[data-theme="light"] .pomo-stage .pomo-btn,
+html[data-theme="light"] .pomo-stage button:not(.btn-primary):not(.pomo-btn--primary):not(.pomo-mode-tab--active) {
+  color: #0f172a;
+  border-color: rgba(15, 23, 42, 0.14);
+}
+
+html[data-theme="light"] .pomo-stage .pomo-mode-tab:not(.pomo-mode-tab--active) {
+  background: rgba(255, 255, 255, 0.92) !important;
+  border-color: rgba(15, 23, 42, 0.16) !important;
+  color: #334155 !important;
+}
+
+/* Selected mode: opaque blue wash + dark ink in light; silver glass in dark */
+html[data-theme="light"] .pomo-stage .pomo-mode-tab.pomo-mode-tab--active {
+  background: #dbeafe !important;
+  border-color: #60a5fa !important;
+  color: #1e3a8a !important;
+  box-shadow: 0 6px 16px rgba(37, 99, 235, 0.2) !important;
+}
+
+html[data-theme="light"] .pomo-stage .pomo-mode-tab.pomo-mode-tab--active * {
+  color: #1e3a8a !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="dark"] .pomo-stage .pomo-mode-tab.pomo-mode-tab--active,
+html.dark .pomo-stage .pomo-mode-tab.pomo-mode-tab--active {
+  background: linear-gradient(135deg, rgba(232, 238, 242, 0.42), rgba(197, 205, 214, 0.28)) !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+  color: #fff !important;
+  box-shadow: 0 8px 22px rgba(0, 0, 0, 0.28) !important;
+}
+
+html[data-theme="light"] .pomo-stage .text-text-muted,
+html[data-theme="light"] .pomo-stage .opacity-65,
+html[data-theme="light"] .pomo-stage .opacity-70 {
+  color: #475569 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="light"] .pomo-stage .border-border {
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html[data-theme="light"] .pomo-stage .bg-background\/45,
+html[data-theme="light"] .pomo-stage .bg-background\/50,
+html[data-theme="light"] .pomo-stage .bg-background\/35,
+html[data-theme="light"] .pomo-stage .bg-surface\/70,
+html[data-theme="light"] .pomo-stage .bg-surface\/80,
+html[data-theme="light"] .pomo-stage .bg-surface\/85 {
+  background-color: rgba(255, 255, 255, 0.88) !important;
+}
+
+html[data-theme="light"] .pomo-stage .bg-surface-lighter {
+  background-color: #e2e8f0 !important;
+}
+
+html[data-theme="light"] .sidebar-stack kbd,
+html[data-theme="light"] .sidebar-glass kbd,
+html[data-theme="light"] .header-float kbd {
+  color: #334155 !important;
+  opacity: 1 !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme="light"] .text-text-muted\/70,
+html[data-theme="light"] .text-text-muted\/80,
+html[data-theme="light"] [class*="text-text-muted"][class*="opacity-"] {
+  color: #475569 !important;
+  opacity: 1 !important;
+}
+
+html[data-theme="light"] .border-border {
+  border-color: rgba(15, 23, 42, 0.14) !important;
+}
+
+html[data-theme="light"] .app-shell::before {
+  opacity: 0.35;
+  background:
+    radial-gradient(ellipse 55% 50% at 12% 8%, rgba(37, 99, 235, 0.12), transparent 68%),
+    radial-gradient(ellipse 45% 40% at 88% 10%, rgba(245, 158, 11, 0.1), transparent 65%),
+    radial-gradient(ellipse 40% 35% at 55% 40%, rgba(148, 163, 184, 0.12), transparent 70%) !important;
+}
+
+html[data-theme="light"] .app-frame {
+  background: #f1f5f9 !important;
+}
+
+/* Home cards — Mineradio-like clear glass */
 .home-kicker {
   font-size: 10px;
   font-weight: 780;
   letter-spacing: 0.18em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--home-accent) 62%, rgba(255, 255, 255, 0.36));
+  color: rgba(255, 255, 255, 0.45);
 }
 
-.home-wave-track {
-  position: relative;
-  z-index: 1;
-  width: min(420px, 55%);
-  height: 36px;
-  margin: 10px 0 4px;
-  display: flex;
-  align-items: flex-end;
-  gap: 3px;
-  opacity: 0.72;
-  mix-blend-mode: screen;
-  pointer-events: none;
+html[data-theme="light"] .home-kicker {
+  color: rgba(15, 23, 42, 0.55);
 }
 
-.home-wave-track span {
-  flex: 1;
-  min-width: 2px;
-  border-radius: 999px;
-  background: linear-gradient(180deg, #fff, var(--home-accent));
-  box-shadow: 0 0 12px color-mix(in srgb, var(--home-accent) 55%, transparent);
-  height: var(--h, 8px);
-  transform-origin: bottom;
-  animation: home-eq-rise 1.6s ease-in-out infinite;
-  animation-delay: var(--d, 0s);
-}
-
-@keyframes home-eq-rise {
-  0%, 100% { transform: scaleY(0.55); opacity: 0.55; }
-  45% { transform: scaleY(1); opacity: 1; }
-}
-
-/* ---- Home cards (quick actions) ---- */
 .home-card {
-  --tone-a: #00f5d4;
-  --tone-b: #2442ff;
-  --tone-c: #f8f4ee;
+  --tone-a: #9db8cf;
+  --tone-b: #f8f4ee;
+  --tone-c: #f4d28a;
   position: relative;
   min-height: 132px;
-  border: 1px solid color-mix(in srgb, var(--home-accent) 10%, rgba(255, 255, 255, 0.085));
-  border-radius: 22px;
+  border: 1px solid rgba(255, 255, 255, 0.085);
+  border-radius: var(--radius-card);
   background: linear-gradient(142deg, rgba(18, 21, 26, 0.66), rgba(8, 9, 13, 0.76));
   box-shadow: 0 20px 64px rgba(0, 0, 0, 0.28), inset 0 1px 0 rgba(255, 255, 255, 0.06);
   backdrop-filter: blur(24px) saturate(1.12);
@@ -215,38 +1105,20 @@ html.control-glass-svg-ok .shortcut-dock {
   color: #fff;
   text-align: left;
   transition: transform 0.22s var(--ease-spring), border-color 0.22s, background 0.22s, box-shadow 0.22s;
-  animation: home-card-float 7.4s ease-in-out infinite;
 }
 
-.home-card[data-home-tone="mix"] { --tone-a: #9db8cf; --tone-b: #00f5d4; }
-.home-card[data-home-tone="local"] { --tone-a: #2442ff; --tone-b: #00f5d4; }
-.home-card[data-home-tone="library"] { --tone-a: #f4d28a; --tone-b: #00f5d4; }
-
-.home-card:nth-child(2) { animation-delay: -1.4s; }
-.home-card:nth-child(3) { animation-delay: -2.6s; }
-.home-card:nth-child(4) { animation-delay: -3.8s; }
-
 .home-card:hover {
-  animation: none;
   transform: translateY(-3px);
-  border-color: color-mix(in srgb, var(--tone-a) 42%, rgba(255, 255, 255, 0.18));
+  border-color: rgba(255, 255, 255, 0.18);
   background: linear-gradient(142deg, rgba(36, 33, 39, 0.72), rgba(10, 10, 14, 0.84));
   box-shadow:
     0 28px 84px rgba(0, 0, 0, 0.36),
-    0 0 34px color-mix(in srgb, var(--tone-a) 16%, transparent),
     inset 0 1px 0 rgba(255, 255, 255, 0.085);
 }
 
-.home-card::before {
-  content: '';
-  position: absolute;
-  right: -20%;
-  bottom: -30%;
-  width: 70%;
-  height: 80%;
-  border-radius: 50%;
-  background: radial-gradient(circle, color-mix(in srgb, var(--tone-a) 28%, transparent), transparent 68%);
-  pointer-events: none;
+.home-card:active {
+  transform: translateY(-1px) scale(0.985);
+  border-color: rgba(255, 255, 255, 0.22);
 }
 
 .home-card-label {
@@ -254,9 +1126,8 @@ html.control-glass-svg-ok .shortcut-dock {
   font-weight: 760;
   letter-spacing: 0.14em;
   text-transform: uppercase;
-  color: color-mix(in srgb, var(--tone-a) 70%, #fff);
+  color: rgba(255, 255, 255, 0.55);
   margin-bottom: 8px;
-  text-shadow: 0 0 18px color-mix(in srgb, var(--tone-a) 22%, transparent);
 }
 
 .home-card-title {
@@ -275,63 +1146,526 @@ html.control-glass-svg-ok .shortcut-dock {
   max-width: 72%;
 }
 
-@keyframes home-card-float {
-  0%, 100% { transform: translateY(0); }
-  50% { transform: translateY(-2px); }
+.home-wave-track {
+  display: none;
 }
 
-/* Ambient stronger cyan wash */
-.app-shell::before {
-  background:
-    radial-gradient(ellipse 55% 55% at 12% 8%, rgba(0, 245, 212, 0.22), transparent 68%),
-    radial-gradient(ellipse 45% 40% at 88% 5%, rgba(36, 66, 255, 0.18), transparent 65%),
-    radial-gradient(ellipse 40% 35% at 55% 40%, rgba(122, 215, 194, 0.08), transparent 70%) !important;
+/* Workbench: same clear glass language */
+.wb-panel--hero {
+  border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-.app-main-stage {
+.wb-panel--hero::before {
+  background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 68%) !important;
+}
+
+.wb-task {
+  background: rgba(0, 0, 0, 0.12) !important;
+  border: 0 !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+}
+
+.wb-task:hover {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+  border-color: transparent !important;
+}
+
+.wb-lane {
+  background: rgba(0, 0, 0, 0.08) !important;
+  border: 1px solid rgba(255, 255, 255, 0.08) !important;
+  box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
+}
+
+.wb-drawer-panel {
+  background: var(--glass-bg) !important;
+  border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
+  box-shadow: -18px 0 48px rgba(0, 0, 0, 0.35) !important;
+  backdrop-filter: blur(24px) saturate(1.12) !important;
+}
+
+.wb-chip--doing,
+.wb-badge-on-mainline,
+.wb-mode-pill[data-mode="hosting"],
+.wb-mode-pill[data-mode="joined"] {
+  color: rgba(255, 255, 255, 0.9) !important;
+  background: rgba(255, 255, 255, 0.08) !important;
+  border-color: rgba(255, 255, 255, 0.18) !important;
+  box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.15) !important;
+}
+
+.wb-title {
+  text-shadow: none !important;
+}
+
+.modal-veil {
+  background: rgba(0, 0, 0, 0.52) !important;
+  backdrop-filter: blur(12px) saturate(1.1) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.1) !important;
+}
+
+/* ---- Global radius remap: every page frame = Mineradio 22px ---- */
+.rounded-card,
+.rounded-panel,
+.rounded-shell,
+.rounded-xl,
+.rounded-2xl,
+.rounded-3xl,
+.rounded-\[20px\],
+.rounded-\[22px\],
+.rounded-\[24px\],
+.rounded-\[26px\],
+.rounded-\[28px\],
+.rounded-\[30px\],
+.rounded-\[32px\],
+.rounded-\[34px\],
+.rounded-\[36px\] {
+  border-radius: var(--radius-frame) !important;
+}
+
+.rounded-md { border-radius: var(--radius-sm) !important; }
+.rounded-lg { border-radius: var(--radius-md) !important; }
+
+.glass-card,
+.panel-glass,
+.dashboard-hero,
+.wb-panel,
+.wb-panel--hero,
+.home-card,
+.wb-lane,
+.wb-task,
+.wb-drawer-panel,
+.wb-project-card,
+.wb-banner,
+.modal-panel-cinematic {
+  border-radius: var(--radius-frame) !important;
+}
+
+/* Framed boxes inside the main stage share the same radius */
+.app-main-stage .border:not(.rounded-full):not(button):not(kbd):not(input):not(select):not(textarea):not(.wb-chip):not(.wb-mode-pill):not(.search-pill),
+.app-overlay-root .border:not(.rounded-full):not(button):not(kbd):not(input):not(select):not(textarea),
+.app-overlay-root .glass-card {
+  border-radius: var(--radius-frame) !important;
+}
+
+/* Keep true pills / circles */
+.rounded-full,
+.search-pill,
+.shortcut-dock,
+.wb-chip,
+.wb-mode-pill,
+.wb-badge-on-mainline {
+  border-radius: 999px !important;
+}
+
+.search-pill,
+.shortcut-dock {
+  border-radius: var(--radius-pill) !important;
+}
+
+/* ---- Outermost window shell (Mineradio #desktop-window-shell = 34px) ---- */
+html,
+body {
   background: transparent !important;
 }
 
-.shortcut-dock {
-  border-color: color-mix(in srgb, var(--home-accent) 28%, rgba(255, 255, 255, 0.08)) !important;
-  background: rgba(0, 0, 0, 0.22) !important;
-  backdrop-filter: blur(12px) saturate(1.8) brightness(1.1) !important;
+#root {
+  background: transparent;
+}
+
+.app-frame {
+  position: relative;
+  height: 100vh;
+  width: 100vw;
+  overflow: hidden;
+  border-radius: var(--radius-window, 34px);
+  clip-path: inset(0 round var(--radius-window, 34px));
+  background: var(--color-surface) !important;
+  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.46);
+  transform: translateZ(0);
+  transition:
+    border-radius 0.22s ease,
+    box-shadow 0.22s ease,
+    clip-path 0.22s ease;
+}
+
+html[data-window-maximized="1"] .app-frame,
+html:fullscreen .app-frame {
+  border-radius: 0 !important;
+  clip-path: none !important;
+  box-shadow: none !important;
+}
+
+/* ---- Launcher (Mineradio glass spotlight) ---- */
+/* Shell carries drop-shadow so it follows the rounded shape (box-shadow + blur often paints a square). */
+.launcher-shell {
+  border-radius: var(--radius-frame, 22px);
+  filter: drop-shadow(0 22px 48px rgba(0, 0, 0, 0.42));
+}
+
+.launcher-panel {
+  border: 0 !important;
+  background: var(--saved-panel-glass-bg) !important;
+  backdrop-filter: var(--saved-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
+  /* Inset rim only — outer glow lives on .launcher-shell */
   box-shadow: var(--saved-panel-glass-shadow) !important;
-}
-
-.shortcut-dock kbd {
-  color: var(--home-accent) !important;
-  border-color: color-mix(in srgb, var(--home-accent) 30%, transparent) !important;
-  background: rgba(0, 245, 212, 0.08) !important;
-}
-
-.btn-primary {
-  background: linear-gradient(135deg, #5ffbec, #00f5d4 40%, #00c4aa) !important;
-  color: #031016 !important;
-  font-weight: 700;
-  box-shadow: 0 8px 28px rgba(0, 245, 212, 0.28);
-}
-
-.btn-primary:hover {
-  box-shadow: 0 12px 36px rgba(0, 245, 212, 0.4) !important;
-}
-
-/* Header strip */
-.header-glass {
-  background: color-mix(in srgb, var(--chill-deep) 72%, transparent) !important;
-  border-bottom: 1px solid color-mix(in srgb, var(--home-accent) 10%, rgba(255, 255, 255, 0.06)) !important;
-  backdrop-filter: blur(18px) saturate(1.3) !important;
+  border-radius: var(--radius-frame, 22px) !important;
+  overflow: hidden !important;
+  isolation: isolate;
+  transform: translateZ(0);
+  /* Force backdrop-filter to clip to the same rounded rect as sidebar/header */
+  clip-path: inset(0 round var(--radius-frame, 22px));
+  color: var(--color-text);
+  animation: cinematic-pop 300ms var(--ease-spring, cubic-bezier(0.16, 1, 0.3, 1)) both;
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .home-wave-track span,
-  .home-card {
+  .launcher-panel {
     animation: none !important;
   }
 }
 
-@media (max-width: 1024px) {
-  .home-wave-track {
-    width: min(360px, 90%);
+.launcher-search {
+  border-bottom: 1px solid var(--glass-border-soft);
+  background: transparent;
+}
+
+.launcher-brand-mark {
+  display: grid;
+  place-items: center;
+  width: 32px;
+  height: 32px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
+  box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.28);
+}
+
+.launcher-footer {
+  border-top: 1px solid var(--glass-border-soft);
+  background: rgba(0, 0, 0, 0.14);
+}
+
+html[data-theme="light"] .launcher-footer {
+  background: rgba(255, 255, 255, 0.28);
+}
+
+.launcher-section-label {
+  padding: 0.375rem 0.75rem;
+  font-size: 0.75rem;
+  font-weight: 500;
+  color: var(--color-text-muted);
+}
+
+.launcher-kbd {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.15rem 0.45rem;
+  font-size: 10px;
+  line-height: 1.2;
+  border: 0 !important;
+  border-radius: 8px;
+  background: rgba(255, 255, 255, 0.06) !important;
+  box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.2);
+  color: rgba(255, 255, 255, 0.78) !important;
+  flex-shrink: 0;
+}
+
+.launcher-kbd--sm {
+  padding: 0.1rem 0.35rem;
+}
+
+html[data-theme="light"] .launcher-kbd {
+  background: rgba(15, 23, 42, 0.06) !important;
+  box-shadow: inset 0 0 1px 1px rgba(15, 23, 42, 0.12);
+  color: rgba(15, 23, 42, 0.65) !important;
+}
+
+.launcher-row {
+  width: 100%;
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  padding: 0.625rem 0.75rem;
+  border: 0 !important;
+  border-radius: 14px;
+  text-align: left;
+  color: var(--color-text-muted);
+  background: transparent;
+  transition: background 160ms ease, box-shadow 160ms ease, color 160ms ease, transform 160ms ease;
+}
+
+.launcher-row:hover {
+  color: var(--color-text);
+  background: rgba(255, 255, 255, 0.04);
+}
+
+.launcher-row.is-selected {
+  color: #fff;
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+}
+
+html[data-theme="light"] .launcher-row.is-selected {
+  color: #0f172a;
+}
+
+.launcher-tile {
+  display: flex;
+  width: 100%;
+  flex-direction: column;
+  align-items: center;
+  gap: 0.375rem;
+  padding: 0.625rem 0.375rem;
+  border: 0 !important;
+  border-radius: 16px;
+  text-align: center;
+  background: transparent;
+  color: inherit;
+  transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.launcher-tile:hover,
+.launcher-tile.is-selected {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+}
+
+.launcher-tile--compact {
+  padding: 0.625rem 0.5rem;
+  gap: 0.375rem;
+}
+
+.launcher-tile--command {
+  gap: 0.5rem;
+  padding: 0.75rem 0.5rem;
+  background: var(--saved-button-glass-bg) !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+}
+
+.launcher-tile--command:hover {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+  transform: translateY(-1px);
+}
+
+.launcher-chip,
+.launcher-feature-card {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  width: calc(100% - 0.5rem);
+  padding: 0.625rem 0.75rem;
+  border: 0 !important;
+  border-radius: 16px;
+  text-align: left;
+  background: var(--saved-button-glass-bg) !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+  transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
+}
+
+.launcher-chip:hover,
+.launcher-chip.is-selected,
+.launcher-feature-card:hover {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+}
+
+.launcher-icon-well {
+  display: grid;
+  place-items: center;
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.16);
+}
+
+.launcher-icon-well--sm {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+html[data-theme="light"] .launcher-icon-well {
+  background: rgba(15, 23, 42, 0.05);
+  box-shadow: inset 0 0 1px 1px rgba(15, 23, 42, 0.08);
+}
+
+.launcher-app-icon {
+  width: 36px;
+  height: 36px;
+  flex-shrink: 0;
+  border-radius: 12px;
+  object-fit: contain;
+  padding: 4px;
+  background: rgba(255, 255, 255, 0.06);
+  box-shadow: inset 0 0 1px 1px rgba(255, 255, 255, 0.12);
+}
+
+.launcher-app-icon--row {
+  width: 32px;
+  height: 32px;
+  border-radius: 10px;
+}
+
+.launcher-pin-badge {
+  position: absolute;
+  left: -4px;
+  top: -4px;
+  border-radius: 999px;
+  padding: 2px;
+  background: var(--color-primary);
+  color: #fff;
+  box-shadow: 0 4px 10px rgba(0, 0, 0, 0.28);
+}
+
+.launcher-mini-btn {
+  border: 0 !important;
+  border-radius: 8px;
+  padding: 2px;
+  color: var(--color-text-muted);
+  background: var(--saved-button-glass-bg) !important;
+  backdrop-filter: var(--saved-button-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  box-shadow: var(--saved-button-glass-shadow) !important;
+}
+
+.launcher-mini-btn:hover {
+  color: var(--color-primary);
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+}
+
+.launcher-mini-btn--danger:hover {
+  color: var(--color-danger, #f87171);
+}
+
+.launcher-menu {
+  border: 0 !important;
+  border-radius: 14px !important;
+  background: var(--saved-panel-glass-bg) !important;
+  backdrop-filter: var(--saved-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
+  box-shadow: var(--saved-panel-glass-shadow), 0 16px 40px rgba(0, 0, 0, 0.35) !important;
+  overflow: hidden;
+}
+
+.launcher-menu-item {
+  width: 100%;
+  padding: 0.5rem 0.75rem;
+  text-align: left;
+  font-size: 0.875rem;
+  color: var(--color-text);
+  background: transparent;
+  border: 0;
+  transition: background 140ms ease;
+}
+
+.launcher-menu-item:hover {
+  background: var(--saved-button-glass-hover-bg);
+}
+
+html[data-workspace-mode="minimal"] .launcher-panel,
+html[data-workspace-mode="minimal"] .launcher-tile--command,
+html[data-workspace-mode="minimal"] .launcher-chip,
+html[data-workspace-mode="minimal"] .launcher-feature-card,
+html[data-workspace-mode="minimal"] .launcher-menu {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+}
+
+/* Minimal / a11y */
+html[data-workspace-mode="minimal"] .glass-card,
+html[data-workspace-mode="minimal"] .wb-panel,
+html[data-workspace-mode="minimal"] .sidebar-glass,
+html[data-workspace-mode="minimal"] .header-glass,
+html[data-workspace-mode="minimal"] .home-card,
+html[data-workspace-mode="minimal"] .app-main-stage .rounded-2xl.border,
+html[data-workspace-mode="minimal"] .app-main-stage .rounded-3xl.border {
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+}
+
+html[data-workspace-mode="minimal"] .app-shell::before,
+html[data-workspace-mode="minimal"] .app-main-stage::before {
+  display: none !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .glass-card:hover,
+  .wb-panel:hover,
+  .home-card:hover,
+  .btn-primary:hover,
+  .wb-btn-primary:hover:not(:disabled) {
+    transform: none !important;
   }
+}
+
+/* =========================================================
+   Light mode — final pass: kill leftover dark-glass white ink
+   ========================================================= */
+html[data-theme="light"] .app-frame,
+html[data-theme="light"] .app-overlay-root {
+  color: #0f172a;
+}
+
+html[data-theme="light"] .app-frame .text-text,
+html[data-theme="light"] .app-frame .text-text-muted,
+html[data-theme="light"] .header-glass,
+html[data-theme="light"] .sidebar-glass,
+html[data-theme="light"] .header-title-swap,
+html[data-theme="light"] .search-pill,
+html[data-theme="light"] .shortcut-dock,
+html[data-theme="light"] .icon-glass-btn,
+html[data-theme="light"] .icon-glass-btn:hover,
+html[data-theme="light"] .icon-glass-btn svg,
+html[data-theme="light"] .glass-saved-button:not(.btn-primary),
+html[data-theme="light"] .btn-secondary,
+html[data-theme="light"] .wb-btn,
+html[data-theme="light"] button.icon-glass-btn {
+  color: #334155 !important;
+}
+
+html[data-theme="light"] .app-frame .text-text {
+  color: #0f172a !important;
+}
+
+html[data-theme="light"] .shortcut-dock kbd,
+html[data-theme="light"] .header-glass kbd,
+html[data-theme="light"] .sidebar-glass kbd,
+html[data-theme="light"] .app-frame kbd {
+  color: #334155 !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+}
+
+/* Primary / filled controls keep white labels on blue */
+html[data-theme="light"] .btn-primary,
+html[data-theme="light"] .btn-primary *,
+html[data-theme="light"] .btn-primary:hover,
+html[data-theme="light"] .btn-primary:hover *,
+html[data-theme="light"] .wb-btn-primary,
+html[data-theme="light"] .wb-btn-primary *,
+html[data-theme="light"] .pomo-btn--primary,
+html[data-theme="light"] .pomo-btn--primary * {
+  color: #fff !important;
+}
+
+/* Selected nav / mode tabs: dark blue ink on light blue chip */
+html[data-theme="light"] .nav-item-spring.nav-item-spring--active,
+html[data-theme="light"] .nav-item-spring.nav-item-spring--active *,
+html[data-theme="light"] .nav-item-spring[aria-current="page"],
+html[data-theme="light"] .nav-item-spring[aria-current="page"] *,
+html[data-theme="light"] .pomo-mode-tab.pomo-mode-tab--active,
+html[data-theme="light"] .pomo-mode-tab.pomo-mode-tab--active * {
+  color: #1e3a8a !important;
 }
