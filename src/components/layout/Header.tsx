@@ -267,19 +267,19 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
 
   return (
     <header
-      className="header-glass h-16 flex items-center justify-between px-4 md:px-6 sticky top-0 z-10"
+      className="header-glass header-float flex h-14 shrink-0 items-center justify-between px-4 md:h-16 md:px-5"
       style={dragRegion}
     >
       <div className="flex items-center gap-3" style={noDragRegion}>
         <button
           onClick={onOpenMobileSidebar}
           aria-label={t('header.openMenu')}
-          className="p-2 rounded-lg hover:bg-surface-lighter text-text-muted hover:text-text transition-colors lg:hidden"
+          className="p-2 icon-glass-btn text-text-muted hover:text-text lg:hidden"
         >
           <Menu size={20} />
         </button>
 
-        <h1 className="text-lg md:text-xl font-semibold text-text">{title}</h1>
+        <h1 key={title} className="header-title-swap text-lg md:text-xl font-semibold text-text">{title}</h1>
 
         {dndEnabled && (
           <span className="hidden sm:inline-flex items-center rounded-lg border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">
@@ -315,18 +315,18 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
           onClick={toggleThemeMode}
           aria-label={themeMode === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
           title={themeMode === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
-          className="p-2 rounded-lg hover:bg-surface-lighter text-text-muted hover:text-text transition-colors"
+          className="p-2 icon-glass-btn text-text-muted hover:text-text"
         >
           {themeMode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
         </button>
 
         <button
           onClick={onOpenCommandPalette}
-          className="relative hidden sm:flex items-center gap-2 input-field pl-9 pr-12 py-2 w-48 md:w-56 text-sm cursor-pointer hover:border-primary/50 transition-colors"
+          className="search-pill relative hidden sm:flex items-center gap-2 pl-9 pr-12 py-2 w-48 md:w-64 text-sm cursor-pointer transition-colors"
         >
           <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
           <span className="text-text-muted">{t('header.searchPlaceholder')}</span>
-          <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] text-text-muted bg-surface rounded border border-border">
+          <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] text-text-muted rounded-md border border-border/80 bg-black/20">
             {commandPaletteHotkey}
           </kbd>
         </button>
@@ -334,7 +334,7 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
         <button
           onClick={onOpenCommandPalette}
           aria-label={t('header.search')}
-          className="p-2 rounded-lg hover:bg-surface-lighter text-text-muted hover:text-text transition-colors sm:hidden"
+          className="p-2 icon-glass-btn text-text-muted hover:text-text sm:hidden"
         >
           <Search size={18} />
         </button>
@@ -360,8 +360,8 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
               if (!showNotifications) setSeenCount(notifications.length)
             }}
             aria-expanded={showNotifications}
+            className="p-2 icon-glass-btn text-text-muted hover:text-text relative"
             aria-label={t('header.notifications')}
-            className="p-2 rounded-lg hover:bg-surface-lighter text-text-muted hover:text-text transition-colors relative"
           >
             <Bell size={18} />
             {hasUnread && hasNotifications && (

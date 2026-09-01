@@ -194,3 +194,24 @@ export const TaskFlowSkeleton = memo(function TaskFlowSkeleton() {
     </div>
   )
 })
+
+export const HotlistSkeleton = memo(function HotlistSkeleton() {
+  return (
+    <div className="space-y-4 animate-fade-in">
+      <div className="flex items-center justify-between">
+        <Block className="h-8 w-40" />
+        <Block className="h-8 w-20 rounded-full" />
+      </div>
+      <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
+        {Array.from({ length: 10 }, (_, i) => (
+          <div key={i} className="glass-card p-4 space-y-2 min-h-[320px]">
+            <Block className="h-5 w-2/5" />
+            {Array.from({ length: 8 }, (_, j) => (
+              <Block key={j} className="h-4 w-full" />
+            ))}
+          </div>
+        ))}
+      </div>
+    </div>
+  )
+})

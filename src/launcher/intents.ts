@@ -28,6 +28,7 @@ export const LAUNCHER_COMMANDS: LauncherCommandDef[] = [
   { id: 'nav-notes', label: '笔记', description: '打开主窗口并进入笔记', keywords: ['note', 'biji', '笔记'] },
   { id: 'nav-reminders', label: '提醒中心', description: '打开提醒列表与重复提醒管理', keywords: ['reminder', 'tixing', '提醒', '闹钟'] },
   { id: 'nav-weather', label: '天气', description: '打开主窗口并查看天气', keywords: ['weather', 'tianqi', '天气'] },
+  { id: 'nav-hotlist', label: '今日热榜', description: '打开各平台实时热榜', keywords: ['hotlist', 'rebang', '热榜', '头条', 'news'] },
   { id: 'nav-mineradio', label: 'Mineradio', description: '打开嵌入的 Mineradio 音乐可视化', keywords: ['mineradio', 'music', 'yinyue', '音乐', '电台', 'radio'] },
   { id: 'nav-settings', label: '设置', description: '打开主窗口并进入设置', keywords: ['settings', 'shezhi', '设置', 'preferences'] },
   { id: 'daily-brief', label: '今日作战板', description: '查看今日任务、提醒、习惯与番茄进度', keywords: ['brief', 'today', '作战', '今日', '复盘'] },

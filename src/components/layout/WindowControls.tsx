@@ -19,7 +19,7 @@ export default function WindowControls() {
 
   if (!api?.windowControl) return null
 
-  const btn = 'p-2 rounded-lg transition-colors text-text-muted hover:text-text hover:bg-surface-lighter'
+  const btn = 'no-motion p-2 rounded-lg transition-colors text-text-muted hover:text-text hover:bg-surface-lighter'
 
   return (
     <div className="flex items-center gap-1" style={noDrag}>
@@ -32,7 +32,13 @@ export default function WindowControls() {
         <Minus size={16} />
       </button>
       <button
-        onClick={() => void api.windowControl?.('toggle-maximize')}
+        onClick={() => {
+          void (async () => {
+            await api.windowControl?.('toggle-maximize')
+            const next = await api.isWindowMaximized?.()
+            if (typeof next === 'boolean') setMaximized(next)
+          })()
+        }}
         aria-label={maximized ? '还原窗口' : '最大化'}
         title={maximized ? '还原' : '最大化'}
         className={btn}

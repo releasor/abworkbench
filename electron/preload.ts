@@ -52,6 +52,14 @@ contextBridge.exposeInMainWorld('electronAPI', {
   openTranslate: (payload: { text: string; providerId?: string }) => ipcRenderer.invoke('desktop:open-translate', payload),
   getLauncherSettings: () => ipcRenderer.invoke('desktop:get-launcher-settings'),
   setLauncherSettings: (settings: unknown) => ipcRenderer.invoke('desktop:set-launcher-settings', settings),
+  workbenchLocalGet: () => ipcRenderer.invoke('desktop:workbench-local-get'),
+  workbenchLocalSet: (data: unknown) => ipcRenderer.invoke('desktop:workbench-local-set', data),
+  workbenchHostStart: (opts?: { displayName?: string; userId?: string; passphrase?: string }) =>
+    ipcRenderer.invoke('desktop:workbench-host-start', opts),
+  workbenchHostStop: () => ipcRenderer.invoke('desktop:workbench-host-stop'),
+  workbenchHostStatus: () => ipcRenderer.invoke('desktop:workbench-host-status'),
+  workbenchHostShareProject: (payload: { project: unknown; mainlineSeed: unknown[] }) =>
+    ipcRenderer.invoke('desktop:workbench-host-share-project', payload),
   listRecentApps: () => ipcRenderer.invoke('desktop:list-recent-apps'),
   searchApps: (query: string) => ipcRenderer.invoke('desktop:search-apps', query),
   openApp: (appPath: string) => ipcRenderer.invoke('desktop:open-app', appPath),
@@ -86,6 +94,12 @@ contextBridge.exposeInMainWorld('electronAPI', {
   readerUpsertBook: (book: unknown) => ipcRenderer.invoke('desktop:reader-upsert-book', book),
   readerScrapeUrl: (url: string, bookId?: string) =>
     ipcRenderer.invoke('desktop:reader-scrape-url', bookId ? { url, bookId } : url),
+  hotlistFetchAll: (opts?: { noCache?: boolean }) => ipcRenderer.invoke('desktop:hotlist-fetch-all', opts || {}),
+  hotlistGetPlatforms: () => ipcRenderer.invoke('desktop:hotlist-platforms'),
+  hotlistFetchBatch: (payload: { ids: string[]; noCache?: boolean }) =>
+    ipcRenderer.invoke('desktop:hotlist-fetch-batch', payload),
+  hotlistFetch: (id: string, opts?: { noCache?: boolean }) =>
+    ipcRenderer.invoke('desktop:hotlist-fetch', opts ? { id, ...opts } : id),
   readerOpenBook: (bookId: string) => ipcRenderer.invoke('desktop:reader-open-book', bookId),
   readerWindowControl: (action: unknown) => ipcRenderer.invoke('desktop:reader-window-control', action),
 

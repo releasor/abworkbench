@@ -5,6 +5,13 @@ import { fileURLToPath } from 'node:url'
 import { shouldQuitForExistingInstance } from './appLifecycle'
 import { getIsolatedCachePaths } from './desktopReliability'
 import { buildTranslateUrl, DEFAULT_HOTKEY, DEFAULT_MAIN_WINDOW_HOTKEY, DEFAULT_QUICK_CAPTURE_HOTKEY, loadLauncherSettings, saveLauncherSettings, type LauncherSettings } from './launcherSettings'
+import { loadWorkbenchLocal, saveWorkbenchLocal } from './workbenchLocal'
+import {
+  getWorkbenchHostStatus,
+  hostShareProject,
+  startWorkbenchHost,
+  stopWorkbenchHost,
+} from './workbenchHost'
 import { everythingStatus, searchEverything } from './everythingSearch'
 import { initRecentApps, listLauncherRecentHome, openDesktopApp, searchInstalledApps, pinRecentApp, unpinRecentApp, hideRecentApp } from './recentApps'
 import { loadReaderSettings, saveReaderSettings } from './readerSettings'
@@ -25,6 +32,7 @@ import {
   withLibraryLock,
 } from './readerLibrary'
 import { getWebChapter, scrapeUrl } from './readerScrape'
+import { fetchAllHotlistBoards, fetchHotlistBoard, fetchHotlistBoardsBatch, HOTLIST_PLATFORMS } from './hotlistFetch'
 import {
   applyReaderOpacity,
   createReaderWindow,
@@ -494,7 +502,7 @@ function configureContentSecurityPolicy() {
     "style-src 'self' 'unsafe-inline'",
     "img-src 'self' data:",
     "font-src 'self' data:",
-    "connect-src 'self' https://nominatim.openstreetmap.org",
+    "connect-src 'self' https://nominatim.openstreetmap.org http://127.0.0.1:* http://localhost:* http:",
     "frame-src 'self' http://127.0.0.1:* http://localhost:*",
     "child-src 'self' http://127.0.0.1:* http://localhost:*",
     "object-src 'none'",
@@ -528,6 +536,72 @@ interface WindowState {
 
 const stateFile = path.join(app.getPath('userData'), 'window-state.json')
 
+/** Transparent frameless windows on Windows often break native maximize/unmaximize. */
+let mainWindowRestoredBounds: { x: number; y: number; width: number; height: number } | null = null
+let mainWindowPseudoMaximized = false
+let mainWindowBoundsProgrammatic = false
+
+function withProgrammaticBounds(fn: () => void) {
+  mainWindowBoundsProgrammatic = true
+  try {
+    fn()
+  } finally {
+    // Defer clear so sync resize/will-resize from setBounds still see the flag.
+    setImmediate(() => {
+      mainWindowBoundsProgrammatic = false
+    })
+  }
+}
+
+function isMainWindowMaximized(): boolean {
+  if (!win || win.isDestroyed()) return false
+  return mainWindowPseudoMaximized || win.isMaximized()
+}
+
+function notifyMainWindowMaximized(maximized: boolean) {
+  if (!win || win.isDestroyed()) return
+  win.webContents.send('window-maximized-changed', maximized)
+}
+
+function maximizeMainWindow() {
+  if (!win || win.isDestroyed() || isMainWindowMaximized()) return
+  mainWindowRestoredBounds = win.getBounds()
+  const display = screen.getDisplayMatching(mainWindowRestoredBounds)
+  const area = display.workArea
+  // Prefer setBounds over native maximize — reliable with transparent:true on Windows.
+  withProgrammaticBounds(() => {
+    win!.setBounds({ x: area.x, y: area.y, width: area.width, height: area.height })
+  })
+  mainWindowPseudoMaximized = true
+  notifyMainWindowMaximized(true)
+}
+
+function restoreMainWindow() {
+  if (!win || win.isDestroyed() || !isMainWindowMaximized()) return
+  if (win.isMaximized()) {
+    try { win.unmaximize() } catch { /* ignore */ }
+  }
+  const bounds = mainWindowRestoredBounds
+  mainWindowRestoredBounds = null
+  mainWindowPseudoMaximized = false
+  if (bounds) {
+    withProgrammaticBounds(() => {
+      win!.setBounds(bounds)
+    })
+  } else {
+    withProgrammaticBounds(() => {
+      win!.setSize(1280, 800)
+      win!.center()
+    })
+  }
+  notifyMainWindowMaximized(false)
+}
+
+function toggleMainWindowMaximize() {
+  if (isMainWindowMaximized()) restoreMainWindow()
+  else maximizeMainWindow()
+}
+
 function loadWindowState(): WindowState {
   try {
     if (fs.existsSync(stateFile)) {
@@ -538,14 +612,15 @@ function loadWindowState(): WindowState {
 }
 
 function saveWindowState() {
-  if (!win) return
-  const bounds = win.getBounds()
+  if (!win || win.isDestroyed()) return
+  const maximized = isMainWindowMaximized()
+  const bounds = maximized && mainWindowRestoredBounds ? mainWindowRestoredBounds : win.getBounds()
   const state: WindowState = {
     x: bounds.x,
     y: bounds.y,
     width: bounds.width,
     height: bounds.height,
-    isMaximized: win.isMaximized(),
+    isMaximized: maximized,
   }
   try { fs.writeFileSync(stateFile, JSON.stringify(state)) } catch { /* ignore */ }
 }
@@ -562,7 +637,9 @@ function createWindow() {
     minHeight: 600,
     title: 'Abworkbench',
     icon: path.join(process.env.VITE_PUBLIC!, 'favicon.ico'),
-    backgroundColor: '#1e1e2e',
+    backgroundColor: '#00000000',
+    transparent: true,
+    hasShadow: true,
     autoHideMenuBar: true,
     frame: false,
     webPreferences: {
@@ -573,12 +650,35 @@ function createWindow() {
     },
   })
 
-  if (state.isMaximized || (!state.x && !state.y)) win.maximize()
+  if (state.isMaximized) {
+    // Defer until after show so workArea bounds apply cleanly.
+    win.once('ready-to-show', () => maximizeMainWindow())
+  }
 
   win.on('resize', saveWindowState)
   win.on('move', saveWindowState)
-  win.on('maximize', () => win?.webContents.send('window-maximized-changed', true))
-  win.on('unmaximize', () => win?.webContents.send('window-maximized-changed', false))
+  win.on('maximize', () => {
+    if (!mainWindowRestoredBounds && win && !win.isDestroyed()) {
+      try {
+        mainWindowRestoredBounds = win.getNormalBounds()
+      } catch {
+        mainWindowRestoredBounds = null
+      }
+    }
+    mainWindowPseudoMaximized = true
+    notifyMainWindowMaximized(true)
+  })
+  win.on('unmaximize', () => {
+    mainWindowPseudoMaximized = false
+    notifyMainWindowMaximized(false)
+  })
+  win.on('will-resize', () => {
+    // User-driven resize leaves pseudo-maximized mode; ignore programmatic setBounds.
+    if (mainWindowBoundsProgrammatic || !mainWindowPseudoMaximized) return
+    mainWindowPseudoMaximized = false
+    mainWindowRestoredBounds = null
+    notifyMainWindowMaximized(false)
+  })
   win.on('close', (event) => {
     saveWindowState()
     if (!isQuitting) {
@@ -703,12 +803,11 @@ app.whenReady().then(async () => {
 
   // --- Custom window controls (frameless main window) ---
   ipcMain.handle('desktop:window-control', (_event, action: string) => {
-    if (!win) return false
+    if (!win || win.isDestroyed()) return false
     if (action === 'minimize') {
       win.minimize()
     } else if (action === 'toggle-maximize') {
-      if (win.isMaximized()) win.unmaximize()
-      else win.maximize()
+      toggleMainWindowMaximize()
     } else if (action === 'close') {
       // Goes through the existing close handler: hides to tray unless quitting.
       win.close()
@@ -717,7 +816,7 @@ app.whenReady().then(async () => {
     }
     return true
   })
-  ipcMain.handle('desktop:window-is-maximized', () => win?.isMaximized() ?? false)
+  ipcMain.handle('desktop:window-is-maximized', () => isMainWindowMaximized())
 
   // --- Launcher IPC ---
   ipcMain.handle('desktop:toggle-launcher', () => {
@@ -760,6 +859,43 @@ app.whenReady().then(async () => {
   ipcMain.handle('desktop:open-translate', (_event, payload: { text?: string; providerId?: string }) => {
     return openTranslateWindow(String(payload?.text || ''), payload?.providerId)
   })
+  ipcMain.handle('desktop:workbench-local-get', () => loadWorkbenchLocal(app.getPath('userData')))
+  ipcMain.handle('desktop:workbench-local-set', (_e, data: unknown) => {
+    saveWorkbenchLocal(app.getPath('userData'), data)
+    return true
+  })
+  ipcMain.handle(
+    'desktop:workbench-host-start',
+    async (
+      _e,
+      opts?: { displayName?: string; userId?: string; passphrase?: string },
+    ) => {
+      return startWorkbenchHost({
+        hostUser: {
+          id: opts?.userId || 'local',
+          displayName: opts?.displayName || '主机',
+        },
+        passphrase: opts?.passphrase,
+      })
+    },
+  )
+  ipcMain.handle('desktop:workbench-host-stop', () => {
+    stopWorkbenchHost()
+    return true
+  })
+  ipcMain.handle('desktop:workbench-host-status', () => getWorkbenchHostStatus())
+  ipcMain.handle(
+    'desktop:workbench-host-share-project',
+    (
+      _e,
+      payload: { project: unknown; mainlineSeed: unknown[] },
+    ) => {
+      return hostShareProject(
+        payload?.project as Parameters<typeof hostShareProject>[0],
+        (payload?.mainlineSeed ?? []) as Parameters<typeof hostShareProject>[1],
+      )
+    },
+  )
   ipcMain.handle('desktop:get-launcher-settings', () => launcherSettings)
   ipcMain.handle('desktop:set-launcher-settings', (_event, next: LauncherSettings) => {
     const previousHotkey = launcherSettings.hotkey
@@ -952,6 +1088,20 @@ app.whenReady().then(async () => {
     const url = typeof payload === 'string' ? payload : String(payload?.url || '')
     const bookId = typeof payload === 'object' && payload?.bookId ? String(payload.bookId) : undefined
     return scrapeUrl(url, app.getPath('userData'), bookId)
+  })
+  ipcMain.handle('desktop:hotlist-fetch-all', async (_event, opts?: { noCache?: boolean }) => {
+    return fetchAllHotlistBoards({ noCache: Boolean(opts?.noCache) })
+  })
+  ipcMain.handle('desktop:hotlist-platforms', async () => HOTLIST_PLATFORMS)
+  ipcMain.handle('desktop:hotlist-fetch-batch', async (_event, payload?: { ids?: string[]; noCache?: boolean }) => {
+    const ids = Array.isArray(payload?.ids) ? payload.ids.filter(Boolean) : []
+    const noCache = Boolean(payload?.noCache)
+    return fetchHotlistBoardsBatch(ids, { noCache })
+  })
+  ipcMain.handle('desktop:hotlist-fetch', async (_event, payload: string | { id?: string; noCache?: boolean }) => {
+    const id = typeof payload === 'string' ? payload : String(payload?.id || '')
+    const noCache = typeof payload === 'object' ? Boolean(payload?.noCache) : false
+    return fetchHotlistBoard(id, { noCache })
   })
   ipcMain.handle('desktop:reader-open-book', async (_event, bookId: string) => {
     return openReaderWindow({ mode: 'reading', bookId: String(bookId || '') })

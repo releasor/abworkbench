@@ -2,6 +2,12 @@ import { create } from 'zustand'
 import { persist } from 'zustand/middleware'
 import { generateId } from '../utils/id'
 import { emitWorkspaceModeChange } from '../utils/workspaceModeEffects'
+import {
+  DEFAULT_HABIT_SCHEDULE,
+  normalizeHabit,
+  recomputeCompletedDates,
+  timestampToDateStr,
+} from '../components/habits/habitSchedule'
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 export type ThemeMode = 'dark' | 'light'
@@ -50,12 +56,23 @@ export interface PomodoroSession {
   taskId?: string
 }
 
+export type HabitFrequencyMode = 'once' | 'multiple' | 'window'
+
+export interface HabitSchedule {
+  mode: HabitFrequencyMode
+  targetCount: number
+  windowStartHour?: number
+  windowEndHour?: number
+}
+
 export interface Habit {
   id: string
   name: string
   icon: string
   color: string
-  completedDates: string[] // ISO date strings YYYY-MM-DD
+  completedDates: string[] // dates where daily goal was met (YYYY-MM-DD)
+  checkIns: number[] // check-in timestamps
+  schedule: HabitSchedule
   createdAt: number
 }
 
@@ -128,10 +145,12 @@ interface AppState {
 
   // Habits
   habits: Habit[]
-  addHabit: (name: string, icon: string, color: string) => void
+  addHabit: (name: string, icon: string, color: string, schedule?: HabitSchedule) => void
+  checkInHabit: (habitId: string, timestamp?: number) => void
+  undoHabitCheckIn: (habitId: string, date?: string) => void
   toggleHabitDate: (habitId: string, date: string) => void
   deleteHabit: (id: string) => void
-  updateHabit: (id: string, updates: Partial<Pick<Habit, 'name' | 'icon' | 'color'>>) => void
+  updateHabit: (id: string, updates: Partial<Pick<Habit, 'name' | 'icon' | 'color' | 'schedule'>>) => void
 }
 
 const NOTE_COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6']
@@ -271,7 +290,7 @@ export const useStore = create<AppState>()(
       setPomodoroAutoStartWork: (enabled) => set({ pomodoroAutoStartWork: enabled }),
 
       // Theme
-      accentColor: '#00f5d4',
+      accentColor: '#e8eef2',
       setAccentColor: (color) => set({ accentColor: color }),
       themeMode: 'dark',
       setThemeMode: (mode) => set({ themeMode: mode }),
@@ -296,28 +315,80 @@ export const useStore = create<AppState>()(
 
       // Habits
       habits: [],
-      addHabit: (name, icon, color) =>
+      addHabit: (name, icon, color, schedule = DEFAULT_HABIT_SCHEDULE) =>
         set((s) => ({
           habits: [
             ...s.habits,
-            { id: generateId(), name, icon, color, completedDates: [], createdAt: Date.now() },
+            normalizeHabit({
+              id: generateId(),
+              name,
+              icon,
+              color,
+              completedDates: [],
+              checkIns: [],
+              schedule,
+              createdAt: Date.now(),
+            }),
           ],
+        })),
+      checkInHabit: (habitId, timestamp = Date.now()) =>
+        set((s) => ({
+          habits: s.habits.map((h) => {
+            if (h.id !== habitId) return h
+            const next = normalizeHabit({
+              ...h,
+              checkIns: [...(h.checkIns ?? []), timestamp],
+            })
+            return { ...next, completedDates: recomputeCompletedDates(next) }
+          }),
+        })),
+      undoHabitCheckIn: (habitId, date) =>
+        set((s) => ({
+          habits: s.habits.map((h) => {
+            if (h.id !== habitId) return h
+            const dateStr = date ?? timestampToDateStr(Date.now())
+            const checkIns = [...(h.checkIns ?? [])]
+            for (let i = checkIns.length - 1; i >= 0; i--) {
+              if (timestampToDateStr(checkIns[i]) === dateStr) {
+                checkIns.splice(i, 1)
+                break
+              }
+            }
+            const next = normalizeHabit({ ...h, checkIns })
+            return { ...next, completedDates: recomputeCompletedDates(next) }
+          }),
         })),
       toggleHabitDate: (habitId, date) =>
         set((s) => ({
           habits: s.habits.map((h) => {
             if (h.id !== habitId) return h
-            const idx = h.completedDates.indexOf(date)
-            const dates = idx >= 0
-              ? h.completedDates.toSpliced(idx, 1)
-              : [...h.completedDates, date]
-            return { ...h, completedDates: dates }
+            const normalized = normalizeHabit(h)
+            const met = normalized.completedDates.includes(date)
+            if (met) {
+              const checkIns = (normalized.checkIns ?? []).filter((ts) => timestampToDateStr(ts) !== date)
+              const next = normalizeHabit({ ...normalized, checkIns })
+              return { ...next, completedDates: recomputeCompletedDates(next) }
+            }
+            const target = Math.max(1, normalized.schedule.targetCount || 1)
+            const [y, m, d] = date.split('-').map(Number)
+            const additions = Array.from({ length: target }, (_, index) => (
+              new Date(y, m - 1, d, 12, index, 0).getTime()
+            ))
+            const next = normalizeHabit({
+              ...normalized,
+              checkIns: [...(normalized.checkIns ?? []), ...additions],
+            })
+            return { ...next, completedDates: recomputeCompletedDates(next) }
           }),
         })),
       deleteHabit: (id) => set((s) => ({ habits: s.habits.filter((h) => h.id !== id) })),
       updateHabit: (id, updates) =>
         set((s) => ({
-          habits: s.habits.map((h) => (h.id === id ? { ...h, ...updates } : h)),
+          habits: s.habits.map((h) => {
+            if (h.id !== id) return h
+            const next = normalizeHabit({ ...h, ...updates })
+            return { ...next, completedDates: recomputeCompletedDates(next) }
+          }),
         })),
     }),
     {
@@ -345,6 +416,10 @@ export const useStore = create<AppState>()(
         weatherCity: state.weatherCity,
         weatherAutoLocate: state.weatherAutoLocate,
       }),
+      onRehydrateStorage: () => (state) => {
+        if (!state?.habits?.length) return
+        state.habits = state.habits.map((habit) => normalizeHabit(habit as Habit))
+      },
     }
   )
 )

@@ -114,6 +114,24 @@ declare global {
       openTranslate?: (payload: { text: string; providerId?: string }) => Promise<boolean>
       getLauncherSettings?: () => Promise<LauncherSettingsConfig>
       setLauncherSettings?: (settings: LauncherSettingsConfig) => Promise<LauncherSettingsConfig>
+      workbenchLocalGet?: () => Promise<unknown | null>
+      workbenchLocalSet?: (data: unknown) => Promise<boolean>
+      workbenchHostStart?: (opts?: {
+        displayName?: string
+        userId?: string
+        passphrase?: string
+      }) => Promise<{ port: number; roomCode: string; lanUrls: string[] }>
+      workbenchHostStop?: () => Promise<boolean>
+      workbenchHostStatus?: () => Promise<{
+        running: boolean
+        port: number | null
+        roomCode: string | null
+        lanUrls: string[]
+      }>
+      workbenchHostShareProject?: (payload: {
+        project: unknown
+        mainlineSeed: unknown[]
+      }) => Promise<{ ok: boolean; error?: string }>
       listRecentApps?: () => Promise<LauncherRecentHomeInfo | DesktopAppInfo[]>
       searchApps?: (query: string) => Promise<DesktopAppInfo[]>
       openApp?: (appPath: string) => Promise<boolean>
@@ -141,6 +159,34 @@ declare global {
         | { ok: true; book: ReaderBookInfo; chapter: { title: string; body: string; chapterIndex: number; chapterCount: number } }
         | { ok: false; message: string }
       >
+      hotlistFetchAll?: (opts?: { noCache?: boolean }) => Promise<Array<{
+        id: string
+        title: string
+        subtitle?: string
+        updateTime: string
+        fromCache: boolean
+        items: Array<{ rank: number; title: string; url: string; hot?: string }>
+        error?: string
+      }>>
+      hotlistGetPlatforms?: () => Promise<Array<{ id: string; title: string; subtitle?: string }>>
+      hotlistFetchBatch?: (payload: { ids: string[]; noCache?: boolean }) => Promise<Array<{
+        id: string
+        title: string
+        subtitle?: string
+        updateTime: string
+        fromCache: boolean
+        items: Array<{ rank: number; title: string; url: string; hot?: string }>
+        error?: string
+      }>>
+      hotlistFetch?: (id: string, opts?: { noCache?: boolean }) => Promise<{
+        id: string
+        title: string
+        subtitle?: string
+        updateTime: string
+        fromCache: boolean
+        items: Array<{ rank: number; title: string; url: string; hot?: string }>
+        error?: string
+      }>
       readerOpenBook?: (bookId: string) => Promise<{ mode: string; bookId?: string }>
       readerWindowControl?: (action: unknown) => Promise<boolean>
       ensureMineradio?: () => Promise<{

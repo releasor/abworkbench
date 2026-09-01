@@ -4,7 +4,6 @@ import {
   StickyNote,
   Cloud,
   ChevronLeft,
-  ChevronRight,
   Zap,
   Target,
   Settings,
@@ -13,8 +12,9 @@ import {
   Rocket,
   Bell,
   Radio,
+  Flame,
 } from 'lucide-react'
-import { useMemo, memo } from 'react'
+import { useMemo, memo, useEffect, useRef, useState } from 'react'
 import { useStore } from '../../store'
 import { useToday } from '../../hooks/useToday'
 import { useTranslation } from '../../i18n'
@@ -44,14 +44,31 @@ const menuItems = [
   { id: 'notes' as Page, labelKey: 'page.notes' as TranslationKey, icon: StickyNote, shortcut: '5' },
   { id: 'reminders' as Page, labelKey: 'page.reminders' as TranslationKey, icon: Bell, shortcut: '6' },
   { id: 'weather' as Page, labelKey: 'page.weather' as TranslationKey, icon: Cloud, shortcut: '7' },
+  { id: 'hotlist' as Page, labelKey: 'page.hotlist' as TranslationKey, icon: Flame, shortcut: '0' },
   { id: 'mineradio' as Page, labelKey: 'page.mineradio' as TranslationKey, icon: Radio, shortcut: '8' },
   { id: 'settings' as Page, labelKey: 'page.settings' as TranslationKey, icon: Settings, shortcut: '9' },
 ]
+
+const SIDEBAR_MOTION_MS = 300
 
 export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher, isMobileOpen, onMobileClose }: SidebarProps) {
   const { t } = useTranslation()
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed)
   const toggleSidebar = useStore((s) => s.toggleSidebar)
+  const [sidebarAnimating, setSidebarAnimating] = useState(false)
+  const prevCollapsedRef = useRef(sidebarCollapsed)
+
+  // Drop backdrop blur while width is tweening — blur+layout is the main jank source.
+  useEffect(() => {
+    if (prevCollapsedRef.current === sidebarCollapsed) return
+    prevCollapsedRef.current = sidebarCollapsed
+    setSidebarAnimating(true)
+    const id = window.setTimeout(() => setSidebarAnimating(false), SIDEBAR_MOTION_MS + 40)
+    return () => {
+      window.clearTimeout(id)
+      setSidebarAnimating(false)
+    }
+  }, [sidebarCollapsed])
   const pomodoroSessions = useStore((s) => s.pomodoroSessions)
   const habits = useStore((s) => s.habits)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
@@ -66,6 +83,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
   const pageNotesHotkey = useShortcutStore((s) => s.getAccelerator('pageNotes'))
   const pageRemindersHotkey = useShortcutStore((s) => s.getAccelerator('pageReminders'))
   const pageWeatherHotkey = useShortcutStore((s) => s.getAccelerator('pageWeather'))
+  const pageHotlistHotkey = useShortcutStore((s) => s.getAccelerator('pageHotlist'))
   const pageMineradioHotkey = useShortcutStore((s) => s.getAccelerator('pageMineradio'))
   const pageSettingsHotkey = useShortcutStore((s) => s.getAccelerator('pageSettings'))
   const { items: reminders } = useSyncedLocalCollection<WorkspaceReminder>(REMINDERS_KEY, [])
@@ -77,6 +95,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
     notes: pageNotesHotkey,
     reminders: pageRemindersHotkey,
     weather: pageWeatherHotkey,
+    hotlist: pageHotlistHotkey,
     mineradio: pageMineradioHotkey,
     settings: pageSettingsHotkey,
   }
@@ -136,33 +155,48 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
     onMobileClose?.()
   }
 
-  const sidebarContent = (
+  const renderSidebarBody = (mode: 'desktop' | 'mobile') => (
     <>
-      {/* Logo */}
-      <div className="flex items-center gap-3 px-5 h-16 border-b border-border">
-        <div className="w-8 h-8 rounded-lg bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0">
-          <Zap size={18} className="text-white" />
-        </div>
-        {!sidebarCollapsed && (
-          <span className="font-semibold text-lg text-text animate-fade-in">
-            Abworkbench
-          </span>
-        )}
-        {/* Mobile close button */}
-        {onMobileClose && (
-          <button
-            onClick={onMobileClose}
-            aria-label={t('sidebar.closeMenu')}
-            className="ml-auto p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-surface-lighter lg:hidden"
-          >
-            <X size={18} />
-          </button>
+      <div className="flex h-14 shrink-0 items-center gap-1 border-b border-border pr-3 md:h-16">
+        {mode === 'mobile' ? (
+          <>
+            <button
+              type="button"
+              onClick={() => onMobileClose?.()}
+              aria-label={t('sidebar.closeMenu')}
+              className="flex min-w-0 flex-1 items-center gap-3 rounded-xl px-3 py-2 text-left transition-colors hover:bg-surface-lighter"
+            >
+              <div className="flex h-8 w-8 flex-shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-primary-dark">
+                <Zap size={18} className="text-white" />
+              </div>
+              <span className="truncate font-semibold text-lg text-text">Abworkbench</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => onMobileClose?.()}
+              aria-label={t('sidebar.closeMenu')}
+              className="ml-auto p-1.5 rounded-lg text-text-muted hover:text-text hover:bg-surface-lighter"
+            >
+              <X size={18} />
+            </button>
+          </>
+        ) : (
+          <>
+            <div className="sidebar-brand-spacer" aria-hidden />
+            <button
+              type="button"
+              onClick={toggleSidebar}
+              aria-label={t('sidebar.collapseSidebar')}
+              title={`${t('sidebar.collapseSidebar')} · ${toggleSidebarHotkey}`}
+              className="flex min-w-0 flex-1 items-center rounded-xl py-2 pr-2 text-left transition-colors hover:bg-surface-lighter"
+            >
+              <span className="truncate font-semibold text-lg text-text">Abworkbench</span>
+            </button>
+          </>
         )}
       </div>
 
-      {/* Navigation */}
       <nav className="flex-1 py-4 px-3 space-y-1 overflow-y-auto" role="navigation" aria-label={t('sidebar.mainNavigation')}>
-        {/* Launcher entry in left nav */}
         <button
           onClick={() => {
             onOpenLauncher?.()
@@ -170,7 +204,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
           }}
           aria-label="打开启动器"
           title={sidebarCollapsed ? `启动器 · ${launcherHotkey} 快速启动` : undefined}
-          className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-text-muted hover:text-text hover:bg-primary/10 border border-transparent hover:border-primary/25 mb-2"
+          className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-text-muted hover:text-text hover:bg-primary/10 border border-transparent hover:border-primary/25 mb-2 active:scale-[0.98]"
         >
           <div className="relative flex-shrink-0 h-5 w-5 flex items-center justify-center">
             <span className="absolute inset-[-4px] rounded-lg bg-gradient-to-br from-primary/25 to-primary/5 opacity-80 group-hover:opacity-100" />
@@ -179,14 +213,10 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
               className="relative text-primary transition-transform duration-200 group-hover:scale-105"
             />
           </div>
-          {!sidebarCollapsed && (
-            <span className="text-sm font-medium animate-fade-in text-text">启动器</span>
-          )}
-          {!sidebarCollapsed && (
-            <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-surface-lighter text-text-muted opacity-80 font-mono hidden lg:inline">
-              {launcherHotkey}
-            </kbd>
-          )}
+          <span className="text-sm font-medium text-text">启动器</span>
+          <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-surface-lighter text-text-muted opacity-80 font-mono hidden lg:inline">
+            {launcherHotkey}
+          </kbd>
         </button>
 
         {menuItems.map((item) => {
@@ -200,14 +230,10 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
               data-nav-page={item.id}
               onClick={() => handleNavClick(item.id)}
               aria-current={isActive ? 'page' : undefined}
-              title={sidebarCollapsed
-                ? `${label}${badges.badgeMap[item.id] ? ` (${badges.badgeMap[item.id]})` : ''}${pageHotkey ? ` · ${pageHotkey}` : ''}`
-                : undefined
-              }
               className={clsx(
-                'nav-item-spring relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl group',
+                'nav-item-spring interactive-press relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl group',
                 isActive
-                  ? 'bg-primary/15 text-primary'
+                  ? 'nav-item-spring--active'
                   : 'text-text-muted hover:text-text hover:bg-surface-lighter'
               )}
             >
@@ -220,22 +246,9 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
                     !isActive && 'group-hover:scale-105'
                   )}
                 />
-                {sidebarCollapsed && badges.badgeMap[item.id] && (
-                  <span className={clsx(
-                    'absolute -top-1 -right-1 w-2 h-2 rounded-full',
-                    item.id === 'pomodoro' && badges.pomodoroGoalMet ? 'bg-success' :
-                    item.id === 'habits' && badges.habitsAllDone ? 'bg-success' :
-                    item.id === 'reminders' && badges.remindersOverdue ? 'bg-danger' :
-                    'bg-primary'
-                  )} />
-                )}
               </div>
-              {!sidebarCollapsed && (
-                <span className="text-sm font-medium animate-fade-in">
-                  {label}
-                </span>
-              )}
-              {!sidebarCollapsed && badges.badgeMap[item.id] && (
+              <span className="text-sm font-medium">{label}</span>
+              {badges.badgeMap[item.id] ? (
                 <span className={clsx(
                   'ml-auto text-[10px] px-1.5 py-0.5 rounded-full font-medium hidden lg:inline',
                   item.id === 'pomodoro' && badges.pomodoroGoalMet
@@ -248,37 +261,30 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
                 )}>
                   {badges.badgeMap[item.id]}
                 </span>
-              )}
-              {!sidebarCollapsed && !badges.badgeMap[item.id] && pageHotkey && (
+              ) : pageHotkey ? (
                 <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-surface-lighter text-text-muted opacity-60 font-mono hidden lg:inline">
                   {pageHotkey}
                 </kbd>
-              )}
-              {isActive && (
-                <div className="absolute left-0 w-[3px] h-6 bg-primary rounded-r-full" />
-              )}
+              ) : null}
             </button>
           )
         })}
       </nav>
 
-      {/* Collapse Toggle - desktop only */}
-      {!onMobileClose && (
-        <div className="p-3 border-t border-border">
+      {mode === 'desktop' && (
+        <div className="border-t border-border p-3">
           <button
+            type="button"
             onClick={toggleSidebar}
-            aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapseSidebar')}
-            className="w-full flex items-center justify-center gap-2 px-3 py-2 rounded-xl text-text-muted hover:text-text hover:bg-surface-lighter transition-all duration-200"
+            aria-label={t('sidebar.collapseSidebar')}
+            title={`${t('sidebar.collapseSidebar')} · ${toggleSidebarHotkey}`}
+            className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-text-muted transition-all duration-200 hover:bg-surface-lighter hover:text-text"
           >
-            {sidebarCollapsed ? <ChevronRight size={18} /> : <ChevronLeft size={18} />}
-            {!sidebarCollapsed && (
-              <>
-                <span className="text-sm">{t('sidebar.collapseSidebar')}</span>
-                <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-surface-lighter text-text-muted opacity-60 font-mono hidden lg:inline">
-                  {toggleSidebarHotkey}
-                </kbd>
-              </>
-            )}
+            <ChevronLeft size={18} />
+            <span className="text-sm">{t('sidebar.collapseSidebar')}</span>
+            <kbd className="ml-auto hidden rounded bg-surface-lighter px-1.5 py-0.5 font-mono text-[10px] text-text-muted opacity-60 lg:inline">
+              {toggleSidebarHotkey}
+            </kbd>
           </button>
         </div>
       )}
@@ -287,25 +293,49 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
 
   return (
     <>
-      {/* Desktop Sidebar */}
-      <aside
+      {/* Desktop: fixed brand pin + panel that collapses to the right */}
+      <div
         className={clsx(
-          'sidebar-glass h-screen sticky top-0 flex-col transition-all duration-300 hidden lg:flex',
-          sidebarCollapsed ? 'w-[72px]' : 'w-[240px]'
+          'sidebar-stack hidden lg:flex',
+          sidebarCollapsed && 'sidebar-stack--collapsed',
+          sidebarAnimating && 'sidebar-stack--animating',
         )}
       >
-        {sidebarContent}
-      </aside>
+        <button
+          type="button"
+          className="sidebar-brand-pin"
+          onClick={toggleSidebar}
+          aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapseSidebar')}
+          title={`${sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapseSidebar')} · ${toggleSidebarHotkey}`}
+        >
+          <span className="sidebar-brand-pin__glyph">
+            <Zap size={18} className="text-white" />
+          </span>
+        </button>
+        <div className="sidebar-rail-clip">
+          <aside
+            className={clsx(
+              'sidebar-glass sidebar-float sidebar-rail',
+              sidebarCollapsed && 'sidebar-rail--collapsed',
+            )}
+            aria-hidden={sidebarCollapsed}
+          >
+            <div className="sidebar-rail-inner">
+              {renderSidebarBody('desktop')}
+            </div>
+          </aside>
+        </div>
+      </div>
 
       {/* Mobile Sidebar Overlay */}
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" onClick={onMobileClose}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" />
           <aside
-            className="absolute left-0 top-0 h-full w-[280px] bg-surface-light border-r border-border flex flex-col animate-slide-in"
+            className="sidebar-glass absolute left-3 top-3 bottom-3 w-[280px] flex flex-col animate-slide-in overflow-hidden"
             onClick={(e) => e.stopPropagation()}
           >
-            {sidebarContent}
+            {renderSidebarBody('mobile')}
           </aside>
         </div>
       )}

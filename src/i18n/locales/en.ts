@@ -28,11 +28,11 @@ export const en = {
 
   // Sidebar
   'sidebar.quickAdd': 'Quick add...',
-  'sidebar.collapse': 'Collapse',
+  'sidebar.collapse': 'Hide',
   'sidebar.closeMenu': 'Close menu',
   'sidebar.mainNavigation': 'Main navigation',
-  'sidebar.expand': 'Expand sidebar',
-  'sidebar.collapseSidebar': 'Collapse sidebar',
+  'sidebar.expand': 'Show sidebar',
+  'sidebar.collapseSidebar': 'Hide sidebar',
 
   // Reminders
   'reminders.title': 'Reminder Center',
@@ -54,10 +54,18 @@ export const en = {
   'page.notes': 'Notes',
   'page.reminders': 'Reminders',
   'page.weather': 'Weather',
+  'page.hotlist': "Today's Hot List",
   'page.mineradio': 'Mineradio',
   'page.stats': 'Stats',
   'page.settings': 'Settings',
-  'page.taskflow': 'TaskFlow',
+  'page.taskflow': 'Workbench',
+
+  // Hot list
+  'hotlist.loading': 'Loading hot lists…',
+  'hotlist.refresh': 'Refresh',
+  'hotlist.refreshing': 'Refreshing…',
+  'hotlist.retry': 'Retry',
+  'hotlist.subtitle': 'Aggregated trending topics from major platforms. Click an item to open in your browser.',
 
   // Clock
   'clock.title': 'Local Time',
@@ -276,7 +284,7 @@ export const en = {
   'command.openStealthReader': 'Open stealth reader',
   'command.openStealthReaderDesc': 'Resume reading or open the library in a floating window',
   'command.toggleSidebar': 'Toggle sidebar',
-  'command.toggleSidebarDesc': 'Expand or collapse the sidebar',
+  'command.toggleSidebarDesc': 'Show or hide the sidebar',
   'command.exportData': 'Export data',
   'command.exportDataDesc': 'Export all data as a JSON file',
   'command.importData': 'Import data',

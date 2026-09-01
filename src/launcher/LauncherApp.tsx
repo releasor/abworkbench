@@ -26,6 +26,7 @@ import {
   PenLine,
   Bell,
   Radio,
+  Flame,
 } from 'lucide-react'
 import clsx from 'clsx'
 import { useShortcutStore } from '../shortcuts'
@@ -78,6 +79,7 @@ const COMMAND_ICONS: Record<string, typeof LayoutDashboard> = {
   'nav-notes': StickyNote,
   'nav-reminders': Bell,
   'nav-weather': Cloud,
+  'nav-hotlist': Flame,
   'nav-mineradio': Radio,
   'nav-settings': Settings,
   'translate-clipboard': Languages,
@@ -96,6 +98,7 @@ const PAGE_BY_COMMAND: Record<string, string> = {
   'nav-notes': 'notes',
   'nav-reminders': 'reminders',
   'nav-weather': 'weather',
+  'nav-hotlist': 'hotlist',
   'nav-mineradio': 'mineradio',
   'nav-settings': 'settings',
 }
@@ -138,12 +141,7 @@ export interface LauncherAppProps {
 }
 
 function rowClass(isSelected: boolean) {
-  return clsx(
-    'w-full flex items-center gap-3 px-3 py-2.5 rounded-2xl text-left transition-all',
-    isSelected
-      ? 'bg-primary/15 text-text border border-primary/25 shadow-lg shadow-primary/5'
-      : 'text-text-muted border border-transparent hover:bg-surface-lighter/80 hover:text-text'
-  )
+  return clsx('launcher-row', isSelected && 'is-selected')
 }
 
 export default function LauncherApp({
@@ -619,23 +617,18 @@ export default function LauncherApp({
           type="button"
           onClick={() => openApp(appEntry)}
           title={appEntry.target || appEntry.name}
-          className={clsx(
-            'flex w-full flex-col items-center gap-1.5 px-1.5 py-2.5 rounded-2xl text-center transition-all border',
-            isSelected
-              ? 'bg-primary/15 border-primary/30 shadow-lg shadow-primary/5'
-              : 'border-transparent hover:bg-surface-lighter/80 hover:border-border/70'
-          )}
+          className={clsx('launcher-tile', isSelected && 'is-selected')}
         >
           <div className="relative">
             {appEntry.iconDataUrl ? (
-              <img src={appEntry.iconDataUrl} alt="" className="h-9 w-9 rounded-xl object-contain bg-surface/60 p-1" />
+              <img src={appEntry.iconDataUrl} alt="" className="launcher-app-icon" />
             ) : (
-              <div className="h-9 w-9 rounded-xl bg-primary/15 flex items-center justify-center text-primary">
+              <div className="launcher-icon-well text-primary">
                 <AppWindow size={18} />
               </div>
             )}
             {appEntry.pinned && (
-              <span className="absolute -left-1 -top-1 rounded-full bg-primary p-0.5 text-white shadow-sm">
+              <span className="launcher-pin-badge">
                 <Pin size={9} fill="currentColor" />
               </span>
             )}
@@ -654,7 +647,7 @@ export default function LauncherApp({
               if (appEntry.pinned) unpinApp(appEntry, event)
               else pinApp(appEntry, event)
             }}
-            className="rounded-md border border-border bg-surface/95 p-0.5 text-text-muted hover:text-primary hover:border-primary/40"
+            className="launcher-mini-btn"
           >
             {appEntry.pinned ? <PinOff size={11} /> : <Pin size={11} />}
           </button>
@@ -665,7 +658,7 @@ export default function LauncherApp({
               event.stopPropagation()
               hideApp(appEntry, event)
             }}
-            className="rounded-md border border-border bg-surface/95 p-0.5 text-text-muted hover:text-danger hover:border-danger/40"
+            className="launcher-mini-btn launcher-mini-btn--danger"
           >
             <X size={11} />
           </button>
@@ -686,11 +679,11 @@ export default function LauncherApp({
         className={rowClass(isSelected)}
       >
         {appEntry.iconDataUrl ? (
-          <img src={appEntry.iconDataUrl} alt="" className="h-8 w-8 rounded-xl object-contain bg-surface/60 p-1 flex-shrink-0" />
+          <img src={appEntry.iconDataUrl} alt="" className="launcher-app-icon launcher-app-icon--row" />
         ) : (
           <div className={clsx(
-            'h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0',
-            isSettings ? 'bg-cyan-500/15 text-cyan-400' : 'bg-primary/15 text-primary'
+            'launcher-icon-well launcher-icon-well--sm',
+            isSettings ? 'text-sky-300' : 'text-primary'
           )}>
             {isSettings ? <Settings size={16} /> : <AppWindow size={16} />}
           </div>
@@ -721,11 +714,11 @@ export default function LauncherApp({
         className={rowClass(isSelected)}
       >
         {entry.iconDataUrl ? (
-          <img src={entry.iconDataUrl} alt="" className="h-8 w-8 rounded-xl object-contain bg-surface/60 p-1 flex-shrink-0" />
+          <img src={entry.iconDataUrl} alt="" className="launcher-app-icon launcher-app-icon--row" />
         ) : (
           <div className={clsx(
-            'h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0',
-            isSelected ? 'bg-primary/20 text-primary' : 'bg-surface/70 text-text-muted'
+            'launcher-icon-well launcher-icon-well--sm',
+            isSelected ? 'text-primary' : 'text-text-muted'
           )}>
             <Icon size={15} />
           </div>
@@ -768,8 +761,8 @@ export default function LauncherApp({
         className={rowClass(isSelected)}
       >
         <div className={clsx(
-          'h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0',
-          isSelected ? 'bg-primary/20 text-primary' : 'bg-surface/70 text-text-muted'
+          'launcher-icon-well launcher-icon-well--sm',
+          isSelected ? 'text-primary' : 'text-text-muted'
         )}>
           <Icon size={16} />
         </div>
@@ -795,8 +788,8 @@ export default function LauncherApp({
         className={rowClass(isSelected)}
       >
         <div className={clsx(
-          'h-8 w-8 rounded-xl flex items-center justify-center flex-shrink-0',
-          isSelected ? 'bg-primary/20 text-primary' : 'bg-surface/70 text-text-muted'
+          'launcher-icon-well launcher-icon-well--sm',
+          isSelected ? 'text-primary' : 'text-text-muted'
         )}>
           <Icon size={15} />
         </div>
@@ -815,17 +808,23 @@ export default function LauncherApp({
   const panel = (
       <div
         className={clsx(
-          'glass-card overflow-hidden animate-fade-in flex flex-col shadow-2xl shadow-black/25',
-          variant === 'embedded' ? 'relative w-full max-w-2xl max-h-[min(560px,78vh)]' : 'h-full w-full'
+          'launcher-shell',
+          variant === 'embedded' ? 'relative w-full max-w-2xl' : 'h-full w-full'
+        )}
+      >
+      <div
+        className={clsx(
+          'launcher-panel flex flex-col',
+          variant === 'embedded' ? 'relative w-full max-h-[min(560px,78vh)]' : 'h-full w-full'
         )}
         onClick={variant === 'embedded' ? (event) => event.stopPropagation() : undefined}
         role={variant === 'embedded' ? 'dialog' : undefined}
         aria-modal={variant === 'embedded' ? true : undefined}
         aria-label="启动器"
       >
-        {/* Brand + search — aligned with main command palette */}
-        <div className="flex items-center gap-3 px-4 py-3.5 border-b border-border bg-surface/40">
-          <div className="h-8 w-8 rounded-xl bg-gradient-to-br from-primary to-primary-dark flex items-center justify-center flex-shrink-0 shadow-lg shadow-primary/20">
+        {/* Brand + search — Mineradio glass chrome */}
+        <div className="launcher-search flex items-center gap-3 px-4 py-3.5">
+          <div className="launcher-brand-mark">
             <Zap size={16} className="text-white" />
           </div>
           <div className="flex-1 flex items-center gap-3 min-w-0">
@@ -845,8 +844,8 @@ export default function LauncherApp({
             />
           </div>
           <div className="flex items-center gap-1.5 flex-shrink-0">
-            <kbd className="px-1.5 py-0.5 text-[10px] text-text-muted bg-surface rounded-lg border border-border">{launcherHotkey}</kbd>
-            <kbd className="px-2 py-0.5 text-xs text-text-muted bg-surface rounded-lg border border-border">ESC</kbd>
+            <kbd className="launcher-kbd">{launcherHotkey}</kbd>
+            <kbd className="launcher-kbd">ESC</kbd>
           </div>
         </div>
 
@@ -855,22 +854,20 @@ export default function LauncherApp({
             onClick={openClipboardUrl}
             onMouseEnter={() => setSelectedIndex(0)}
             className={clsx(
-              'mx-3 mt-3 flex items-center gap-2 px-3 py-2.5 rounded-2xl border text-left transition-all',
-              selectedIndex === 0
-                ? 'border-cyan-500/40 bg-cyan-500/20 shadow-lg shadow-cyan-500/5'
-                : 'border-cyan-500/25 bg-cyan-500/10 hover:bg-cyan-500/15'
+              'launcher-chip mx-3 mt-3',
+              selectedIndex === 0 && 'is-selected'
             )}
           >
-            <Globe size={15} className="text-cyan-400 flex-shrink-0" />
+            <Globe size={15} className="text-primary flex-shrink-0" />
             <span className="text-xs text-text truncate flex-1">访问剪贴板网址：{clipboardUrl}</span>
-            <kbd className="px-1.5 py-0.5 text-[10px] text-text-muted bg-surface rounded border border-border flex-shrink-0">↵</kbd>
+            <kbd className="launcher-kbd launcher-kbd--sm">↵</kbd>
           </button>
         )}
 
         {showHome && clipboardText && !clipboardUrl && (
           <button
             onClick={() => runCommand('translate-clipboard')}
-            className="mx-3 mt-3 flex items-center gap-2 px-3 py-2.5 rounded-2xl border border-primary/20 bg-primary/10 hover:bg-primary/15 text-left transition-all"
+            className="launcher-chip mx-3 mt-3"
           >
             <ClipboardPaste size={15} className="text-primary flex-shrink-0" />
             <span className="text-xs text-text truncate flex-1">翻译剪贴板：{clipboardText}</span>
@@ -881,7 +878,7 @@ export default function LauncherApp({
         <div className="flex-1 overflow-y-auto p-2 min-h-0">
           {showHome ? (
             <>
-              <div className="px-3 py-1.5 text-xs text-text-muted font-medium flex items-center justify-between gap-2">
+              <div className="launcher-section-label flex items-center justify-between gap-2">
                 <span>最近软件</span>
                 <span className="text-[10px] text-text-muted/70 font-normal">悬停可固定 / 删除</span>
               </div>
@@ -895,7 +892,7 @@ export default function LauncherApp({
                 </div>
               )}
 
-              <div className="px-3 py-1.5 text-xs text-text-muted font-medium">摸鱼阅读</div>
+              <div className="launcher-section-label">摸鱼阅读</div>
               <button
                 type="button"
                 onClick={() => runCommand('stealth-reader')}
@@ -904,10 +901,10 @@ export default function LauncherApp({
                   setReaderMenu({ x: event.clientX, y: event.clientY })
                 }}
                 title="左键继续阅读 / 右键进入书架"
-                className="mx-1 mb-2 flex w-[calc(100%-0.5rem)] items-center gap-3 rounded-2xl border border-amber-400/25 bg-amber-500/10 px-3 py-2.5 text-left transition-all hover:border-amber-400/40 hover:bg-amber-500/15"
+                className="launcher-feature-card mx-1 mb-2"
               >
-                <div className="flex h-9 w-9 items-center justify-center rounded-xl bg-amber-500/20">
-                  <BookOpen size={18} className="text-amber-300" />
+                <div className="launcher-icon-well text-amber-300">
+                  <BookOpen size={18} />
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-text">摸鱼阅读</div>
@@ -915,7 +912,7 @@ export default function LauncherApp({
                 </div>
               </button>
 
-              <div className="px-3 py-1.5 text-xs text-text-muted font-medium">最近文件</div>
+              <div className="launcher-section-label">最近文件</div>
               {recentFiles.length > 0 ? (
                 <div className="space-y-1 pb-2">
                   {recentFiles.map(renderRecentPathRow)}
@@ -924,7 +921,7 @@ export default function LauncherApp({
                 <div className="px-3 py-2 text-xs text-text-muted/80">暂无最近文件</div>
               )}
 
-              <div className="px-3 py-1.5 text-xs text-text-muted font-medium">最近目录</div>
+              <div className="launcher-section-label">最近目录</div>
               {recentFolders.length > 0 ? (
                 <div className="space-y-1 pb-2">
                   {recentFolders.map(renderRecentPathRow)}
@@ -935,7 +932,7 @@ export default function LauncherApp({
 
               {recentCommands.length > 0 && (
                 <>
-                  <div className="px-3 py-1.5 text-xs text-text-muted font-medium">最近功能</div>
+                  <div className="launcher-section-label">最近功能</div>
                   <div className="grid grid-cols-4 gap-1.5 px-1 pb-2">
                     {recentCommands.map((command) => {
                       const Icon = COMMAND_ICONS[command.id] || AppWindow
@@ -943,10 +940,10 @@ export default function LauncherApp({
                         <button
                           key={command.id}
                           onClick={() => runCommand(command.id)}
-                          className="flex flex-col items-center gap-1.5 px-2 py-2.5 rounded-2xl border border-transparent hover:border-border/70 hover:bg-surface-lighter/80 transition-all"
+                          className="launcher-tile launcher-tile--compact"
                         >
-                          <div className="h-8 w-8 rounded-xl bg-surface/70 flex items-center justify-center">
-                            <Icon size={16} className="text-text" />
+                          <div className="launcher-icon-well launcher-icon-well--sm text-text">
+                            <Icon size={16} />
                           </div>
                           <span className="text-[11px] text-text-muted truncate w-full text-center">{command.label}</span>
                         </button>
@@ -956,7 +953,7 @@ export default function LauncherApp({
                 </>
               )}
 
-              <div className="px-3 py-1.5 text-xs text-text-muted font-medium">工作台</div>
+              <div className="launcher-section-label">工作台</div>
               <div className="grid grid-cols-4 gap-2 px-1 pb-1">
                 {LAUNCHER_COMMANDS.filter((command) => command.id !== 'translate-clipboard').map((command) => {
                   const Icon = COMMAND_ICONS[command.id] || AppWindow
@@ -970,10 +967,10 @@ export default function LauncherApp({
                         setReaderMenu({ x: event.clientX, y: event.clientY })
                       }}
                       title={command.description}
-                      className="flex flex-col items-center gap-2 px-2 py-3 rounded-2xl border border-border/70 bg-surface/50 hover:border-primary/30 hover:bg-primary/10 transition-all"
+                      className="launcher-tile launcher-tile--command"
                     >
-                      <div className="h-9 w-9 rounded-xl bg-gradient-to-br from-primary/20 to-primary/5 flex items-center justify-center">
-                        <Icon size={18} className="text-primary" />
+                      <div className="launcher-icon-well text-primary">
+                        <Icon size={18} />
                       </div>
                       <span className="text-[11px] text-text-muted truncate w-full text-center">{command.label}</span>
                     </button>
@@ -985,7 +982,7 @@ export default function LauncherApp({
             <>
               {(matchedApps.length > 0 || appsLoading) && (
                 <>
-                  <div className="px-3 py-1.5 text-xs text-text-muted font-medium">应用与系统设置</div>
+                  <div className="launcher-section-label">应用与系统设置</div>
                   {appsLoading && matchedApps.length === 0 && (
                     <div className="px-3 py-2 text-xs text-text-muted">正在搜索…</div>
                   )}
@@ -995,14 +992,14 @@ export default function LauncherApp({
 
               {items.length > 0 && (
                 <>
-                  <div className="px-3 py-1.5 text-xs text-text-muted font-medium">功能</div>
+                  <div className="launcher-section-label">功能</div>
                   {items.map(renderItemRow)}
                 </>
               )}
 
               {everything.status === 'ok' && everything.items.length > 0 && (
                 <>
-                  <div className="px-3 py-1.5 text-xs text-text-muted font-medium">文件</div>
+                  <div className="launcher-section-label">文件</div>
                   {everything.items.map(renderFileRow)}
                 </>
               )}
@@ -1031,7 +1028,7 @@ export default function LauncherApp({
           )}
         </div>
 
-        <div className="flex items-center justify-between px-4 py-2.5 border-t border-border bg-surface/30 text-[11px] text-text-muted/80">
+        <div className="launcher-footer flex items-center justify-between px-4 py-2.5 text-[11px] text-text-muted/80">
           <div className="flex items-center gap-3">
             <span>↑↓ 选择</span>
             <span>↵ 打开</span>
@@ -1050,13 +1047,13 @@ export default function LauncherApp({
             }}
           >
             <div
-              className="absolute min-w-[140px] rounded-xl border border-border bg-surface shadow-xl py-1"
+              className="launcher-menu absolute min-w-[140px] py-1"
               style={{ left: readerMenu.x, top: readerMenu.y }}
               onClick={(event) => event.stopPropagation()}
             >
               <button
                 type="button"
-                className="w-full px-3 py-2 text-left text-sm text-text hover:bg-primary/15"
+                className="launcher-menu-item"
                 onClick={() => {
                   setReaderMenu(null)
                   void window.electronAPI?.openReader?.({ mode: 'library' })
@@ -1069,6 +1066,7 @@ export default function LauncherApp({
           </div>
         )}
       </div>
+      </div>
   )
 
   if (variant === 'embedded') {
@@ -1077,8 +1075,8 @@ export default function LauncherApp({
         className="fixed inset-0 z-[60] flex items-start justify-center pt-[12vh] px-4"
         onClick={hideLauncher}
       >
-        <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-        <div className="relative w-full max-w-2xl">{panel}</div>
+        <div className="absolute inset-0 modal-veil" />
+        {panel}
       </div>
     )
   }

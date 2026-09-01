@@ -32,11 +32,11 @@ export const zh = {
 
   // Sidebar
   'sidebar.quickAdd': '快速添加...',
-  'sidebar.collapse': '收起',
+  'sidebar.collapse': '隐藏',
   'sidebar.closeMenu': '关闭菜单',
   'sidebar.mainNavigation': '主导航',
-  'sidebar.expand': '展开侧边栏',
-  'sidebar.collapseSidebar': '收起侧边栏',
+  'sidebar.expand': '显示侧边栏',
+  'sidebar.collapseSidebar': '隐藏侧边栏',
 
   // Reminders
   'reminders.title': '提醒中心',
@@ -58,10 +58,18 @@ export const zh = {
   'page.notes': '笔记',
   'page.reminders': '提醒',
   'page.weather': '天气',
+  'page.hotlist': '今日热榜',
   'page.mineradio': 'Mineradio',
   'page.stats': '统计',
   'page.settings': '设置',
-  'page.taskflow': '任务流',
+  'page.taskflow': '工作台',
+
+  // Hot list
+  'hotlist.loading': '正在加载热榜…',
+  'hotlist.refresh': '刷新',
+  'hotlist.refreshing': '刷新中…',
+  'hotlist.retry': '重试',
+  'hotlist.subtitle': '聚合各平台实时热榜，点击条目可在浏览器中打开原文。',
 
   // Clock
   'clock.title': '本地时间',
@@ -279,7 +287,7 @@ export const zh = {
   'command.openStealthReader': '打开摸鱼阅读',
   'command.openStealthReaderDesc': '透明悬浮窗续读或打开书架',
   'command.toggleSidebar': '切换侧边栏',
-  'command.toggleSidebarDesc': '展开或收起侧边栏',
+  'command.toggleSidebarDesc': '显示或隐藏侧边栏',
   'command.exportData': '导出数据',
   'command.exportDataDesc': '将所有数据导出为 JSON 文件',
   'command.importData': '导入数据',
