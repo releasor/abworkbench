@@ -173,7 +173,7 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
                 key={item.id}
                 type="button"
                 onClick={() => setMode(item.id)}
-                className={clsx('inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold', mode === item.id ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5 text-zinc-400')}
+                className={clsx('segment-tab interactive-press inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold', mode === item.id ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5 text-zinc-400')}
               >
                 <Icon size={12} />{item.label}
               </button>

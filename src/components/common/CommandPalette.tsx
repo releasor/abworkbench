@@ -26,6 +26,7 @@ import {
   PenLine,
   Zap,
   Radio,
+  Flame,
 } from 'lucide-react'
 import type { Page } from '../layout/Sidebar'
 import { useStore } from '../../store'
@@ -63,6 +64,7 @@ const pageIcons: Record<Page, typeof LayoutDashboard> = {
   notes: StickyNote,
   reminders: Bell,
   weather: Cloud,
+  hotlist: Flame,
   mineradio: Radio,
   settings: Settings,
 }
@@ -75,6 +77,7 @@ const pageShortcuts: Partial<Record<Page, string>> = {
   notes: 'Ctrl+5',
   reminders: 'Ctrl+6',
   weather: 'Ctrl+7',
+  hotlist: 'Ctrl+0',
   mineradio: 'Ctrl+8',
   settings: 'Ctrl+9',
 }

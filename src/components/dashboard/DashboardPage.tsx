@@ -44,6 +44,7 @@ import { useTranslation } from '../../i18n'
 import { formatGreetingTitle } from './greetingTitle'
 import { buildTodayPlanning, type PlanningTone } from './todayPlanning'
 import { buildTodayTimeBlocks } from './timeBlocks'
+import { getHabitProgress } from '../habits/habitSchedule'
 import DashboardReminders from './DashboardReminders'
 import { buildWorkdayStatus, DEFAULT_WORKDAY_SETTINGS, formatCountdown, formatCurrency, normalizeWorkdaySettings, type WorkdaySettings } from './workday'
 import { getPeriod, stripMarkdown } from './notePreview'
@@ -122,7 +123,8 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
   const habits = useStore((s) => s.habits)
   const userName = useStore((s) => s.userName)
   const weatherCity = useStore((s) => s.weatherCity)
-  const toggleHabitDate = useStore((s) => s.toggleHabitDate)
+  const checkInHabit = useStore((s) => s.checkInHabit)
+  const undoHabitCheckIn = useStore((s) => s.undoHabitCheckIn)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
   const [quickTodo, setQuickTodo] = useState('')
   const [quickPriority, setQuickPriority] = useState<'low' | 'medium' | 'high'>('medium')
@@ -1829,7 +1831,9 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                   <button
                     key={habit.id}
                     onClick={() => {
-                      toggleHabitDate(habit.id, todayStr)
+                      const progress = getHabitProgress(habit, todayStr)
+                      if (progress.met) undoHabitCheckIn(habit.id, todayStr)
+                      else if (progress.canCheckIn) checkInHabit(habit.id)
                       setTogglingHabitId(habit.id)
                       setTimeout(() => setTogglingHabitId((prev) => prev === habit.id ? null : prev), 300)
                     }}

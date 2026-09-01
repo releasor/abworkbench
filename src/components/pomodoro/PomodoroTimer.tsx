@@ -12,6 +12,7 @@ import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import { clearActivePomodoro, writeActivePomodoro, ACTIVE_POMODORO_EVENT, getActiveRemainingSec, type ActivePomodoroState } from '../../utils/activePomodoro'
 import AmbientSounds from '../common/AmbientSounds'
 import PomodoroStats from './PomodoroStats'
+import PanelSwitch from '../common/PanelSwitch'
 import { Kbd } from '../common/Kbd'
 import ErrorBoundary from '../common/ErrorBoundary'
 import clsx from 'clsx'
@@ -602,9 +603,11 @@ export default function PomodoroTimer() {
 
   return (
     <ErrorBoundary>
-    <div className="grid gap-5 xl:grid-cols-[minmax(0,1.35fr)_390px] animate-fade-in">
-      <section className="relative overflow-hidden rounded-[38px] border border-border bg-surface/85 shadow-2xl shadow-black/25 backdrop-blur-xl">
-        <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(59,130,246,0.22),transparent_36%),radial-gradient(circle_at_100%_18%,rgba(245,158,11,0.16),transparent_32%)]" />
+    <div className="pomo-stage grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] animate-fade-in">
+      <section className="relative min-w-0 rounded-[38px] border border-border bg-surface/85 shadow-2xl shadow-black/25 backdrop-blur-xl">
+        <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
+          <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(59,130,246,0.22),transparent_36%),radial-gradient(circle_at_100%_18%,rgba(245,158,11,0.16),transparent_32%)]" />
+        </div>
         <div className="relative p-5 md:p-7">
           <div className="mb-6 flex flex-wrap items-center justify-between gap-3">
             <div>
@@ -622,35 +625,45 @@ export default function PomodoroTimer() {
                 return (
                   <button
                     key={m}
+                    type="button"
                     onClick={() => switchMode(m)}
                     aria-pressed={mode === m}
                     aria-label={`${MODE_STYLES[m].label}模式，${duration}分钟`}
                     className={clsx(
-                      'flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium transition-all',
+                      'pomo-btn pomo-mode-tab flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium',
                       mode === m
-                        ? 'border-primary/35 bg-primary/15 text-primary shadow-lg shadow-primary/10'
-                        : 'border-border bg-background/45 text-text-muted hover:border-primary/30 hover:text-text',
+                        ? 'pomo-mode-tab--active'
+                        : 'border-border bg-background/45 text-text-muted hover:border-primary/40 hover:text-text',
                     )}
                   >
                     <Icon size={16} />
                     {MODE_STYLES[m].label}
-                    <span className="text-[10px] opacity-65">{duration}分</span>
-                    {count > 0 && <span className="rounded-full bg-surface-lighter px-1.5 py-0.5 text-[9px]">{count}</span>}
+                    <span className={clsx('text-[10px]', mode === m ? 'opacity-90' : 'opacity-65')}>{duration}分</span>
+                    {count > 0 && (
+                      <span className={clsx(
+                        'rounded-full px-1.5 py-0.5 text-[9px]',
+                        mode === m ? 'bg-primary/15' : 'bg-surface-lighter',
+                      )}
+                      >
+                        {count}
+                      </span>
+                    )}
                   </button>
                 )
               })}
             </div>
           </div>
 
-          <div className="grid items-center gap-7 lg:grid-cols-[1fr_1.05fr_1fr]">
-            <div className="order-2 space-y-3 lg:order-1">
+          <PanelSwitch panelKey={mode} className="pomo-mode-panel min-w-0">
+          <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(140px,200px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(160px,220px)_minmax(0,1fr)_minmax(200px,260px)]">
+            <div className="order-2 min-w-0 space-y-3 lg:order-1">
               <FocusCard icon={<Target size={18} />} label="今日目标" value={`${todayWorkSessions.length}/${dailyPomodoroGoal}`} sub={`${fmtMin(totalFocusMinutes)} 专注`} />
               <FocusCard icon={<Flame size={18} />} label="连续专注" value={`${pomodoroStreak} 天`} sub={`7日均 ${week7Avg} 个`} tone="text-orange-400" />
               <FocusCard icon={<Gauge size={18} />} label="今日效率" value={`${todayFocusEfficiency}%`} sub={todayBestMin > 0 ? `最长 ${todayBestMin} 分` : '等待第一轮'} tone={todayFocusEfficiency >= 70 ? 'text-success' : 'text-warning'} />
             </div>
 
-            <div className="order-1 flex flex-col items-center lg:order-2">
-              <div className={`relative h-[260px] w-[260px] transition-transform duration-300 md:h-[310px] md:w-[310px] ${justCompleted ? 'scale-105 pomo-ceremony' : ''}`}>
+            <div className="order-1 flex min-w-0 flex-col items-center lg:order-2">
+              <div className={`relative h-[240px] w-[240px] transition-transform duration-300 md:h-[280px] md:w-[280px] ${justCompleted ? 'scale-105 pomo-ceremony' : ''}`}>
                 <div className={clsx('absolute inset-3 rounded-full blur-2xl', isRunning ? 'bg-primary/20' : 'bg-white/5')} />
                 <svg viewBox={`0 0 ${RING_SIZE} ${RING_SIZE}`} className={`relative h-full w-full -rotate-90 ${isRunning && timeLeft <= 10 && timeLeft > 0 ? 'animate-pulse' : ''}`}>
                   <circle cx={RING_SIZE / 2} cy={RING_SIZE / 2} r={RING_RADIUS} fill="none" stroke="var(--color-surface-lighter)" strokeWidth={RING_STROKE_WIDTH} />
@@ -715,13 +728,14 @@ export default function PomodoroTimer() {
                   <div className="relative">
                     <button
                       ref={taskPickerRef}
+                      type="button"
                       onClick={() => setShowTaskPicker(!showTaskPicker)}
                       disabled={isRunning}
                       aria-haspopup="listbox"
                       aria-expanded={showTaskPicker}
                       aria-label={selectedTaskId ? `已选任务: ${activeTasks.find((t) => t.id === selectedTaskId)?.title || ''}` : '关联任务（可选）'}
                       className={clsx(
-                        'inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-medium transition',
+                        'pomo-btn inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-medium',
                         selectedTaskId
                           ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
                           : 'border-border bg-background/60 text-text-muted hover:border-primary/30 hover:text-text',
@@ -742,11 +756,12 @@ export default function PomodoroTimer() {
                       <div className="absolute left-1/2 top-full z-20 mt-2 w-72 -translate-x-1/2 rounded-2xl border border-border bg-surface p-2 shadow-xl" role="listbox" aria-label="选择关联任务" onKeyDown={(e) => { if (e.key === 'Escape') { e.stopPropagation(); setShowTaskPicker(false); taskPickerRef.current?.focus(); } }}>
                         <div className="max-h-48 overflow-y-auto">
                           <button
+                            type="button"
                             role="option"
                             aria-selected={!selectedTaskId}
                             onClick={() => { setSelectedTaskId(''); setShowTaskPicker(false) }}
                             className={clsx(
-                              'w-full rounded-xl px-3 py-2 text-left text-xs transition hover:bg-surface-lighter',
+                              'pomo-btn w-full rounded-xl px-3 py-2 text-left text-xs hover:bg-surface-lighter',
                               !selectedTaskId && 'bg-primary/10 text-primary'
                             )}
                           >
@@ -755,11 +770,12 @@ export default function PomodoroTimer() {
                           {activeTasks.slice(0, 20).map((task) => (
                             <button
                               key={task.id}
+                              type="button"
                               role="option"
                               aria-selected={selectedTaskId === task.id}
                               onClick={() => { setSelectedTaskId(task.id); setShowTaskPicker(false) }}
                               className={clsx(
-                                'w-full rounded-xl px-3 py-2 text-left text-xs transition hover:bg-surface-lighter',
+                                'pomo-btn w-full rounded-xl px-3 py-2 text-left text-xs hover:bg-surface-lighter',
                                 selectedTaskId === task.id && 'bg-primary/10 text-primary'
                               )}
                             >
@@ -781,9 +797,10 @@ export default function PomodoroTimer() {
 
               <div className="mt-5 flex flex-wrap justify-center gap-3">
                 <button
+                  type="button"
                   onClick={toggleTimer}
                   className={clsx(
-                    'btn-primary h-14 rounded-2xl px-8 text-base shadow-xl shadow-primary/20',
+                    'pomo-btn pomo-btn--primary btn-primary h-14 rounded-2xl px-8 text-base shadow-xl shadow-primary/20',
                     isRunning && 'bg-gradient-to-r from-warning to-secondary shadow-warning/20',
                   )}
                   title="空格键"
@@ -792,12 +809,12 @@ export default function PomodoroTimer() {
                   {isRunning ? '暂停' : '开始'}
                   <Kbd>Space</Kbd>
                 </button>
-                <button onClick={resetTimer} aria-label="重置计时器" className="flex h-14 items-center gap-2 rounded-2xl border border-border bg-background/50 px-4 text-text-muted transition-all hover:border-primary/30 hover:text-text" title="重置 (R)">
+                <button type="button" onClick={resetTimer} aria-label="重置计时器" className="pomo-btn flex h-14 items-center gap-2 rounded-2xl border border-border bg-background/50 px-4 text-text-muted hover:border-primary/30 hover:text-text" title="重置 (R)">
                   <RotateCcw size={20} />
                   <Kbd>R</Kbd>
                 </button>
                 {mode !== 'work' && (
-                  <button onClick={() => switchMode('work')} className="flex h-14 items-center gap-2 rounded-2xl border border-border bg-background/50 px-4 text-text-muted transition-all hover:border-primary/30 hover:text-primary" title="跳过休息 (S)">
+                  <button type="button" onClick={() => switchMode('work')} className="pomo-btn flex h-14 items-center gap-2 rounded-2xl border border-border bg-background/50 px-4 text-text-muted hover:border-primary/30 hover:text-primary" title="跳过休息 (S)">
                     <SkipForward size={18} />
                     <span className="hidden text-sm sm:inline">跳过</span>
                     <Kbd>S</Kbd>
@@ -806,7 +823,7 @@ export default function PomodoroTimer() {
               </div>
             </div>
 
-            <div className="order-3 space-y-3">
+            <div className="order-3 min-w-0 space-y-3 lg:col-span-2 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0 2xl:col-span-1 2xl:block 2xl:space-y-3">
               <ToggleCard active={soundEnabled} icon={soundEnabled ? <Bell size={17} /> : <BellOff size={17} />} label="提示音" sub={soundEnabled ? '完成后响铃' : '保持静音'} onClick={toggleSound} />
               <ToggleCard active={autoStartBreaks} icon={<FastForward size={17} />} label="自动休息" sub={autoStartBreaks ? '专注后自动开始' : '手动开始休息'} onClick={toggleAutoStartBreaks} />
               <ToggleCard active={autoStartWork} icon={<Play size={17} />} label="自动专注" sub={autoStartWork ? '休息后自动继续' : '手动恢复专注'} onClick={toggleAutoStartWork} activeClassName="text-success border-success/35 bg-success/10" />
@@ -824,6 +841,7 @@ export default function PomodoroTimer() {
                   return (
                     <button
                       key={min}
+                      type="button"
                       onClick={() => {
                         if (mode === 'work') setPomodoroDurations(min, pomodoroShortBreakDuration, pomodoroLongBreakDuration)
                         else if (mode === 'shortBreak') setPomodoroDurations(pomodoroWorkDuration, min, pomodoroLongBreakDuration)
@@ -833,7 +851,7 @@ export default function PomodoroTimer() {
                       aria-label={`设置${MODE_STYLES[mode].label}时长为${min}分钟${isDefault ? '（默认）' : ''}`}
                       aria-pressed={isActive}
                       className={clsx(
-                        'relative rounded-2xl border px-3 py-2 text-sm transition-all',
+                        'pomo-btn relative rounded-2xl border px-3 py-2 text-sm',
                         isActive ? 'border-primary/35 bg-primary/15 text-primary' : 'border-border bg-surface/70 text-text-muted hover:border-primary/30 hover:text-text',
                       )}
                     >
@@ -845,6 +863,11 @@ export default function PomodoroTimer() {
               </div>
             </div>
           )}
+          </PanelSwitch>
+
+          <div className="mt-7 rounded-[26px] border border-border bg-background/35 p-4 md:p-5">
+            <PomodoroStats sessions={pomodoroSessions} dailyGoal={dailyPomodoroGoal} />
+          </div>
         </div>
       </section>
 
@@ -891,15 +914,15 @@ export default function PomodoroTimer() {
         </section>
 
         <section className="rounded-[32px] border border-border bg-surface/80 p-5 shadow-xl shadow-black/10">
-          <button onClick={() => setAmbientExpanded(!ambientExpanded)} className="flex w-full items-center gap-3 text-left" aria-expanded={ambientExpanded} aria-controls="ambient-sounds-panel">
+          <button type="button" onClick={() => setAmbientExpanded(!ambientExpanded)} className="pomo-btn flex w-full items-center gap-3 rounded-2xl p-1 text-left hover:bg-white/5" aria-expanded={ambientExpanded} aria-controls="ambient-sounds-panel">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Volume2 size={18} /></div>
             <div>
               <div className="text-sm font-semibold text-text">环境音</div>
               <div className="text-xs text-text-muted">专注时可播放 · <Kbd>A</Kbd></div>
             </div>
-            <ChevronDown size={16} className={`ml-auto text-text-muted transition-transform ${ambientExpanded ? 'rotate-180' : ''}`} />
+            <ChevronDown size={16} className={`ml-auto text-text-muted transition-transform duration-300 ${ambientExpanded ? 'rotate-180' : ''}`} />
           </button>
-          {ambientExpanded && <div className="mt-4" id="ambient-sounds-panel"><AmbientSounds compact /></div>}
+          {ambientExpanded && <div className="mt-4 panel-switch" id="ambient-sounds-panel"><AmbientSounds compact /></div>}
         </section>
 
         <section className="rounded-[32px] border border-border bg-surface/80 p-5 shadow-xl shadow-black/10">
@@ -961,11 +984,6 @@ export default function PomodoroTimer() {
           )}
         </section>
 
-        {/* Stats Section */}
-        <section className="mt-6">
-          <PomodoroStats sessions={pomodoroSessions} dailyGoal={dailyPomodoroGoal} />
-        </section>
-
         <div className="hidden items-center justify-center gap-3 text-[10px] text-text-muted/60 xl:flex">
           <span><Kbd>Space</Kbd>开始/暂停</span>
           <span><Kbd>R</Kbd>重置</span>
@@ -992,13 +1010,13 @@ const FocusCard = memo(function FocusCard({
   tone?: string
 }) {
   return (
-    <div className="rounded-[26px] border border-border bg-background/45 p-4 shadow-inner shadow-white/5">
-      <div className="mb-3 flex items-center justify-between">
-        <div className={clsx('flex h-10 w-10 items-center justify-center rounded-2xl bg-surface-lighter', tone)}>{icon}</div>
-        <span className="text-[11px] text-text-muted">{label}</span>
+    <div className="min-w-0 rounded-[26px] border border-border bg-background/45 p-4 shadow-inner shadow-white/5">
+      <div className="mb-3 flex items-center justify-between gap-2">
+        <div className={clsx('flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-surface-lighter', tone)}>{icon}</div>
+        <span className="truncate text-[11px] text-text-muted">{label}</span>
       </div>
-      <div className="text-2xl font-semibold text-text">{value}</div>
-      <div className="mt-1 text-xs text-text-muted">{sub}</div>
+      <div className="truncate text-2xl font-semibold text-text">{value}</div>
+      <div className="mt-1 truncate text-xs text-text-muted">{sub}</div>
     </div>
   )
 })
@@ -1024,14 +1042,14 @@ const ToggleCard = memo(function ToggleCard({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        'flex w-full items-center gap-3 rounded-[24px] border p-4 text-left transition-all hover:-translate-y-0.5',
+        'pomo-btn flex w-full min-w-0 items-center gap-2.5 rounded-[24px] border p-3 text-left sm:gap-3 sm:p-4',
         active ? activeClassName : 'border-border bg-background/45 text-text-muted hover:border-primary/25 hover:text-text',
       )}
     >
-      <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface-lighter">{icon}</div>
-      <div>
-        <div className="text-sm font-semibold">{label}</div>
-        <div className="mt-0.5 text-xs opacity-70">{sub}</div>
+      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-surface-lighter sm:h-10 sm:w-10">{icon}</div>
+      <div className="min-w-0">
+        <div className="truncate text-sm font-semibold">{label}</div>
+        <div className="mt-0.5 truncate text-xs opacity-70">{sub}</div>
       </div>
     </button>
   )

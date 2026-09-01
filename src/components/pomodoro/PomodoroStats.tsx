@@ -85,80 +85,79 @@ export default function PomodoroStats({ sessions, dailyGoal }: PomodoroStatsProp
   const maxHeatmap = Math.max(...stats.monthData.map((d) => d.count), 1)
 
   return (
-    <div className="space-y-6">
-      {/* Summary cards */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
+    <div className="space-y-4">
+      <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         <StatCard icon={<Target className="text-primary" size={18} />} label="今日专注" value={`${stats.todaySessions} 个`} sub={`${stats.todayMinutes} 分钟`} />
         <StatCard icon={<Flame className="text-orange-400" size={18} />} label="连续天数" value={`${stats.streak} 天`} sub={stats.streak >= 7 ? '🔥 一周以上！' : ''} />
         <StatCard icon={<Clock className="text-blue-400" size={18} />} label="总专注" value={`${Math.round(stats.totalMinutes / 60)} 小时`} sub={`${stats.totalMinutes} 分钟`} />
         <StatCard icon={<TrendingUp className="text-emerald-400" size={18} />} label="日均" value={`${stats.avgPerDay} 分钟`} sub="每天平均" />
       </div>
 
-      {/* Weekly bar chart */}
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 size={16} className="text-primary" />
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">近 7 天专注</h3>
-        </div>
-        <div className="flex items-end gap-2 h-32">
-          {stats.weekData.map((day) => (
-            <div key={day.key} className="flex-1 flex flex-col items-center gap-1">
-              <div className="w-full flex flex-col items-center">
-                <span className="text-[10px] text-gray-400 mb-1">{day.count > 0 ? day.count : ''}</span>
-                <div
-                  className="w-full rounded-t-lg bg-gradient-to-t from-primary to-primary-light transition-all duration-300"
-                  style={{ height: `${Math.max((day.count / stats.maxWeekCount) * 80, day.count > 0 ? 8 : 0)}px` }}
-                />
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
+        <div className="glass-card p-4">
+          <div className="mb-4 flex items-center gap-2">
+            <BarChart3 size={16} className="text-primary" />
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">近 7 天专注</h3>
+          </div>
+          <div className="flex h-32 items-end gap-2">
+            {stats.weekData.map((day) => (
+              <div key={day.key} className="flex flex-1 flex-col items-center gap-1">
+                <div className="flex w-full flex-col items-center">
+                  <span className="mb-1 text-[10px] text-gray-400">{day.count > 0 ? day.count : ''}</span>
+                  <div
+                    className="w-full rounded-t-lg bg-gradient-to-t from-primary to-primary-light transition-all duration-300"
+                    style={{ height: `${Math.max((day.count / stats.maxWeekCount) * 80, day.count > 0 ? 8 : 0)}px` }}
+                  />
+                </div>
+                <span className="text-[10px] text-gray-400">{day.label}</span>
               </div>
-              <span className="text-[10px] text-gray-400">{day.label}</span>
-            </div>
-          ))}
-        </div>
-        <div className="mt-2 flex justify-between text-[10px] text-gray-400">
-          <span>目标: {dailyGoal}/天</span>
-          <span>本周: {stats.weekData.reduce((s, d) => s + d.count, 0)} 个</span>
-        </div>
-      </div>
-
-      {/* Monthly heatmap */}
-      <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-4">
-        <div className="flex items-center gap-2 mb-4">
-          <Flame size={16} className="text-orange-400" />
-          <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">近 30 天热力图</h3>
-        </div>
-        <div className="flex flex-wrap gap-1">
-          {stats.monthData.map((day) => {
-            const intensity = day.count / maxHeatmap
-            return (
-              <div
-                key={day.key}
-                title={`${day.key}: ${day.count} 个`}
-                className="h-5 w-5 rounded-sm transition-colors"
-                style={{
-                  backgroundColor: day.count === 0
-                    ? 'var(--color-surface-lighter)'
-                    : `color-mix(in srgb, var(--color-primary) ${Math.round(intensity * 80 + 20)}%, transparent)`,
-                }}
-              />
-            )
-          })}
-        </div>
-        <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-400">
-          <span>少</span>
-          <div className="flex gap-0.5">
-            {[0, 0.25, 0.5, 0.75, 1].map((v) => (
-              <div
-                key={v}
-                className="h-3 w-3 rounded-sm"
-                style={{
-                  backgroundColor: v === 0
-                    ? 'var(--color-surface-lighter)'
-                    : `color-mix(in srgb, var(--color-primary) ${Math.round(v * 80 + 20)}%, transparent)`,
-                }}
-              />
             ))}
           </div>
-          <span>多</span>
+          <div className="mt-2 flex justify-between text-[10px] text-gray-400">
+            <span>目标: {dailyGoal}/天</span>
+            <span>本周: {stats.weekData.reduce((s, d) => s + d.count, 0)} 个</span>
+          </div>
+        </div>
+
+        <div className="glass-card p-4">
+          <div className="mb-4 flex items-center gap-2">
+            <Flame size={16} className="text-orange-400" />
+            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">近 30 天热力图</h3>
+          </div>
+          <div className="grid grid-cols-10 gap-1">
+            {stats.monthData.map((day) => {
+              const intensity = day.count / maxHeatmap
+              return (
+                <div
+                  key={day.key}
+                  title={`${day.key}: ${day.count} 个`}
+                  className="aspect-square w-full rounded-sm transition-colors"
+                  style={{
+                    backgroundColor: day.count === 0
+                      ? 'var(--color-surface-lighter)'
+                      : `color-mix(in srgb, var(--color-primary) ${Math.round(intensity * 80 + 20)}%, transparent)`,
+                  }}
+                />
+              )
+            })}
+          </div>
+          <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-400">
+            <span>少</span>
+            <div className="flex gap-0.5">
+              {[0, 0.25, 0.5, 0.75, 1].map((v) => (
+                <div
+                  key={v}
+                  className="h-3 w-3 rounded-sm"
+                  style={{
+                    backgroundColor: v === 0
+                      ? 'var(--color-surface-lighter)'
+                      : `color-mix(in srgb, var(--color-primary) ${Math.round(v * 80 + 20)}%, transparent)`,
+                  }}
+                />
+              ))}
+            </div>
+            <span>多</span>
+          </div>
         </div>
       </div>
     </div>
@@ -167,7 +166,7 @@ export default function PomodoroStats({ sessions, dailyGoal }: PomodoroStatsProp
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub: string }) {
   return (
-    <div className="rounded-2xl border border-gray-200 dark:border-gray-700 bg-white dark:bg-gray-800 p-3">
+    <div className="glass-card p-3">
       <div className="flex items-center gap-2 mb-1">{icon}<span className="text-xs text-gray-500">{label}</span></div>
       <div className="text-lg font-bold text-gray-800 dark:text-gray-200">{value}</div>
       {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}

@@ -154,9 +154,10 @@ export default function AmbientSounds({ compact = false }: AmbientSoundsProps) {
     return (
       <div className="flex items-center gap-2">
         <button
+          type="button"
           onClick={() => setMuted(!muted)}
           aria-label={muted ? '取消静音' : '静音'}
-          className="p-1.5 rounded-lg text-text-muted hover:text-text transition-colors"
+          className="pomo-btn p-1.5 rounded-lg text-text-muted hover:text-text"
         >
           {muted ? <VolumeX size={14} /> : <Volume2 size={14} />}
         </button>
@@ -164,10 +165,11 @@ export default function AmbientSounds({ compact = false }: AmbientSoundsProps) {
           {sounds.map((sound) => (
             <button
               key={sound.id}
+              type="button"
               onClick={() => toggleSoundId(sound)}
               aria-label={`${sound.label}${activeSound === sound.id ? '（已选中）' : ''}`}
               className={clsx(
-                'w-7 h-7 rounded-md text-sm flex items-center justify-center transition-all',
+                'pomo-btn w-7 h-7 rounded-md text-sm flex items-center justify-center',
                 activeSound === sound.id
                   ? 'bg-primary/20 scale-110'
                   : 'bg-surface-lighter hover:bg-surface-lighter/80'
@@ -193,9 +195,10 @@ export default function AmbientSounds({ compact = false }: AmbientSoundsProps) {
           <span className="text-sm font-medium text-text">环境音</span>
         </div>
         <button
+          type="button"
           onClick={() => setMuted(!muted)}
           aria-label={muted ? '取消静音' : '静音'}
-          className="p-1.5 rounded-lg text-text-muted hover:text-text transition-colors"
+          className="pomo-btn p-1.5 rounded-lg text-text-muted hover:text-text"
         >
           {muted ? <VolumeX size={16} /> : <Volume2 size={16} />}
         </button>
@@ -205,10 +208,11 @@ export default function AmbientSounds({ compact = false }: AmbientSoundsProps) {
         {sounds.map((sound) => (
           <button
             key={sound.id}
+            type="button"
             onClick={() => toggleSoundId(sound)}
             aria-label={`${sound.label}${activeSound === sound.id ? '（已选中）' : ''}`}
             className={clsx(
-              'flex items-center gap-2 px-3 py-2 rounded-lg text-sm transition-all',
+              'pomo-btn flex items-center gap-2 px-3 py-2 rounded-lg text-sm',
               activeSound === sound.id
                 ? 'bg-primary/15 text-primary ring-1 ring-primary'
                 : 'bg-surface-lighter text-text-muted hover:bg-surface-lighter/80'

@@ -38,6 +38,8 @@ import BackupCenter from './BackupCenter'
 import LauncherSettings from './LauncherSettings'
 import ReaderSettings from './ReaderSettings'
 import ShortcutRecorder from './ShortcutRecorder'
+import PanelSwitch from '../common/PanelSwitch'
+import { smoothNavigate } from '../../utils/smoothNavigate'
 import { SHORTCUT_BY_ID, SHORTCUT_GROUPS, useShortcutStore } from '../../shortcuts'
 
 const ACCENT_COLORS = [
@@ -398,8 +400,8 @@ export default function SettingsPage() {
               role="tab"
               aria-selected={isActive}
               aria-controls={`tab-panel-${tab.id}`}
-              onClick={() => setActiveTab(tab.id)}
-              className={`flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold transition-all ${
+              onClick={() => smoothNavigate(() => setActiveTab(tab.id))}
+              className={`segment-tab flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold ${
                 isActive
                   ? 'bg-primary text-white shadow-lg shadow-primary/25'
                   : 'text-text-muted hover:bg-surface-lighter hover:text-text'
@@ -412,9 +414,10 @@ export default function SettingsPage() {
         })}
       </div>
 
-      {/* Tab: General */}
+      {/* Tab panels */}
+      <PanelSwitch panelKey={activeTab} className="space-y-6">
       {activeTab === 'general' && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6">
           {/* User Profile */}
           <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
             <div className="flex items-center gap-2 mb-4">
@@ -490,7 +493,7 @@ export default function SettingsPage() {
 
       {/* Tab: Appearance */}
       {activeTab === 'appearance' && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6">
           {/* Appearance Mode */}
           <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
             <div className="mb-4 flex items-center gap-2">
@@ -647,7 +650,7 @@ export default function SettingsPage() {
 
       {/* Tab: Pomodoro */}
       {activeTab === 'pomodoro' && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6">
           {/* Pomodoro Goal */}
           <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
             <div className="flex items-center gap-2 mb-4">
@@ -738,7 +741,7 @@ export default function SettingsPage() {
 
       {/* Tab: Data & Security */}
       {activeTab === 'data' && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6">
           {/* Statistics */}
           <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
             <div className="flex items-center gap-2 mb-4">
@@ -920,7 +923,7 @@ export default function SettingsPage() {
 
       {/* Tab: Shortcuts */}
       {activeTab === 'shortcuts' && (
-        <div className="space-y-6 animate-fade-in">
+        <div className="space-y-6">
           <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
@@ -985,6 +988,7 @@ export default function SettingsPage() {
       {/* Tab: Launcher (uTools-style) */}
       {activeTab === 'launcher' && <LauncherSettings onToast={showToast} />}
       {activeTab === 'reader' && <ReaderSettings onToast={showToast} />}
+      </PanelSwitch>
 
       {/* Confirm Dialog */}
       {showConfirmClear && (
