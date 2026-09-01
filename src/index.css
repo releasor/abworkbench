@@ -1,14 +1,16 @@
 @import "tailwindcss";
 @import "./styles/cinematic-motion.css";
 @import "./styles/mineradio-skin.css";
+@import "./modules/workbench/workbench-fx.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
   /* === iplus original variables === */
-  --color-primary: #3b82f6;
-  --color-primary-light: #60a5fa;
-  --color-primary-dark: #2563eb;
-  --color-secondary: #f59e0b;
+  --color-primary: #e8eef2;
+  --color-primary-light: #ffffff;
+  --color-primary-dark: #c5cdd6;
+  --color-on-primary: #0a0a0b;
+  --color-secondary: #f4d28a;
   --color-secondary-light: #fbbf24;
   --color-success: #10b981;
   --color-danger: #ef4444;
@@ -18,7 +20,7 @@
   --color-surface-lighter: #18181b;
   --color-text: #f4f4f5;
   --color-text-muted: #a1a1aa;
-  --color-border: #27272a;
+  --color-border: rgba(255, 255, 255, 0.095);
   --font-sans: "Outfit", "Segoe UI Variable", "Segoe UI", system-ui, sans-serif;
 
   /* === imax surface scale (slate, mapped to dark theme) === */
@@ -52,19 +54,26 @@
   --color-background: #f9fafb;
   --color-text-secondary: #6b7280;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  --radius-card: 16px;
-  --radius-panel: 24px;
-  --radius-shell: 32px;
+  /* Mineradio radius scale — frames share one card radius */
+  --radius-sm: 14px;
+  --radius-md: 18px;
+  --radius-card: 22px;
+  --radius-panel: 22px;
+  --radius-shell: 22px;
+  --radius-frame: 22px;
+  --radius-window: 34px;
+  --radius-pill: 50px;
 }
 
 @layer base {
   :root,
   html[data-theme="dark"] {
     color-scheme: dark;
-    --color-primary: #3b82f6;
-    --color-primary-light: #60a5fa;
-    --color-primary-dark: #2563eb;
-    --color-secondary: #f59e0b;
+    --color-primary: #e8eef2;
+    --color-primary-light: #ffffff;
+    --color-primary-dark: #c5cdd6;
+    --color-on-primary: #0a0a0b;
+    --color-secondary: #f4d28a;
     --color-secondary-light: #fbbf24;
     --color-success: #10b981;
     --color-danger: #ef4444;
@@ -74,7 +83,7 @@
     --color-surface-lighter: #18181b;
     --color-text: #f4f4f5;
     --color-text-muted: #a1a1aa;
-    --color-border: #27272a;
+    --color-border: rgba(255, 255, 255, 0.095);
     --color-bg: #050505;
     --color-background: #050505;
     --color-text-secondary: #a1a1aa;
@@ -82,27 +91,29 @@
 
   html[data-theme="light"] {
     color-scheme: light;
-    --color-primary: #2563eb;
-    --color-primary-light: #3b82f6;
-    --color-primary-dark: #1d4ed8;
-    --color-secondary: #d97706;
-    --color-secondary-light: #f59e0b;
-    --color-success: #059669;
-    --color-danger: #dc2626;
-    --color-warning: #d97706;
-    --color-surface: #f8fafc;
+    --color-primary: #1e40af;
+    --color-primary-light: #2563eb;
+    --color-primary-dark: #1e3a8a;
+    --color-on-primary: #ffffff;
+    --color-secondary: #b45309;
+    --color-secondary-light: #d97706;
+    --color-success: #047857;
+    --color-danger: #b91c1c;
+    --color-warning: #b45309;
+    --color-surface: #f1f5f9;
     --color-surface-light: #ffffff;
     --color-surface-lighter: #e2e8f0;
     --color-text: #0f172a;
-    --color-text-muted: #64748b;
-    --color-border: #cbd5e1;
-    --color-bg: #f8fafc;
+    --color-text-muted: #475569;
+    --color-border: #94a3b8;
+    --color-bg: #f1f5f9;
     --color-background: #ffffff;
-    --color-text-secondary: #64748b;
+    --color-text-secondary: #334155;
   }
 
   html[data-workspace-mode="night"] {
     --color-primary: #60a5fa;
+    --color-on-primary: #ffffff;
     --color-surface: #030712;
     --color-surface-light: #08111f;
     --color-surface-lighter: #101827;
@@ -122,6 +133,7 @@
 
   html[data-workspace-mode="dashboard"] {
     --color-primary: #0ea5e9;
+    --color-on-primary: #ffffff;
     --color-success: #22c55e;
     --color-warning: #eab308;
   }
@@ -225,19 +237,22 @@
   }
 
   .glass-card {
-    /* Base shell; cinematic-motion.css upgrades blur/shadow when loaded after. */
-    background: linear-gradient(135deg, color-mix(in srgb, var(--color-surface-light) 88%, transparent), color-mix(in srgb, var(--color-surface) 94%, transparent));
-    backdrop-filter: blur(12px);
-    border: 1px solid var(--color-border);
+    background: var(--glass-bg);
+    backdrop-filter: blur(24px) saturate(1.12);
+    -webkit-backdrop-filter: blur(24px) saturate(1.12);
+    border: 1px solid var(--glass-border-soft, var(--color-border));
     border-radius: var(--radius-card);
-    transition: border-color 0.2s ease, box-shadow 0.2s ease;
+    box-shadow: var(--glass-shadow);
+    transition: border-color 0.2s ease, box-shadow 0.2s ease, background 0.2s ease, transform 0.2s ease;
   }
 
   /* imax-compatible glass utility */
   .glass {
-    background: color-mix(in srgb, var(--color-surface-light) 72%, transparent);
-    backdrop-filter: blur(12px);
-    border: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+    background: var(--saved-panel-glass-bg, color-mix(in srgb, var(--color-surface-light) 72%, transparent));
+    backdrop-filter: var(--saved-panel-glass-filter, blur(12px));
+    -webkit-backdrop-filter: var(--saved-panel-glass-filter, blur(12px));
+    border: 1px solid var(--glass-border-soft, color-mix(in srgb, var(--color-border) 70%, transparent));
+    box-shadow: var(--saved-panel-glass-shadow);
   }
 
   .glass-hover:hover {
@@ -245,11 +260,107 @@
     border-color: color-mix(in srgb, var(--color-text-muted) 45%, transparent);
   }
 
+  .note-list-item {
+    position: relative;
+    overflow: hidden;
+    isolation: isolate;
+    border: 1px solid transparent;
+    background: color-mix(in srgb, var(--color-background) 28%, transparent);
+    transition:
+      border-color var(--motion-med, 260ms) var(--ease-spring, ease),
+      background var(--motion-med, 260ms) ease,
+      box-shadow var(--motion-med, 260ms) var(--ease-spring, ease),
+      transform var(--motion-fast, 160ms) ease;
+  }
+
+  .note-list-item::before {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    inset: 0;
+    border-radius: inherit;
+    opacity: 0;
+    transition: opacity var(--motion-med, 260ms) ease;
+    background: linear-gradient(
+      128deg,
+      color-mix(in srgb, #fff 22%, transparent),
+      transparent 34%,
+      transparent 66%,
+      color-mix(in srgb, var(--note-accent, var(--color-primary)) 14%, transparent)
+    );
+  }
+
+  .note-list-item::after {
+    content: '';
+    pointer-events: none;
+    position: absolute;
+    top: 0;
+    left: 14%;
+    right: 14%;
+    height: 1px;
+    opacity: 0;
+    transition: opacity var(--motion-med, 260ms) ease;
+    background: linear-gradient(
+      90deg,
+      transparent,
+      color-mix(in srgb, #fff 62%, transparent),
+      transparent
+    );
+  }
+
+  .note-list-item:hover:not(.note-list-item--active) {
+    border-color: color-mix(in srgb, var(--color-border) 58%, transparent);
+    background: color-mix(in srgb, var(--color-surface-light) 42%, transparent);
+    backdrop-filter: blur(10px) saturate(1.12);
+    -webkit-backdrop-filter: blur(10px) saturate(1.12);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 12%, transparent);
+  }
+
+  .note-list-item--active {
+    border-color: color-mix(in srgb, var(--note-accent, var(--color-primary)) 38%, var(--glass-border, var(--color-border)));
+    background: linear-gradient(
+      135deg,
+      color-mix(in srgb, var(--note-accent, var(--color-primary)) 18%, transparent),
+      color-mix(in srgb, var(--color-surface-light) 58%, transparent) 46%,
+      color-mix(in srgb, var(--color-surface-lighter) 48%, transparent)
+    );
+    backdrop-filter: blur(18px) saturate(1.4);
+    -webkit-backdrop-filter: blur(18px) saturate(1.4);
+    box-shadow:
+      0 10px 28px color-mix(in srgb, var(--note-accent, var(--color-primary)) 20%, transparent),
+      inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent),
+      inset 0 -16px 32px color-mix(in srgb, var(--note-accent, var(--color-primary)) 8%, transparent);
+  }
+
+  .note-list-item--active::before,
+  .note-list-item--active::after {
+    opacity: 1;
+  }
+
+  .note-list-item__body {
+    position: relative;
+    z-index: 1;
+  }
+
+  .note-list-item__badge {
+    border: 1px solid color-mix(in srgb, var(--note-accent, var(--color-primary)) 28%, transparent);
+    background: color-mix(in srgb, var(--note-accent, var(--color-primary)) 12%, transparent);
+    backdrop-filter: blur(8px) saturate(1.2);
+    -webkit-backdrop-filter: blur(8px) saturate(1.2);
+    box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 24%, transparent);
+  }
+
+  html[data-workspace-mode="minimal"] .note-list-item--active,
+  html[data-workspace-mode="minimal"] .note-list-item:hover:not(.note-list-item--active) {
+    backdrop-filter: none;
+    -webkit-backdrop-filter: none;
+  }
+
   .btn-primary {
     background: linear-gradient(135deg, var(--color-primary), var(--color-primary-dark));
-    color: white;
+    color: var(--color-on-primary);
     padding: 8px 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     font-weight: 500;
     transition: all 0.2s ease;
     border: none;
@@ -266,14 +377,15 @@
   }
 
   .btn-primary:active {
-    transform: translateY(0);
+    transform: scale(0.97);
+    filter: brightness(1.05);
   }
 
   .btn-secondary {
     background: var(--color-surface-lighter);
     color: var(--color-text);
     padding: 8px 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     font-weight: 500;
     transition: all 0.2s ease;
     border: 1px solid var(--color-border);
@@ -287,15 +399,20 @@
   .btn-secondary:hover {
     background: var(--color-surface-light);
     border-color: var(--color-text-muted);
+    transform: translateY(-1px);
+  }
+
+  .btn-secondary:active {
+    transform: scale(0.97);
   }
 
   .btn-danger {
     background: rgba(239, 68, 68, 0.1);
     color: var(--color-danger);
     padding: 8px 16px;
-    border-radius: 10px;
+    border-radius: var(--radius-md);
     font-weight: 500;
-    transition: all 0.2s ease;
+    transition: all 0.2s cubic-bezier(0.16, 1, 0.3, 1);
     border: 1px solid rgba(239, 68, 68, 0.2);
     cursor: pointer;
     display: inline-flex;
@@ -307,18 +424,42 @@
   .btn-danger:hover {
     background: rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.4);
+    transform: translateY(-1px);
+  }
+
+  .btn-danger:active {
+    transform: scale(0.97);
   }
 
   .input-field {
     background: var(--color-surface-light);
     border: 1px solid var(--color-border);
-    border-radius: 10px;
+    border-radius: var(--radius-card);
     padding: 10px 14px;
     color: var(--color-text);
     font-size: 14px;
     transition: all 0.2s ease;
     width: 100%;
     outline: none;
+  }
+
+  select.input-field {
+    color-scheme: dark;
+    cursor: pointer;
+  }
+
+  html[data-theme="light"] select.input-field {
+    color-scheme: light;
+  }
+
+  .input-field option {
+    background-color: var(--color-surface-lighter);
+    color: var(--color-text);
+  }
+
+  .bg-primary.text-white,
+  .text-white.bg-primary {
+    color: var(--color-on-primary) !important;
   }
 
   .input-field:focus {
@@ -497,8 +638,8 @@
 /* === Animations === */
 
 @keyframes fadeIn {
-  from { opacity: 0; transform: translateY(8px); }
-  to { opacity: 1; transform: translateY(0); }
+  from { opacity: 0; transform: translateY(10px) scale(0.992); filter: blur(1.5px); }
+  to { opacity: 1; transform: translateY(0) scale(1); filter: blur(0); }
 }
 
 @keyframes slideIn {
@@ -579,7 +720,7 @@
 }
 
 .animate-fade-in {
-  animation: fadeIn 0.3s ease-out;
+  animation: fadeIn 0.32s cubic-bezier(0.16, 1, 0.3, 1) both;
 }
 
 .animate-fade-in-slow {
@@ -665,6 +806,38 @@
   box-shadow: none !important;
 }
 
+html[data-theme="light"] .app-main-stage--embed {
+  background: #f1f5f9 !important;
+}
+
+html[data-theme="light"] .page-layer--embed.is-active {
+  background: #f1f5f9 !important;
+}
+
+/* Mineradio: one continuous canvas — header + embed share the same flat fill */
+html[data-theme="light"] .app-content-column--embed {
+  gap: 0;
+  background: #f1f5f9;
+  border-radius: var(--radius-frame, 22px);
+  overflow: hidden;
+}
+
+html[data-theme="light"] .app-content-column--embed .header-glass {
+  background: #f1f5f9 !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border-radius: var(--radius-frame, 22px) var(--radius-frame, 22px) 0 0 !important;
+}
+
+html[data-theme="light"] .app-content-column--embed .app-main-stage--embed,
+html[data-theme="light"] .app-content-column--embed .page-layer--embed,
+html[data-theme="light"] .app-content-column--embed .mineradio-embed,
+html[data-theme="light"] .app-content-column--embed .mineradio-embed__frame,
+html[data-theme="light"] .app-content-column--embed .mineradio-embed__mount {
+  background: #f1f5f9 !important;
+}
+
 .mineradio-embed {
   display: flex;
   flex-direction: column;
@@ -678,6 +851,11 @@
   outline: none;
   box-shadow: none;
   overflow: hidden;
+}
+
+html[data-theme="light"] .mineradio-embed,
+.mineradio-embed[data-embed-theme="light"] {
+  background: #f1f5f9;
 }
 
 .mineradio-embed--state {
@@ -706,6 +884,11 @@
   outline: none;
   background: #050505;
   border-radius: 0;
+}
+
+html[data-theme="light"] .mineradio-embed__frame,
+.mineradio-embed[data-embed-theme="light"] .mineradio-embed__frame {
+  background: #f1f5f9;
 }
 
 .mineradio-embed__mount {

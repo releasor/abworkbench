@@ -7,25 +7,18 @@
   --motion-fast: 160ms;
   --motion-med: 260ms;
   --motion-slow: 420ms;
-  --glass-blur: 18px;
-  --glass-sat: 1.22;
-  --glass-bg: linear-gradient(
-    118deg,
-    color-mix(in srgb, var(--color-surface-lighter) 72%, transparent),
-    color-mix(in srgb, var(--color-surface-light) 78%, transparent) 48%,
-    color-mix(in srgb, var(--color-surface) 86%, transparent)
-  );
-  --glass-border: color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  --glass-border: rgba(255, 255, 255, 0.095);
   --glass-shadow:
-    0 22px 56px color-mix(in srgb, #000 28%, transparent),
-    0 0 28px color-mix(in srgb, var(--color-primary) 6%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 14%, transparent),
-    inset 0 -18px 42px color-mix(in srgb, #000 12%, transparent);
+    0 22px 64px rgba(0, 0, 0, 0.3),
+    inset 0 1px 0 rgba(255, 255, 255, 0.16),
+    inset 0 -24px 58px rgba(0, 0, 0, 0.16);
   --glass-shadow-hover:
-    0 26px 64px color-mix(in srgb, #000 34%, transparent),
-    0 0 36px color-mix(in srgb, var(--color-primary) 10%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 18%, transparent),
-    inset 0 -20px 48px color-mix(in srgb, #000 14%, transparent);
+    0 24px 72px rgba(0, 0, 0, 0.34),
+    0 0 0 1px rgba(255, 255, 255, 0.12),
+    inset 0 1px 0 rgba(255, 255, 255, 0.2);
+  --glass-bg: linear-gradient(112deg, rgba(72, 74, 76, 0.62), rgba(24, 27, 30, 0.7) 48%, rgba(8, 12, 14, 0.74));
+  --glass-blur: 24px;
+  --glass-sat: 1.12;
 }
 
 html[data-theme="light"] {
@@ -33,18 +26,18 @@ html[data-theme="light"] {
   --glass-sat: 1.12;
   --glass-bg: linear-gradient(
     118deg,
-    color-mix(in srgb, #fff 86%, transparent),
-    color-mix(in srgb, var(--color-surface-light) 90%, transparent) 50%,
-    color-mix(in srgb, var(--color-surface) 92%, transparent)
+    color-mix(in srgb, #fff 94%, transparent),
+    color-mix(in srgb, var(--color-surface-light) 96%, transparent) 50%,
+    color-mix(in srgb, var(--color-surface) 94%, transparent)
   );
-  --glass-border: color-mix(in srgb, var(--color-primary) 16%, var(--color-border));
+  --glass-border: color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
   --glass-shadow:
-    0 16px 40px color-mix(in srgb, #0f172a 8%, transparent),
-    0 0 20px color-mix(in srgb, var(--color-primary) 4%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 70%, transparent);
+    0 14px 36px color-mix(in srgb, #0f172a 12%, transparent),
+    0 0 18px color-mix(in srgb, var(--color-primary) 6%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 90%, transparent);
   --glass-shadow-hover:
-    0 20px 48px color-mix(in srgb, #0f172a 12%, transparent),
-    0 0 24px color-mix(in srgb, var(--color-primary) 8%, transparent),
+    0 18px 44px color-mix(in srgb, #0f172a 14%, transparent),
+    0 0 22px color-mix(in srgb, var(--color-primary) 10%, transparent),
     inset 0 1px 0 #fff;
 }
 
@@ -68,9 +61,9 @@ html[data-theme="light"] {
   height: 70%;
   z-index: 0;
   background:
-    radial-gradient(ellipse 55% 55% at 12% 8%, color-mix(in srgb, var(--color-primary) 32%, transparent), transparent 68%),
-    radial-gradient(ellipse 45% 40% at 88% 5%, color-mix(in srgb, #22d3ee 16%, transparent), transparent 65%),
-    radial-gradient(ellipse 40% 35% at 60% 30%, color-mix(in srgb, var(--color-secondary) 10%, transparent), transparent 70%);
+    radial-gradient(ellipse 55% 55% at 12% 8%, rgba(255, 255, 255, 0.08), transparent 68%),
+    radial-gradient(ellipse 45% 40% at 88% 5%, rgba(160, 50, 60, 0.1), transparent 65%),
+    radial-gradient(ellipse 40% 35% at 60% 30%, rgba(255, 255, 255, 0.04), transparent 70%);
   opacity: 1;
   animation: ambient-breathe 8s ease-in-out infinite;
 }
@@ -86,14 +79,15 @@ html[data-theme="light"] .app-shell::before {
   pointer-events: none;
 }
 
-.app-overlay-root > * {
+/* Interactive overlays (modals/toasts/dock) receive hits; ambient layers never do. */
+.app-overlay-root > *:not(.ambient-noise):not(.ambient-particles):not(.deep-work-veil) {
   pointer-events: auto;
 }
 
 .app-overlay-root .ambient-noise,
 .app-overlay-root .ambient-particles,
 .app-overlay-root .deep-work-veil {
-  pointer-events: none;
+  pointer-events: none !important;
 }
 
 .app-main-stage {
@@ -219,9 +213,7 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 }
 
 .nav-item-spring[aria-current="page"] {
-  box-shadow:
-    inset 0 0 0 1px color-mix(in srgb, var(--color-primary) 28%, transparent),
-    0 0 22px color-mix(in srgb, var(--color-primary) 12%, transparent);
+  box-shadow: none;
 }
 
 /* ---- Page / panel enter ---- */
@@ -310,7 +302,378 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 .motion-stagger > *:nth-child(n+10) { animation-delay: 400ms; }
 
 .page-enter-key {
-  animation: cinematic-enter 380ms var(--ease-spring) both;
+  animation: page-soft-enter 360ms var(--ease-spring) both;
+  opacity: 1;
+}
+
+/* Keep-alive page stack: crossfade without display:none jumps */
+.page-stack {
+  position: relative;
+  isolation: isolate;
+  min-height: 100%;
+  view-transition-name: abwb-main-stage;
+}
+
+.page-layer {
+  width: 100%;
+  min-width: 0;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  transform: translate3d(0, 10px, 0) scale(0.992);
+  transition:
+    opacity 280ms var(--ease-soft),
+    transform 320ms var(--ease-spring),
+    visibility 280ms linear;
+}
+
+.page-layer.is-active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  transform: translate3d(0, 0, 0) scale(1);
+  position: relative;
+  z-index: 1;
+}
+
+.page-layer:not(.is-active) {
+  display: none;
+}
+
+.page-layer--embed.is-active {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+}
+
+@keyframes page-soft-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 12px, 0) scale(0.988);
+    filter: blur(2px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+@keyframes panel-soft-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 8px, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.panel-switch {
+  animation: panel-soft-enter 280ms var(--ease-spring) both;
+}
+
+/* Pomodoro mode tabs — slightly richer enter so the big timer feels intentional */
+@keyframes pomo-mode-enter {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 14px, 0) scale(0.985);
+    filter: blur(3px);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0) scale(1);
+    filter: blur(0);
+  }
+}
+
+.pomo-mode-panel.panel-switch {
+  animation: pomo-mode-enter 320ms var(--ease-spring) both;
+}
+
+.header-title-swap {
+  animation: panel-soft-enter 240ms var(--ease-spring) both;
+}
+
+/* Segmented tabs / chips — springy active feedback */
+.segment-tab,
+[role='tab'] {
+  transition:
+    background var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    box-shadow var(--motion-med) var(--ease-spring),
+    transform var(--motion-fast) var(--ease-spring),
+    border-color var(--motion-fast) ease !important;
+}
+
+.segment-tab:active,
+[role='tab']:active,
+.nav-item-spring:active,
+.interactive-press:active {
+  transform: scale(0.97) !important;
+}
+
+.interactive-press {
+  transition:
+    transform var(--motion-fast) var(--ease-spring),
+    box-shadow var(--motion-med) var(--ease-spring),
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    opacity var(--motion-fast) ease;
+}
+
+.interactive-press:hover {
+  transform: translateY(-1px);
+}
+
+/* =========================================================
+   Global click / hover motion for in-page components
+   Covers buttons, tabs, chips, cards, workbench controls.
+   ========================================================= */
+.app-frame button:not(:disabled):not(.no-motion),
+.app-frame [role='button']:not([aria-disabled='true']):not(.no-motion),
+.app-frame [role='tab']:not([aria-disabled='true']),
+.app-frame [role='switch']:not([aria-disabled='true']),
+.app-frame [role='option'],
+.app-frame .home-card,
+.app-frame .wb-btn,
+.app-frame .wb-btn-primary,
+.app-frame .wb-project-card,
+.app-frame .wb-task,
+.app-frame .wb-chip,
+.app-frame .wb-mode-pill,
+.app-frame .icon-glass-btn,
+.app-frame .search-pill,
+.app-frame .glass-saved-button,
+.app-frame .launcher-row,
+.app-frame .launcher-tile,
+.app-frame .launcher-chip,
+.app-frame .launcher-feature-card,
+.app-frame .launcher-menu-item,
+.app-frame .nav-item-spring,
+.app-frame .segment-tab,
+.app-frame .interactive-press {
+  transition:
+    transform var(--motion-fast) var(--ease-spring),
+    box-shadow var(--motion-med) var(--ease-spring),
+    background-color var(--motion-fast) ease,
+    background var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    color var(--motion-fast) ease,
+    opacity var(--motion-fast) ease,
+    filter var(--motion-fast) ease !important;
+}
+
+.app-frame button:not(:disabled):not(.no-motion):hover,
+.app-frame button:not(:disabled):not(.no-motion):active,
+.app-frame [role='button']:not([aria-disabled='true']):not(.no-motion):hover,
+.app-frame [role='button']:not([aria-disabled='true']):not(.no-motion):active,
+.app-frame .home-card:hover,
+.app-frame .home-card:active,
+.app-frame .wb-task:hover,
+.app-frame .wb-task:active,
+.app-frame .wb-project-card:hover,
+.app-frame .wb-project-card:active {
+  will-change: transform;
+}
+
+/* Soft lift on hover — skip full-screen overlays */
+.app-frame button:not(:disabled):not(.no-motion):not(.absolute):hover,
+.app-frame [role='button']:not([aria-disabled='true']):not(.no-motion):not(.absolute):hover,
+.app-frame [role='tab']:not([aria-disabled='true']):hover,
+.app-frame .wb-btn:hover:not(:disabled),
+.app-frame .wb-btn-primary:hover:not(:disabled),
+.app-frame .wb-project-card:hover,
+.app-frame .icon-glass-btn:hover,
+.app-frame .search-pill:hover,
+.app-frame .launcher-tile:hover,
+.app-frame .launcher-chip:hover {
+  transform: translateY(-1px);
+}
+
+.app-frame .home-card:hover {
+  transform: translateY(-3px);
+}
+
+.app-frame .wb-task:hover {
+  transform: translateY(-1px) scale(1.01);
+}
+
+/* Crisp press feedback */
+.app-frame button:not(:disabled):not(.no-motion):not(.absolute):active,
+.app-frame [role='button']:not([aria-disabled='true']):not(.no-motion):not(.absolute):active,
+.app-frame [role='tab']:not([aria-disabled='true']):active,
+.app-frame [role='switch']:not([aria-disabled='true']):active,
+.app-frame [role='option']:active,
+.app-frame .home-card:active,
+.app-frame .wb-btn:active:not(:disabled),
+.app-frame .wb-btn-primary:active:not(:disabled),
+.app-frame .wb-project-card:active,
+.app-frame .wb-task:active,
+.app-frame .icon-glass-btn:active,
+.app-frame .search-pill:active,
+.app-frame .glass-saved-button:active,
+.app-frame .launcher-row:active,
+.app-frame .launcher-tile:active,
+.app-frame .launcher-chip:active,
+.app-frame .launcher-feature-card:active,
+.app-frame .launcher-menu-item:active,
+.app-frame .nav-item-spring:active,
+.app-frame .segment-tab:active,
+.app-frame .interactive-press:active,
+.app-frame .btn-primary:active,
+.app-frame .btn-secondary:active,
+.app-frame .btn-danger:active,
+.app-frame .btn-ghost:active {
+  transform: scale(0.97) translateY(0) !important;
+  filter: brightness(1.04);
+}
+
+/* Toggle / switch thumb feel */
+.app-frame [role='switch'] {
+  transition:
+    background-color var(--motion-fast) ease,
+    box-shadow var(--motion-med) var(--ease-spring),
+    transform var(--motion-fast) var(--ease-spring) !important;
+}
+
+.app-frame [role='switch'] > * {
+  transition: transform 220ms var(--ease-spring) !important;
+}
+
+/* Clickable list rows / selectable cards without explicit roles */
+.app-main-stage .cursor-pointer,
+.app-overlay-root .cursor-pointer,
+.launcher-panel .cursor-pointer {
+  transition:
+    transform var(--motion-fast) var(--ease-spring),
+    box-shadow var(--motion-med) var(--ease-spring),
+    background-color var(--motion-fast) ease,
+    border-color var(--motion-fast) ease,
+    opacity var(--motion-fast) ease !important;
+}
+
+.app-main-stage .cursor-pointer:active,
+.app-overlay-root .cursor-pointer:active,
+.launcher-panel .cursor-pointer:active {
+  transform: scale(0.98) !important;
+}
+
+/* Collapsible widget headers */
+.app-main-stage h3.cursor-pointer {
+  border-radius: 14px;
+  transition:
+    background-color var(--motion-fast) ease,
+    transform var(--motion-fast) var(--ease-spring) !important;
+}
+
+.app-main-stage h3.cursor-pointer:hover {
+  background-color: rgba(255, 255, 255, 0.04);
+}
+
+.app-main-stage h3.cursor-pointer:active {
+  transform: scale(0.99) !important;
+}
+
+/* =========================================================
+   Pomodoro console — every control gets a crisp press feel
+   ========================================================= */
+.pomo-stage .pomo-btn,
+.pomo-stage button:not(:disabled) {
+  position: relative;
+  overflow: hidden;
+  transform: translateZ(0);
+  transition:
+    transform 180ms var(--ease-spring),
+    box-shadow 220ms var(--ease-spring),
+    background 160ms ease,
+    border-color 160ms ease,
+    color 160ms ease,
+    filter 160ms ease,
+    opacity 160ms ease !important;
+}
+
+.pomo-stage .pomo-btn:hover:not(:disabled),
+.pomo-stage button:hover:not(:disabled) {
+  transform: translateY(-2px);
+}
+
+.pomo-stage .pomo-btn:active:not(:disabled),
+.pomo-stage button:active:not(:disabled) {
+  transform: scale(0.94) translateY(0) !important;
+  filter: brightness(1.06);
+  animation: pomo-btn-press 280ms var(--ease-spring);
+}
+
+.pomo-stage .pomo-btn--primary:hover:not(:disabled) {
+  transform: translateY(-2px) scale(1.02);
+  box-shadow:
+    0 14px 36px color-mix(in srgb, var(--color-primary) 36%, transparent),
+    0 0 20px color-mix(in srgb, var(--color-primary) 18%, transparent);
+}
+
+.pomo-stage .pomo-btn--primary:active:not(:disabled) {
+  transform: scale(0.95) translateY(0) !important;
+}
+
+.pomo-stage .pomo-btn[aria-pressed='true'] {
+  box-shadow:
+    inset 0 1px 0 rgba(255, 255, 255, 0.14),
+    0 8px 22px rgba(0, 0, 0, 0.18);
+}
+
+@keyframes pomo-btn-press {
+  0% { box-shadow: 0 0 0 0 color-mix(in srgb, var(--color-primary) 35%, transparent); }
+  70% { box-shadow: 0 0 0 10px color-mix(in srgb, var(--color-primary) 0%, transparent); }
+  100% { box-shadow: 0 0 0 0 transparent; }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .pomo-stage .pomo-btn,
+  .pomo-stage button {
+    transition: none !important;
+    animation: none !important;
+    transform: none !important;
+  }
+}
+
+/* Don't animate full-bleed overlay dismiss layers */
+.app-frame button.absolute.inset-0,
+.app-frame button[class*='inset-0'],
+.app-overlay-root > div.absolute.inset-0,
+.app-frame .modal-veil {
+  transform: none !important;
+  filter: none !important;
+  will-change: auto !important;
+}
+
+/* View Transition API (Electron / Chromium) */
+@supports (view-transition-name: none) {
+  ::view-transition-old(abwb-main-stage) {
+    animation: vt-page-out 220ms var(--ease-soft) both;
+  }
+
+  ::view-transition-new(abwb-main-stage) {
+    animation: vt-page-in 300ms var(--ease-spring) both;
+  }
+}
+
+@keyframes vt-page-out {
+  to {
+    opacity: 0;
+    transform: translate3d(0, -6px, 0) scale(0.992);
+    filter: blur(1.5px);
+  }
+}
+
+@keyframes vt-page-in {
+  from {
+    opacity: 0;
+    transform: translate3d(0, 10px, 0) scale(0.988);
+    filter: blur(2px);
+  }
 }
 
 /* ---- Ambient noise / particles ---- */
@@ -424,7 +787,15 @@ html[data-fx-noise="0"] .ambient-noise {
   .motion-enter,
   .motion-pop,
   .motion-stagger > *,
-  .page-enter-key,
+  .page-enter-key {
+    opacity: 1 !important;
+    transform: none !important;
+    filter: none !important;
+  }
+  .page-layer,
+  .page-layer.is-active,
+  .panel-switch,
+  .header-title-swap,
   .modal-panel-cinematic,
   .modal-veil,
   .deep-work-veil,
@@ -433,19 +804,47 @@ html[data-fx-noise="0"] .ambient-noise {
   .card-float-soft,
   .ambient-particle {
     animation: none !important;
+    transition: none !important;
+    filter: none !important;
+  }
+
+  .page-layer:not(.is-active) {
+    display: none !important;
+    position: static !important;
   }
 
   .glass-card,
   .btn-primary,
   .btn-secondary,
   .nav-item-spring,
+  .interactive-press,
+  .segment-tab,
+  [role='tab'],
+  .app-frame button,
+  .app-frame [role='button'],
+  .app-frame .home-card,
+  .app-frame .wb-btn,
+  .app-frame .wb-btn-primary,
+  .app-frame .wb-task,
+  .app-frame .wb-project-card,
+  .app-frame .icon-glass-btn,
+  .app-frame .launcher-row,
+  .app-frame .launcher-tile,
+  .app-main-stage .cursor-pointer,
   .glass-hover:hover {
     transition: none !important;
     transform: none !important;
+    filter: none !important;
+    will-change: auto !important;
   }
 
   .ambient-noise,
   .ambient-particles {
     display: none !important;
+  }
+
+  ::view-transition-old(abwb-main-stage),
+  ::view-transition-new(abwb-main-stage) {
+    animation: none !important;
   }
 }
