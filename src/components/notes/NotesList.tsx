@@ -1,6 +1,6 @@
 import type { MouseEvent, ReactNode } from 'react'
 import { useState, useEffect, useMemo, useRef, useCallback, useDeferredValue } from 'react'
-import { Plus, Trash2, Edit3, FileText, Clock, Palette, Search, X, Download, Copy, Pin, ClipboardCopy, BookOpen, Sparkles, CheckCircle2, Link2, CheckSquare, History } from 'lucide-react'
+import { Plus, Edit3, FileText, Palette, Search, X, Sparkles, CheckCircle2, CheckSquare, History } from 'lucide-react'
 import { useStore } from '../../store'
 import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
@@ -9,6 +9,7 @@ import { useToday } from '../../hooks/useToday'
 import { getRelativeTime, dayNumToYMD } from '../../utils/format'
 import { findRelatedTasksForNote } from './noteTaskLinks'
 import { Kbd } from '../common/Kbd'
+import { NoteListItem } from './NoteListItem'
 import clsx from 'clsx'
 
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4']
@@ -221,7 +222,6 @@ export default function NotesList() {
   const { todayMidnightMs } = useToday()
   const [showColorPicker, setShowColorPicker] = useState<string | null>(null)
   const [showVersions, setShowVersions] = useState(false)
-  const [deletingNoteId, setDeletingNoteId] = useState<string | null>(null)
   const [searchQuery, setSearchQuery] = useState('')
   const deferredSearch = useDeferredValue(searchQuery)
   const [showPreview, setShowPreview] = useState(false)
@@ -510,6 +510,28 @@ export default function NotesList() {
     }
   }
 
+  const handleDeleteNote = useCallback((note: typeof notes[0]) => {
+    flushPendingContent()
+    const snapshot = useStore.getState().notes.find((n) => n.id === note.id) || note
+    const content = note.id === activeNote?.id ? localContent : snapshot.content
+    lastDeletedNoteRef.current = { ...snapshot, content }
+    deleteNote(note.id)
+    setShowColorPicker(null)
+    showToast(`已删除笔记：${snapshot.title}（Ctrl+Z 可撤销）`, 'info', {
+      label: '撤销',
+      onClick: () => {
+        const restored = lastDeletedNoteRef.current
+        if (!restored) return
+        lastDeletedNoteRef.current = null
+        useStore.setState((s) => ({
+          notes: [restored, ...s.notes.filter((n) => n.id !== restored.id)],
+          activeNoteId: restored.id,
+        }))
+        showToast('已恢复笔记', 'success')
+      },
+    }, 10_000)
+  }, [activeNote?.id, deleteNote, flushPendingContent, localContent])
+
   useEffect(() => {
     if (!activeNote || !visualEditorRef.current || showPreview) return
     if (document.activeElement === visualEditorRef.current) return
@@ -547,36 +569,26 @@ export default function NotesList() {
   }, [syncVisualEditor])
 
   return (
-    <div className="grid gap-5 xl:grid-cols-[360px_minmax(0,1fr)] xl:h-[calc(100vh-180px)] animate-fade-in">
-      <aside className="flex min-h-0 flex-col overflow-hidden rounded-[34px] border border-border bg-surface/80 shadow-2xl shadow-black/20 backdrop-blur-xl">
-        <div className="relative overflow-hidden border-b border-border p-5">
-          <div className="pointer-events-none absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(245,158,11,0.16),transparent_35%),radial-gradient(circle_at_100%_15%,rgba(59,130,246,0.12),transparent_32%)]" />
-          <div className="relative">
-            <div className="mb-4 flex items-center justify-between gap-3">
-              <div>
-                <div className="inline-flex items-center gap-2 rounded-full border border-warning/25 bg-warning/10 px-3 py-1 text-xs font-medium text-warning">
-                  <BookOpen size={14} />
-                  笔记库
-                </div>
-                <h2 className="mt-3 text-2xl font-semibold text-text">灵感收纳箱</h2>
-              </div>
-              <button onClick={addNote} className="btn-primary h-11 rounded-2xl px-4">
-                <Plus size={18} />
-                新建
-              </button>
+    <div className="grid gap-3 xl:grid-cols-[240px_minmax(0,1fr)] xl:h-[calc(100vh-128px)] animate-fade-in">
+      <aside className="flex min-h-0 flex-col overflow-hidden rounded-[20px] border border-border bg-surface/80 shadow-2xl shadow-black/20 backdrop-blur-xl">
+        <div className="border-b border-border px-2.5 py-2">
+          <div className="flex items-center justify-between gap-2">
+            <div className="min-w-0">
+              <h2 className="truncate text-sm font-semibold text-text">灵感收纳箱</h2>
+              <p className="mt-0.5 text-[10px] text-text-muted">
+                {notes.length} 篇 · {noteStats.pinnedCount} 置顶 · 本周 {noteStats.weekNew}
+              </p>
             </div>
-
-            <div className="grid grid-cols-3 gap-2">
-              <LibraryStat label="总数" value={notes.length} />
-              <LibraryStat label="置顶" value={noteStats.pinnedCount} />
-              <LibraryStat label="本周" value={noteStats.weekNew} />
-            </div>
+            <button onClick={addNote} className="btn-primary h-7 shrink-0 rounded-lg px-2.5 text-[11px]">
+              <Plus size={13} />
+              新建
+            </button>
           </div>
         </div>
 
         {/* Folder list */}
         {noteFolders.length > 0 && (
-          <div className="flex flex-wrap gap-1.5 px-4 pb-2">
+          <div className="flex flex-wrap gap-1 px-2.5 pb-1">
             <button
               onClick={() => setSelectedFolderId('')}
               className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${!selectedFolderId ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
@@ -597,42 +609,41 @@ export default function NotesList() {
           </div>
         )}
 
-        <div className="space-y-3 p-4">
+        <div className="space-y-1.5 px-2.5 pb-1">
           <div className="relative">
-            <Search size={16} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted" />
+            <Search size={13} className="absolute left-2.5 top-1/2 -translate-y-1/2 text-text-muted" />
             <input
               ref={searchInputRef}
               type="text"
               value={searchQuery}
               onChange={(e) => setSearchQuery(e.target.value)}
               onKeyDown={(e) => { if (e.key === 'Escape' && searchQuery) { e.preventDefault(); setSearchQuery('') } }}
-              placeholder="搜索标题、正文..."
+              placeholder="搜索..."
               aria-label="搜索笔记"
-              className="input-field h-12 rounded-2xl pl-11 pr-10 text-sm"
+              className="input-field h-8 rounded-lg pl-8 pr-7 text-[11px]"
             />
             {searchQuery && (
               <button
                 onClick={() => setSearchQuery('')}
                 aria-label="清除搜索"
-                className="absolute right-4 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
+                className="absolute right-2.5 top-1/2 -translate-y-1/2 text-text-muted hover:text-text"
               >
-                <X size={15} />
+                <X size={13} />
               </button>
             )}
           </div>
           {searchQuery && (
-            <div className="rounded-2xl border border-border bg-background/45 px-3 py-2 text-xs text-text-muted">
+            <div className="rounded-lg border border-border bg-background/45 px-2 py-1 text-[10px] text-text-muted">
               找到 <span className="font-semibold text-primary">{filteredNotes.length}</span> 个结果
             </div>
           )}
         </div>
 
-        {/* Sort and tag filter */}
-        <div className="flex items-center gap-2 px-4 pb-2">
+        <div className="flex items-center gap-1 px-2.5 pb-1">
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="rounded-xl border border-border bg-background/60 px-2 py-1.5 text-[11px] text-text-muted focus:border-primary focus:outline-none"
+            className="min-w-0 flex-1 rounded-lg border border-border bg-background/60 px-1.5 py-1 text-[10px] text-text-muted focus:border-primary focus:outline-none"
           >
             <option value="updatedAt">最近编辑</option>
             <option value="createdAt">创建时间</option>
@@ -643,7 +654,7 @@ export default function NotesList() {
             <select
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
-              className="rounded-xl border border-border bg-background/60 px-2 py-1.5 text-[11px] text-text-muted focus:border-primary focus:outline-none"
+              className="min-w-0 flex-1 rounded-lg border border-border bg-background/60 px-1.5 py-1 text-[10px] text-text-muted focus:border-primary focus:outline-none"
             >
               <option value="">全部标签</option>
               {allNoteTags.map((tag) => (
@@ -653,7 +664,7 @@ export default function NotesList() {
           )}
         </div>
 
-        <div className="min-h-0 flex-1 space-y-3 overflow-y-auto px-4 pb-4">
+        <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-1.5 pb-1.5">
           {filteredNotes.length === 0 ? (
             <div className="rounded-[28px] border border-dashed border-border bg-background/45 p-8 text-center">
               <FileText size={40} className="mx-auto mb-3 text-text-muted opacity-50" />
@@ -665,186 +676,28 @@ export default function NotesList() {
               )}
             </div>
           ) : (
-            filteredNotes.map((note) => {
-              const isActive = activeNoteId === note.id
-              const relatedCount = relatedTasksByNoteId.get(note.id)?.length || 0
-              return (
-                <article
-                  key={note.id}
-                  onClick={() => {
-                    setActiveNote(note.id)
-                    setShowColorPicker(null)
-                  }}
-                  className={clsx(
-                    'group relative cursor-pointer overflow-hidden rounded-[26px] border p-4 transition-all duration-200 hover:-translate-y-0.5',
-                    isActive
-                      ? 'border-primary/45 bg-primary/10 shadow-lg shadow-primary/10'
-                      : 'border-border bg-background/45 hover:border-primary/25',
-                  )}
-                >
-                  <div className="absolute inset-y-0 left-0 w-1" style={{ backgroundColor: note.color }} />
-                  <div className="flex items-start gap-3">
-                    <div
-                      className="mt-1 flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl text-white shadow-lg"
-                      style={{ backgroundColor: note.color }}
-                    >
-                      <FileText size={17} />
-                    </div>
-                    <div className="min-w-0 flex-1">
-                      <div className="flex items-start gap-2">
-                        <h3 className="min-w-0 flex-1 truncate text-sm font-semibold text-text">
-                          {highlightedNotes?.get(note.id)?.title ?? note.title}
-                        </h3>
-                        {note.pinned && <Pin size={13} className="flex-shrink-0 fill-warning text-warning" />}
-                      </div>
-                      <p className="mt-1 line-clamp-2 text-xs leading-5 text-text-muted">
-                        {highlightedNotes?.get(note.id)?.content ?? (note.content || '空白笔记')}
-                      </p>
-                      <div className="mt-3 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
-                        <span className="inline-flex items-center gap-1"><Clock size={11} />{note.relativeTime}</span>
-                        {relatedCount > 0 && (
-                          <span className="inline-flex items-center gap-1 rounded-full bg-primary/15 px-2 py-0.5 text-primary">
-                            <Link2 size={10} />
-                            {relatedCount} 个任务
-                          </span>
-                        )}
-                        {noteStats.todayCreatedIds.has(note.id) && <span className="rounded-full bg-primary/15 px-2 py-0.5 text-primary">新</span>}
-                        {note.pinned && <span className="rounded-full bg-warning/15 px-2 py-0.5 text-warning">置顶</span>}
-                        {note.content.length > 0 && <span className="ml-auto">{note.wordCount} 词 · {note.readingMin} 分钟</span>}
-                      </div>
-                      {(note.tags || []).length > 0 && (
-                        <div className="mt-2 flex flex-wrap gap-1">
-                          {(note.tags || []).map((tag) => (
-                            <span
-                              key={tag}
-                              onClick={(e) => { e.stopPropagation(); setSelectedTag(tag) }}
-                              className="cursor-pointer rounded-full bg-primary/10 px-2 py-0.5 text-[10px] text-primary hover:bg-primary/20 transition"
-                            >
-                              #{tag}
-                            </span>
-                          ))}
-                        </div>
-                      )}
-                    </div>
-                  </div>
-
-                  <div className="mt-3 flex items-center justify-end gap-1 border-t border-border/60 pt-3 opacity-100 transition-opacity sm:opacity-0 sm:group-hover:opacity-100">
-                    <IconAction
-                      title={note.pinned ? '取消置顶' : '置顶'}
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        togglePinNote(note.id)
-                      }}
-                      active={note.pinned}
-                    >
-                      <Pin size={14} />
-                    </IconAction>
-                    <IconAction
-                      title="更换颜色"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        setShowColorPicker(showColorPicker === note.id ? null : note.id)
-                      }}
-                    >
-                      <Palette size={14} />
-                    </IconAction>
-                    <IconAction
-                      title="复制笔记"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        duplicateNote(note.id)
-                      }}
-                    >
-                      <Copy size={14} />
-                    </IconAction>
-                    <IconAction
-                      title="复制到剪贴板"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        copyToClipboard(note)
-                      }}
-                    >
-                      <ClipboardCopy size={14} />
-                    </IconAction>
-                    <IconAction
-                      title="导出笔记"
-                      onClick={(e) => {
-                        e.stopPropagation()
-                        exportNote(note)
-                      }}
-                    >
-                      <Download size={14} />
-                    </IconAction>
-                    {deletingNoteId === note.id ? (
-                      <div className="flex items-center gap-1 rounded-xl border border-danger/25 bg-danger/10 p-1">
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            flushPendingContent()
-                            const snapshot = useStore.getState().notes.find((n) => n.id === note.id) || note
-                            const content = note.id === activeNote?.id ? localContent : snapshot.content
-                            lastDeletedNoteRef.current = { ...snapshot, content }
-                            deleteNote(note.id)
-                            setDeletingNoteId(null)
-                            showToast(`已删除笔记：${snapshot.title}（Ctrl+Z 可撤销）`, 'info', {
-                              label: '撤销',
-                              onClick: () => {
-                                const restored = lastDeletedNoteRef.current
-                                if (!restored) return
-                                lastDeletedNoteRef.current = null
-                                useStore.setState((s) => ({
-                                  notes: [restored, ...s.notes.filter((n) => n.id !== restored.id)],
-                                  activeNoteId: restored.id,
-                                }))
-                                showToast('已恢复笔记', 'success')
-                              },
-                            }, 10_000)
-                          }}
-                          className="rounded-lg bg-danger px-2 py-1 text-[10px] text-white"
-                        >
-                          确认
-                        </button>
-                        <button
-                          onClick={(e) => {
-                            e.stopPropagation()
-                            setDeletingNoteId(null)
-                          }}
-                          className="rounded-lg px-2 py-1 text-[10px] text-text-muted hover:text-text"
-                        >
-                          取消
-                        </button>
-                      </div>
-                    ) : (
-                      <IconAction
-                        title="删除笔记"
-                        danger
-                        onClick={(e) => {
-                          e.stopPropagation()
-                          setDeletingNoteId(note.id)
-                        }}
-                      >
-                        <Trash2 size={14} />
-                      </IconAction>
-                    )}
-                  </div>
-
-                  {showColorPicker === note.id && (
-                    <ColorPalette
-                      selected={note.color}
-                      onPick={(color, event) => {
-                        event.stopPropagation()
-                        updateNote(note.id, { color })
-                        setShowColorPicker(null)
-                      }}
-                    />
-                  )}
-                </article>
-              )
-            })
+            filteredNotes.map((note) => (
+              <NoteListItem
+                key={note.id}
+                note={note}
+                isActive={activeNoteId === note.id}
+                highlighted={highlightedNotes?.get(note.id)}
+                onSelect={() => {
+                  setActiveNote(note.id)
+                  setShowColorPicker(null)
+                }}
+                onPin={() => togglePinNote(note.id)}
+                onDuplicate={() => duplicateNote(note.id)}
+                onCopy={() => void copyToClipboard(note)}
+                onExport={() => exportNote(note)}
+                onDelete={() => handleDeleteNote(note)}
+                onColorChange={(color) => updateNote(note.id, { color })}
+              />
+            ))
           )}
         </div>
 
-        <div className="border-t border-border bg-background/30 p-4 text-xs text-text-muted">
+        <div className="border-t border-border bg-background/30 px-2.5 py-1 text-[9px] text-text-muted">
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
             <span>{searchQuery && filteredNotes.length !== notes.length ? `${filteredNotes.length} / ${notes.length}` : notes.length} 篇笔记</span>
             {noteStats.todayNew > 0 && <span className="text-success">今日 {noteStats.todayNew} 篇</span>}
@@ -855,24 +708,24 @@ export default function NotesList() {
         </div>
       </aside>
 
-      <main className="min-h-[520px] overflow-hidden rounded-[34px] border border-border bg-surface/80 shadow-2xl shadow-black/20 backdrop-blur-xl xl:min-h-0">
+      <main className="min-h-[520px] overflow-hidden rounded-[24px] border border-border bg-surface/80 shadow-2xl shadow-black/20 backdrop-blur-xl xl:min-h-0">
         {activeNote ? (
           <div className="flex h-full min-h-0 flex-col">
             <header
-              className="relative overflow-visible border-b border-border p-5 md:p-6"
+              className="relative overflow-visible border-b border-border px-3 py-2.5 md:px-4"
               style={{ background: `linear-gradient(135deg, ${activeNote.color}20, transparent 58%)` }}
             >
-              <div className="flex flex-col gap-4 md:flex-row md:items-start md:justify-between">
-                <div className="flex min-w-0 flex-1 items-start gap-4">
+              <div className="flex flex-col gap-2 md:flex-row md:items-start md:justify-between">
+                <div className="flex min-w-0 flex-1 items-start gap-2.5">
                   <div className="relative">
                     <button
                       onClick={() => setShowColorPicker(showColorPicker === activeNote.id ? null : activeNote.id)}
-                      className="flex h-12 w-12 items-center justify-center rounded-3xl text-white shadow-lg transition-transform hover:scale-105"
+                      className="flex h-8 w-8 items-center justify-center rounded-xl text-white shadow-lg transition-transform hover:scale-105"
                       style={{ backgroundColor: activeNote.color }}
                       title="更改颜色"
                       aria-label="更改颜色"
                     >
-                      <Palette size={19} />
+                      <Palette size={16} />
                     </button>
                     {showColorPicker === activeNote.id && (
                       <div className="absolute left-0 top-14 z-20">
@@ -891,11 +744,11 @@ export default function NotesList() {
                       type="text"
                       value={activeNote.title}
                       onChange={(e) => updateNote(activeNote.id, { title: e.target.value })}
-                      className="w-full bg-transparent text-3xl font-semibold leading-tight text-text outline-none placeholder:text-text-muted"
+                      className="w-full bg-transparent text-2xl font-semibold leading-tight text-text outline-none placeholder:text-text-muted"
                       placeholder="笔记标题"
                       aria-label="笔记标题"
                     />
-                    <div className="mt-3 flex flex-wrap items-center gap-2 text-xs text-text-muted">
+                    <div className="mt-2 flex flex-wrap items-center gap-2 text-[11px] text-text-muted">
                       <span>最后编辑：{editorStats.relativeTime}</span>
                       {editorStats.ageLabel && <span>创建于 {editorStats.ageLabel}</span>}
                       {saveStatus === 'saving' && <span className="text-warning animate-pulse">保存中...</span>}
@@ -1035,7 +888,7 @@ export default function NotesList() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-2">
+                <div className="flex flex-wrap items-center gap-1.5">
                   <MetricPill label="字符" value={localContent.length} />
                   <MetricPill label="词" value={editorStats.wordCount} />
                   <MetricPill label="行" value={editorStats.lineCount} />
@@ -1044,14 +897,14 @@ export default function NotesList() {
               </div>
             </header>
 
-            <div className="flex items-center gap-1 overflow-x-auto border-b border-border bg-background/30 px-4 py-3">
+            <div className="flex items-center gap-1 overflow-x-auto border-b border-border bg-background/30 px-3 py-2">
               {MD_TOOLBAR.map((tool) => (
                 <button
                   key={tool.label}
                   title={tool.title}
                   aria-label={tool.title}
                   onClick={() => applyVisualCommand(tool)}
-                  className="rounded-2xl border border-border bg-surface/70 px-3 py-2 text-xs font-mono text-text-muted transition-all hover:border-primary/35 hover:bg-primary/10 hover:text-primary"
+                  className="rounded-xl border border-border bg-surface/70 px-2.5 py-1.5 text-[11px] font-mono text-text-muted transition-all hover:border-primary/35 hover:bg-primary/10 hover:text-primary"
                 >
                   {tool.label}
                 </button>
@@ -1061,7 +914,7 @@ export default function NotesList() {
                 aria-expanded={showPreview}
                 aria-label={showPreview ? '切换到编辑模式' : '切换到预览模式'}
                 className={clsx(
-                  'ml-auto rounded-2xl border px-4 py-2 text-xs font-semibold transition-all',
+                  'ml-auto rounded-xl border px-3 py-1.5 text-[11px] font-semibold transition-all',
                   showPreview ? 'border-primary/35 bg-primary/15 text-primary' : 'border-border bg-surface/70 text-text-muted hover:text-text',
                 )}
                 title={showPreview ? '编辑模式 (Ctrl+P)' : '预览模式 (Ctrl+P)'}
@@ -1070,10 +923,10 @@ export default function NotesList() {
               </button>
             </div>
 
-            <div className="min-h-0 flex-1 p-4 md:p-6">
+            <div className="flex min-h-0 flex-1 flex-col p-3 md:p-4">
               {showPreview ? (
                 <div
-                  className="h-full overflow-auto rounded-[28px] border border-border bg-background/45 p-6 text-sm leading-7 text-text"
+                  className="min-h-0 flex-1 overflow-auto rounded-2xl border border-border bg-background/45 p-5 text-sm leading-7 text-text"
                   dangerouslySetInnerHTML={{ __html: renderedMarkdown }}
                 />
               ) : (
@@ -1097,13 +950,13 @@ export default function NotesList() {
                       requestAnimationFrame(syncVisualEditor)
                     }
                   }}
-                  className="note-visual-editor h-full w-full overflow-auto rounded-[28px] border border-border bg-surface-light/45 p-6 text-base leading-8 text-text outline-none transition-all focus:border-primary/40"
+                  className="note-visual-editor min-h-0 flex-1 w-full overflow-auto rounded-2xl border border-border bg-surface-light/45 p-5 text-base leading-8 text-text outline-none transition-all focus:border-primary/40"
                   data-placeholder="开始写作..."
                 />
               )}
             </div>
 
-            <footer className="border-t border-border px-5 py-3">
+            <footer className="border-t border-border px-4 py-2">
               <div className="flex flex-wrap items-center justify-between gap-3 text-xs text-text-muted">
                 <div className="flex items-center gap-2">
                   {editorStats.wordCount >= 50 && (
@@ -1155,49 +1008,6 @@ export default function NotesList() {
   )
 }
 
-function LibraryStat({ label, value }: { label: string; value: number }) {
-  return (
-    <div className="rounded-2xl border border-border/70 bg-background/45 p-3">
-      <div className="text-[11px] text-text-muted">{label}</div>
-      <div className="mt-1 text-xl font-semibold text-text">{value}</div>
-    </div>
-  )
-}
-
-
-function IconAction({
-  children,
-  title,
-  onClick,
-  active = false,
-  danger = false,
-}: {
-  children: ReactNode
-  title: string
-  onClick: (event: MouseEvent<HTMLButtonElement>) => void
-  active?: boolean
-  danger?: boolean
-}) {
-  return (
-    <button
-      type="button"
-      onClick={onClick}
-      title={title}
-      aria-label={title}
-      className={clsx(
-        'flex h-8 w-8 items-center justify-center rounded-xl border transition-all',
-        active
-          ? 'border-primary/35 bg-primary/15 text-primary'
-          : danger
-            ? 'border-border bg-surface/70 text-text-muted hover:border-danger/35 hover:bg-danger/10 hover:text-danger'
-            : 'border-border bg-surface/70 text-text-muted hover:border-primary/35 hover:bg-primary/10 hover:text-primary',
-      )}
-    >
-      {children}
-    </button>
-  )
-}
-
 function ColorPalette({
   selected,
   onPick,
@@ -1227,9 +1037,9 @@ function ColorPalette({
 
 function MetricPill({ label, value }: { label: string; value: string | number }) {
   return (
-    <div className="rounded-2xl border border-border bg-background/45 px-3 py-2 text-right">
-      <div className="text-[10px] text-text-muted">{label}</div>
-      <div className="text-sm font-semibold text-text">{value}</div>
+    <div className="rounded-xl border border-border bg-background/45 px-2 py-1 text-right">
+      <div className="text-[9px] text-text-muted">{label}</div>
+      <div className="text-xs font-semibold text-text">{value}</div>
     </div>
   )
 }
