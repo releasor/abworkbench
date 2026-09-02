@@ -118,6 +118,7 @@ export function NoteListItem({
         className={clsx(
           'note-list-item cursor-pointer rounded-lg px-2 py-1.5',
           isActive && 'note-list-item--active',
+          menuOpen && 'note-list-item--menu-open',
         )}
         style={{ '--note-accent': note.color } as CSSProperties}
       >
@@ -167,24 +168,15 @@ export function NoteListItem({
       </article>
 
       {menuOpen && createPortal(
-        <>
-          <button
-            type="button"
-            aria-label="关闭菜单"
-            className="fixed inset-0 z-[70] cursor-default bg-black/20"
-            onContextMenu={(event) => event.preventDefault()}
-            onMouseDown={(event) => event.preventDefault()}
-            onClick={closeMenu}
-          />
-          <div
-            ref={menuRef}
-            role="menu"
-            aria-label="笔记操作菜单"
-            className="fixed z-[80] min-w-[168px] overflow-hidden rounded-xl border border-border bg-surface-lighter py-1 shadow-2xl shadow-black/50"
-            style={{ left: menuPos.x, top: menuPos.y }}
-            onClick={(event) => event.stopPropagation()}
-            onMouseDown={(event) => event.stopPropagation()}
-          >
+        <div
+          ref={menuRef}
+          role="menu"
+          aria-label="笔记操作菜单"
+          className="fixed z-[80] min-w-[168px] overflow-hidden rounded-xl border border-border bg-surface-lighter py-1 shadow-2xl shadow-black/50"
+          style={{ left: menuPos.x, top: menuPos.y }}
+          onClick={(event) => event.stopPropagation()}
+          onMouseDown={(event) => event.stopPropagation()}
+        >
             <MenuAction icon={<Pin size={14} />} label={note.pinned ? '取消置顶' : '置顶'} onClick={() => { onPin(); closeMenu() }} />
             <MenuAction
               icon={<Palette size={14} />}
@@ -225,8 +217,7 @@ export function NoteListItem({
               danger
               onClick={() => { onDelete(); closeMenu() }}
             />
-          </div>
-        </>,
+        </div>,
         document.body,
       )}
     </>
