@@ -162,7 +162,7 @@ export default function RemindersPage() {
             <div
               key={reminder.id}
               className={`flex flex-wrap items-center gap-2 rounded-panel border bg-surface/70 px-4 py-3 ${
-                overdue ? 'border-danger/40 border-l-4 border-l-danger' : 'border-border'
+                overdue ? 'border-danger/40' : 'border-border'
               }`}
             >
               <div className="min-w-0 flex-1">

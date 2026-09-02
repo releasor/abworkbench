@@ -28,13 +28,6 @@ const PRIORITY_STYLES: Record<Priority, string> = {
   urgent: 'bg-red-500/10 text-red-700 dark:text-red-300',
 };
 
-const PRIORITY_BORDER: Record<Priority, string> = {
-  low: 'before:bg-emerald-500',
-  medium: 'before:bg-amber-500',
-  high: 'before:bg-orange-500',
-  urgent: 'before:bg-red-500',
-};
-
 const ENERGY_STYLES: Record<string, string> = {
   low: 'bg-emerald-500/10 text-emerald-700 dark:text-emerald-300',
   medium: 'bg-sky-500/10 text-sky-700 dark:text-sky-300',
@@ -293,7 +286,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
             handleEdit();
           }
         }}
-        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-border glass-card p-3.5 transition-all before:absolute before:inset-y-4 before:left-0 before:w-1 before:rounded-r-full hover:-translate-y-0.5 hover:border-blue-300/70 active:scale-[0.98] ${PRIORITY_BORDER[task.priority]} ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
+        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-border glass-card p-3.5 transition-all hover:-translate-y-0.5 hover:border-blue-300/70 active:scale-[0.98] ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
       >
         {/* Priority & Category */}
         <div className="relative mb-2 flex items-start gap-2">

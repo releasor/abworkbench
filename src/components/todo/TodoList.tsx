@@ -647,7 +647,7 @@ export default function TodoList() {
               <div
                 className={`glass-card p-3 md:p-4 flex items-center gap-3 group transition-all duration-300 ${
                   completingId === todo.id ? 'scale-[0.98] opacity-70' : ''
-                } ${todo.dueStatus?.color === 'text-danger' ? 'border-l-2 border-l-danger' : ''}`}
+                } ${todo.dueStatus?.color === 'text-danger' ? 'border-danger/35' : ''}`}
                 style={{ animation: `fadeIn 0.3s ease-out ${Math.min(index * 50, 500)}ms both` }}
               >
                 {/* Checkbox */}
