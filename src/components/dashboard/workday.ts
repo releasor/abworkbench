@@ -1,3 +1,7 @@
+import { safeGet } from '../../utils/safeLocalStorage'
+
+export const WORKDAY_SETTINGS_KEY = 'abworkbench-workday-settings'
+
 export interface WorkdaySettings {
   startTime: string
   endTime: string
@@ -39,6 +43,10 @@ function parseTimeOnDate(now: Date, value: string): Date {
 
 function roundMoney(value: number): number {
   return Math.round(value * 100) / 100
+}
+
+export function readWorkdaySettings(): WorkdaySettings {
+  return normalizeWorkdaySettings(safeGet(WORKDAY_SETTINGS_KEY, DEFAULT_WORKDAY_SETTINGS))
 }
 
 export function normalizeWorkdaySettings(value: Partial<WorkdaySettings> | null | undefined): WorkdaySettings {

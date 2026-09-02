@@ -46,9 +46,9 @@ import { buildTodayPlanning, type PlanningTone } from './todayPlanning'
 import { buildTodayTimeBlocks } from './timeBlocks'
 import { getHabitProgress } from '../habits/habitSchedule'
 import DashboardReminders from './DashboardReminders'
-import { buildWorkdayStatus, DEFAULT_WORKDAY_SETTINGS, formatCountdown, formatCurrency, normalizeWorkdaySettings, type WorkdaySettings } from './workday'
+import { buildWorkdayStatus, formatCountdown, formatCurrency, normalizeWorkdaySettings, readWorkdaySettings, WORKDAY_SETTINGS_KEY, type WorkdaySettings } from './workday'
 import { getPeriod, stripMarkdown } from './notePreview'
-import { safeGet, safeSet } from '../../utils/safeLocalStorage'
+import { safeSet } from '../../utils/safeLocalStorage'
 import ErrorBoundary from '../common/ErrorBoundary'
 import { LOCAL_DATA_CHANGE_EVENT } from '../../utils/localData'
 import {
@@ -59,17 +59,16 @@ import {
 } from '../../utils/timeBlockSchedule'
 
 const StatsPage = lazy(() => import('../stats/StatsPage'))
-const ClockWidget = lazy(() => import('./ClockWidget'))
-const CalendarWidget = lazy(() => import('./CalendarWidget'))
 
 interface DashboardPageProps {
   onNavigate: (page: Page) => void
   onOpenDailyBrief?: (mode?: 'morning' | 'evening') => void
   onOpenQuickCapture?: () => void
+  onOpenClockPanel?: () => void
+  onOpenDatePanel?: () => void
 }
 
 const PRIORITY_COLORS: Record<string, string> = { urgent: 'bg-danger', high: 'bg-danger', medium: 'bg-warning', low: 'bg-success' }
-const WORKDAY_SETTINGS_KEY = 'abworkbench-workday-settings'
 
 const WELCOME_ACTION_KEYS = [
   { page: 'taskflow' as Page, labelKey: 'dashboard.createFirstTask' as const, icon: CheckSquare },
@@ -102,17 +101,13 @@ const PLANNING_TONE_STYLES: Record<PlanningTone, { dot: string; text: string; ba
 const CONDITION_ICONS = { sunny: Sun, cloudy: Cloud, rainy: CloudRain, snowy: CloudSnow } as const
 const CONDITION_COLORS = { sunny: 'text-yellow-400', cloudy: 'text-gray-400', rainy: 'text-blue-400', snowy: 'text-white' } as const
 
-function readWorkdaySettings(): WorkdaySettings {
-  return normalizeWorkdaySettings(safeGet(WORKDAY_SETTINGS_KEY, DEFAULT_WORKDAY_SETTINGS))
-}
-
 function writeWorkdaySettings(settings: WorkdaySettings): WorkdaySettings {
   const normalized = normalizeWorkdaySettings(settings)
   safeSet(WORKDAY_SETTINGS_KEY, normalized)
   return normalized
 }
 
-export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuickCapture }: DashboardPageProps) {
+export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuickCapture, onOpenClockPanel, onOpenDatePanel }: DashboardPageProps) {
   const taskFlowTasks = useTaskStore((s) => s.tasks)
   const categories = useTaskStore((s) => s.categories)
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
@@ -141,8 +136,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     }
   })
   const now = useTick(1000)
-  const [showClockPanel, setShowClockPanel] = useState(false)
-  const [showDatePanel, setShowDatePanel] = useState(false)
   const [showWorkdaySettings, setShowWorkdaySettings] = useState(false)
   const [workdaySettings, setWorkdaySettings] = useState<WorkdaySettings>(readWorkdaySettings)
   const [draftWorkdaySettings, setDraftWorkdaySettings] = useState<WorkdaySettings>(workdaySettings)
@@ -552,7 +545,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     return `${dayNumToFullLabel(dayNum)}，${WEEKDAY_NAMES[(dayNum + 4) % 7]}`
   }, [todayMidnightMs])
   const currentTimeDisplay = useMemo(() => now.toLocaleTimeString('zh-CN', { hour12: false }), [now])
-  const currentDateDisplay = useMemo(() => now.toLocaleDateString('zh-CN', { year: 'numeric', month: '2-digit', day: '2-digit', weekday: 'long' }), [now])
   const workdayStatus = useMemo(() => buildWorkdayStatus({ now, settings: workdaySettings }), [now, workdaySettings])
   const offWorkCountdown = useMemo(() => formatCountdown(workdayStatus.phase === 'done' ? 0 : workdayStatus.endAt.getTime() - now.getTime()), [now, workdayStatus])
   const workdayPhaseLabel = workdayStatus.phase === 'before' ? '尚未上班' : workdayStatus.phase === 'done' ? '今日已下班' : '距离下班'
@@ -819,11 +811,11 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
             </div>
             <h2 className="text-4xl font-black tracking-tight text-text md:text-5xl">{formatGreetingTitle(greeting.text, userName)}</h2>
             <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-muted">
-              <button onClick={() => setShowDatePanel(true)} className="rounded-lg text-left transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开日期面板">
+              <button onClick={() => onOpenDatePanel?.()} className="rounded-lg text-left transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开日期面板">
                 {todayDisplay}
               </button>
               <span>·</span>
-              <button onClick={() => setShowClockPanel(true)} className="rounded-lg font-mono tabular-nums text-text transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开时钟面板">
+              <button onClick={() => onOpenClockPanel?.()} className="rounded-lg font-mono tabular-nums text-text transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开时钟面板">
                 {currentTimeDisplay}
               </button>
               <span>·</span>
@@ -864,7 +856,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                   </span>
                   <div>
                     <div className="text-xs text-text-muted">{workdayPhaseLabel}</div>
-                    <button onClick={() => setShowClockPanel(true)} className="font-mono text-2xl font-black tabular-nums text-text transition hover:text-primary" aria-label={`下班倒计时: ${offWorkCountdown}`}>
+                    <button onClick={() => onOpenClockPanel?.()} className="font-mono text-2xl font-black tabular-nums text-text transition hover:text-primary" aria-label={`下班倒计时: ${offWorkCountdown}`}>
                       {offWorkCountdown}
                     </button>
                   </div>
@@ -877,7 +869,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 </button>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <button onClick={() => setShowClockPanel(true)} className="rounded-2xl bg-surface/70 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label="打开时钟面板">
+                <button onClick={() => onOpenClockPanel?.()} className="rounded-2xl bg-surface/70 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label="打开时钟面板">
                   <div className="text-[10px] text-text-muted">当前时间</div>
                   <div className="mt-1 font-mono text-sm font-bold tabular-nums text-text">{currentTimeDisplay}</div>
                 </button>
@@ -1000,32 +992,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
         </div>
         )
       })()}
-
-      {(showClockPanel || showDatePanel) && (
-        <div className="fixed inset-0 z-[90] flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label={showClockPanel ? '时钟面板' : '日期面板'}>
-          <button className="absolute inset-0 bg-black/70 backdrop-blur-sm" onClick={() => { setShowClockPanel(false); setShowDatePanel(false) }} aria-label="关闭时间日期弹窗" />
-          <div className="relative w-full max-w-xl">
-            <button
-              onClick={() => { setShowClockPanel(false); setShowDatePanel(false) }}
-              className="absolute -right-2 -top-2 z-10 rounded-full border border-border bg-surface p-2 text-text-muted shadow-lg transition hover:text-text"
-              aria-label="关闭"
-            >
-              <X size={18} />
-            </button>
-            <Suspense fallback={<div className="glass-card p-6 text-sm text-text-muted">加载中...</div>}>
-              {showClockPanel ? <ClockWidget /> : (
-                <div className="rounded-[34px] border border-border bg-surface p-5 shadow-2xl shadow-black/20">
-                  <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-text">
-                    <Calendar size={16} className="text-primary" />
-                    {currentDateDisplay}
-                  </div>
-                  <CalendarWidget />
-                </div>
-              )}
-            </Suspense>
-          </div>
-        </div>
-      )}
 
       {/* Today Plan / Evening Review */}
       <div className="glass-card p-5">
