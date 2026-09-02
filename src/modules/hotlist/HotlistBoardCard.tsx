@@ -29,28 +29,38 @@ export default function HotlistBoardCard({ board, onOpen }: Props) {
       </header>
 
       {board.loading ? (
-        <p className="hotlist-card__loading">{t('hotlist.loading')}</p>
+        <div className="hotlist-card__body">
+          <p className="hotlist-card__loading">{t('hotlist.loading')}</p>
+        </div>
       ) : board.error ? (
-        <p className="hotlist-card__error">{board.error}</p>
+        <div className="hotlist-card__body">
+          <p className="hotlist-card__error">{board.error}</p>
+        </div>
+      ) : board.items.length === 0 ? (
+        <div className="hotlist-card__body">
+          <p className="hotlist-card__empty">{t('hotlist.empty')}</p>
+        </div>
       ) : (
-        <ol className="hotlist-card__list">
-          {board.items.map((item) => (
-            <li key={`${board.id}-${item.rank}-${item.url}`} className="hotlist-card__item">
-              <button
-                type="button"
-                className="hotlist-card__link"
-                onClick={() => onOpen(item.url)}
-                title={item.title}
-              >
-                <span className={rankClass(item.rank)} aria-hidden="true">
-                  {item.rank}
-                </span>
-                <span className="hotlist-card__text">{item.title}</span>
-                {item.hot ? <span className="hotlist-card__hot">{item.hot}</span> : null}
-              </button>
-            </li>
-          ))}
-        </ol>
+        <div className="hotlist-card__body">
+          <ol className="hotlist-card__list">
+            {board.items.map((item) => (
+              <li key={`${board.id}-${item.rank}-${item.url}`} className="hotlist-card__item">
+                <button
+                  type="button"
+                  className="hotlist-card__link"
+                  onClick={() => onOpen(item.url)}
+                  title={item.title}
+                >
+                  <span className={rankClass(item.rank)} aria-hidden="true">
+                    {item.rank}
+                  </span>
+                  <span className="hotlist-card__text">{item.title}</span>
+                  {item.hot ? <span className="hotlist-card__hot">{item.hot}</span> : null}
+                </button>
+              </li>
+            ))}
+          </ol>
+        </div>
       )}
     </article>
   )

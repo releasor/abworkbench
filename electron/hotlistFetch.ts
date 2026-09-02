@@ -47,6 +47,33 @@ function formatUpdateTime(iso: string): string {
   return `${hh}:${mm} 更新`
 }
 
+function normalizeCharset(charset: string): string {
+  const lower = charset.trim().toLowerCase().replace(/['"]/g, '')
+  if (lower === 'gb2312' || lower === 'gbk') return 'gb18030'
+  return lower || 'utf-8'
+}
+
+function decodeResponseBuffer(buffer: ArrayBuffer, charset = 'utf-8'): string {
+  try {
+    return new TextDecoder(charset).decode(buffer)
+  } catch {
+    return new TextDecoder('utf-8').decode(buffer)
+  }
+}
+
+async function decodeResponseText(res: Response): Promise<string> {
+  const buffer = await res.arrayBuffer()
+  const ctype = res.headers.get('content-type') || ''
+  const charsetMatch = ctype.match(/charset=["']?([^;"'\s]+)/i)
+  const declared = charsetMatch ? normalizeCharset(charsetMatch[1]) : 'utf-8'
+  const primary = decodeResponseBuffer(buffer, declared)
+  if (!primary.includes('\uFFFD') || declared !== 'utf-8') return primary
+
+  const gbText = decodeResponseBuffer(buffer, 'gb18030')
+  if (!gbText.includes('\uFFFD')) return gbText
+  return primary
+}
+
 async function fetchJson<T>(url: string, init?: RequestInit, timeoutMs = FETCH_TIMEOUT_MS): Promise<T> {
   const res = await fetch(url, {
     ...init,
@@ -58,7 +85,7 @@ async function fetchJson<T>(url: string, init?: RequestInit, timeoutMs = FETCH_T
     },
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  const text = await res.text()
+  const text = await decodeResponseText(res)
   try {
     return JSON.parse(text) as T
   } catch {
@@ -89,15 +116,36 @@ async function fetchText(url: string, init?: RequestInit): Promise<string> {
     },
   })
   if (!res.ok) throw new Error(`HTTP ${res.status}`)
-  return res.text()
+  return decodeResponseText(res)
+}
+
+function decodeXmlEntities(value: string): string {
+  return value
+    .replace(/&#x([0-9a-f]+);/gi, (_, hex) => String.fromCodePoint(Number.parseInt(hex, 16)))
+    .replace(/&#(\d+);/g, (_, num) => String.fromCodePoint(Number.parseInt(num, 10)))
+}
+
+function sanitizeTitle(title: string): string {
+  return decodeXmlEntities(title)
+    .replace(/\uFFFD/g, '')
+    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '')
+    .replace(/\s+/g, ' ')
+    .trim()
+}
+
+function isReadableTitle(title: string): boolean {
+  if (!title || title.length < 2) return false
+  if (title.includes('\uFFFD')) return false
+  const readable = title.match(/[\p{L}\p{N}]/gu)?.length ?? 0
+  return readable / title.length >= 0.45
 }
 
 function normalizeItems(raw: Array<{ title?: string; url?: string; hot?: string | number }>, limit = 15): HotlistItem[] {
   const items: HotlistItem[] = []
   for (const row of raw) {
-    const title = String(row.title || '').trim()
+    const title = sanitizeTitle(String(row.title || ''))
     const url = String(row.url || '').trim()
-    if (!title || !/^https?:\/\//i.test(url)) continue
+    if (!isReadableTitle(title) || !/^https?:\/\//i.test(url)) continue
     items.push({
       rank: items.length + 1,
       title,
@@ -110,15 +158,16 @@ function normalizeItems(raw: Array<{ title?: string; url?: string; hot?: string 
 }
 
 function decodeXmlText(value: string): string {
-  return value
-    .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
-    .replace(/&lt;/g, '<')
-    .replace(/&gt;/g, '>')
-    .replace(/&amp;/g, '&')
-    .replace(/&quot;/g, '"')
-    .replace(/&#39;/g, "'")
-    .replace(/<[^>]+>/g, '')
-    .trim()
+  return sanitizeTitle(
+    value
+      .replace(/<!\[CDATA\[([\s\S]*?)\]\]>/g, '$1')
+      .replace(/&lt;/g, '<')
+      .replace(/&gt;/g, '>')
+      .replace(/&amp;/g, '&')
+      .replace(/&quot;/g, '"')
+      .replace(/&#39;/g, "'")
+      .replace(/<[^>]+>/g, ''),
+  )
 }
 
 function parseRssItems(xml: string, limit = 15): HotlistItem[] {
@@ -214,10 +263,19 @@ function friendlyFetchError(err: unknown): string {
 }
 
 async function fetchFund(): Promise<HotlistItem[]> {
-  const text = await fetchText(
+  const res = await fetch(
     'https://fund.eastmoney.com/data/rankhandler.aspx?op=ph&dt=kf&ft=all&sc=1nzf&st=desc&pi=1&pn=15&dx=1',
-    { headers: { Referer: 'https://fund.eastmoney.com/' } },
+    {
+      signal: AbortSignal.timeout(FETCH_TIMEOUT_MS),
+      headers: {
+        'User-Agent': UA,
+        Referer: 'https://fund.eastmoney.com/',
+      },
+    },
   )
+  if (!res.ok) throw new Error(`HTTP ${res.status}`)
+  const buffer = await res.arrayBuffer()
+  const text = decodeResponseBuffer(buffer, 'gb18030')
   const datasMatch = text.match(/datas:\[([\s\S]*?)\],allRecords:/)
   if (!datasMatch) throw new Error('基金数据解析失败')
   const rawItems = JSON.parse(`[${datasMatch[1]}]`) as string[]
@@ -720,7 +778,7 @@ async function fetchBoardDirect(id: string, platform: HotlistPlatform): Promise<
         updateTime,
         fromCache: false,
         items: [],
-        error: '暂无榜单数据',
+        error: '暂无榜单数据（该平台暂无直连接口，公共聚合源也未返回内容）',
       }
     }
     return {

@@ -23,6 +23,7 @@ export const en = {
   'header.langEnglish': 'English',
   'header.openMenu': 'Open menu',
   'header.closeNotifications': 'Close notifications',
+  'header.manageReminders': 'Manage reminders',
   'header.switchToLight': 'Switch to light theme',
   'header.switchToDark': 'Switch to dark theme',
 
@@ -66,6 +67,7 @@ export const en = {
   'hotlist.refreshing': 'Refreshing…',
   'hotlist.retry': 'Retry',
   'hotlist.subtitle': 'Aggregated trending topics from major platforms. Click an item to open in your browser.',
+  'hotlist.empty': 'No data available. Some sources rely on public aggregators and may be temporarily unavailable.',
 
   // Clock
   'clock.title': 'Local Time',

@@ -1,8 +1,8 @@
-import { useCallback, useEffect, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
 import { Flame, RefreshCw } from 'lucide-react'
 import { useTranslation } from '../../i18n'
 import HotlistBoardCard from './HotlistBoardCard'
-import { fetchHotlistBatch, fetchHotlistPlatforms, openHotlistUrl } from './hotlistApi'
+import { fetchHotlistBatch, fetchHotlistPlatforms, openHotlistUrl, sortHotlistBoards } from './hotlistApi'
 import type { HotlistBoard, HotlistPlatform } from './types'
 import './hotlist.css'
 
@@ -23,6 +23,7 @@ function placeholderBoard(platform: HotlistPlatform): HotlistBoard {
 export default function HotlistPage() {
   const { t } = useTranslation()
   const [boards, setBoards] = useState<HotlistBoard[]>([])
+  const [platformOrder, setPlatformOrder] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
   const [refreshing, setRefreshing] = useState(false)
   const [error, setError] = useState<string | null>(null)
@@ -42,6 +43,7 @@ export default function HotlistPage() {
       const platforms = await fetchHotlistPlatforms()
       if (loadTokenRef.current !== token) return
 
+      setPlatformOrder(platforms.map((platform) => platform.id))
       setBoards((prev) => {
         const keepExisting = noCache && prev.length > 0
         if (!keepExisting) return platforms.map(placeholderBoard)
@@ -110,6 +112,11 @@ export default function HotlistPage() {
     void openHotlistUrl(url)
   }, [])
 
+  const visibleBoards = useMemo(
+    () => sortHotlistBoards(boards, platformOrder),
+    [boards, platformOrder],
+  )
+
   if (loading && boards.length === 0) {
     return (
       <div className="hotlist-page hotlist-page--state">
@@ -158,7 +165,7 @@ export default function HotlistPage() {
       {error ? <p className="hotlist-banner hotlist-banner--error">{error}</p> : null}
 
       <div className="hotlist-grid">
-        {boards.map((board) => (
+        {visibleBoards.map((board) => (
           <HotlistBoardCard key={board.id} board={board} onOpen={handleOpen} />
         ))}
       </div>

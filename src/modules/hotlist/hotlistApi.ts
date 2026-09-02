@@ -1,5 +1,22 @@
 import type { HotlistBoard, HotlistPlatform } from './types'
 
+/** 有数据的排前，加载中居中，失败/空数据排后；同组内保持平台原始顺序。 */
+export function sortHotlistBoards(boards: HotlistBoard[], platformOrder: readonly string[]): HotlistBoard[] {
+  const orderIndex = new Map(platformOrder.map((id, index) => [id, index]))
+
+  const priority = (board: HotlistBoard): number => {
+    if (board.items.length > 0) return 0
+    if (board.loading) return 1
+    return 2
+  }
+
+  return [...boards].sort((a, b) => {
+    const byPriority = priority(a) - priority(b)
+    if (byPriority !== 0) return byPriority
+    return (orderIndex.get(a.id) ?? 0) - (orderIndex.get(b.id) ?? 0)
+  })
+}
+
 const BATCH_SIZE = 10
 const PLATFORM_LIST_TIMEOUT_MS = 10000
 const FETCH_TIMEOUT_MS = 15000
@@ -100,7 +117,7 @@ export async function fetchAllHotlists(noCache = false): Promise<HotlistBoard[]>
     }
   }
 
-  return boards
+  return sortHotlistBoards(boards, platforms.map((platform) => platform.id))
 }
 
 export async function openHotlistUrl(url: string): Promise<void> {

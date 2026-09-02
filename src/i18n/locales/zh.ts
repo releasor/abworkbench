@@ -27,6 +27,7 @@ export const zh = {
   'header.langEnglish': '英文',
   'header.openMenu': '打开菜单',
   'header.closeNotifications': '关闭通知',
+  'header.manageReminders': '管理提醒',
   'header.switchToLight': '切换到浅色主题',
   'header.switchToDark': '切换到深色主题',
 
@@ -70,6 +71,7 @@ export const zh = {
   'hotlist.refreshing': '刷新中…',
   'hotlist.retry': '重试',
   'hotlist.subtitle': '聚合各平台实时热榜，点击条目可在浏览器中打开原文。',
+  'hotlist.empty': '暂无榜单数据。部分平台需依赖公共聚合接口，可能因反爬、网络或接口下线而暂时无法获取。',
 
   // Clock
   'clock.title': '本地时间',
