@@ -992,9 +992,9 @@ export default function SettingsPage() {
 
       {/* Confirm Dialog */}
       {showConfirmClear && (
-        <div className="fixed inset-0 z-50 flex items-center justify-center" onClick={() => setShowConfirmClear(false)} role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
-          <div className="absolute inset-0 bg-black/50 backdrop-blur-sm" />
-          <div className="relative glass-card p-6 max-w-sm animate-fade-in" onClick={(e) => e.stopPropagation()}>
+        <div className="fixed inset-0 z-50 flex items-center justify-center p-4" onClick={() => setShowConfirmClear(false)} role="dialog" aria-modal="true" aria-labelledby="confirm-dialog-title">
+          <div className="absolute inset-0 modal-veil liquid-glass-veil" />
+          <div className="liquid-glass-panel modal-panel-cinematic relative max-w-sm p-6 animate-fade-in" onClick={(e) => e.stopPropagation()}>
             <div className="flex items-center gap-3 mb-4">
               <div className="w-10 h-10 rounded-xl bg-danger/15 flex items-center justify-center">
                 <AlertTriangle size={20} className="text-danger" />

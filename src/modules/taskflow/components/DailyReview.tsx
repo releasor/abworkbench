@@ -105,8 +105,9 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
 
   if (loading) {
     return (
-      <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm">
-        <div className="bg-white rounded-2xl p-8 max-w-md w-full mx-4 animate-pulse">
+      <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
+        <div className="absolute inset-0 modal-veil liquid-glass-veil" />
+        <div className="liquid-glass-panel modal-panel-cinematic relative max-w-md w-full p-8 animate-pulse">
           <div className="h-8 bg-surface-lighter rounded w-3/4 mb-6"></div>
           <div className="space-y-4">
             <div className="h-24 bg-surface-lighter rounded"></div>
@@ -122,13 +123,14 @@ export function DailyReview({ onClose, onEditTask }: DailyReviewProps) {
   return (
     <div
       ref={trapRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => e.target === e.currentTarget && onClose()}
       role="dialog"
       aria-modal="true"
       aria-label="每日回顾"
     >
-      <div className="bg-white rounded-2xl p-6 max-w-2xl w-full mx-4 max-h-[90vh] overflow-y-auto">
+      <div className="absolute inset-0 modal-veil liquid-glass-veil" />
+      <div className="liquid-glass-panel modal-panel-cinematic relative max-w-2xl w-full max-h-[90vh] overflow-y-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">
           <div>

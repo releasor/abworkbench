@@ -106,11 +106,11 @@ export function CompletedTasks({ onClose, onEditTask }: CompletedTasksProps) {
       aria-label="已完成任务"
     >
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 modal-veil liquid-glass-veil animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="relative w-full max-w-2xl card p-6 animate-bounce-in max-h-[80vh] overflow-y-auto">
+      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-2xl p-6 animate-bounce-in max-h-[80vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold" id="completed-tasks-title">已完成任务</h2>

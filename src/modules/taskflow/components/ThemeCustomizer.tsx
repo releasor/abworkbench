@@ -97,8 +97,8 @@ export function ThemeCustomizer({ onClose, onSuccess, onError, onRestore }: Them
       aria-modal="true"
       aria-labelledby="theme-customizer-title"
     >
-      <button className="absolute inset-0 bg-black/70 backdrop-blur-md animate-fade-in" onClick={onClose} aria-label="关闭主题设置" />
-      <div className="relative w-full max-w-lg overflow-hidden rounded-[32px] border border-white/10 bg-zinc-950/95 p-6 shadow-2xl shadow-black/60 animate-bounce-in">
+      <button className="absolute inset-0 modal-veil liquid-glass-veil animate-fade-in" onClick={onClose} aria-label="关闭主题设置" />
+      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-lg overflow-hidden p-6 shadow-2xl animate-bounce-in">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/70 to-transparent" />
         <div className="mb-6 flex items-start justify-between gap-4">
           <div className="flex items-center gap-3">
@@ -181,8 +181,8 @@ export function ThemeCustomizer({ onClose, onSuccess, onError, onRestore }: Them
 
       {showRestoreConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="restore-title">
-          <button className="absolute inset-0 bg-black/70" onClick={() => { setShowRestoreConfirm(false); setSelectedBackup(undefined); }} aria-label="关闭恢复确认" />
-          <div className="relative w-full max-w-md rounded-[28px] border border-white/10 bg-zinc-950 p-6 shadow-2xl shadow-black/60 animate-bounce-in">
+          <button className="absolute inset-0 modal-veil liquid-glass-veil" onClick={() => { setShowRestoreConfirm(false); setSelectedBackup(undefined); }} aria-label="关闭恢复确认" />
+          <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-md p-6 shadow-2xl animate-bounce-in">
             <h3 className="text-lg font-semibold text-white" id="restore-title">恢复 TaskFlow 快照</h3>
             <p className="mt-2 text-sm leading-6 text-zinc-500">恢复会覆盖当前任务流数据。建议先在设置页导出完整备份。</p>
 

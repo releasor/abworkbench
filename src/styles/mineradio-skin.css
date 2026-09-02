@@ -177,6 +177,7 @@ html[data-theme="dark"] .app-main-stage:not(.app-main-stage--embed) > * {
 .sidebar-glass,
 .header-glass,
 .modal-panel-cinematic,
+.liquid-glass-panel,
 .search-pill,
 .shortcut-dock {
   background: var(--saved-panel-glass-bg) !important;
@@ -195,6 +196,7 @@ html.control-glass-svg-ok .wb-panel,
 html.control-glass-svg-ok .sidebar-glass,
 html.control-glass-svg-ok .header-glass,
 html.control-glass-svg-ok .modal-panel-cinematic,
+html.control-glass-svg-ok .liquid-glass-panel,
 html.control-glass-svg-ok .search-pill,
 html.control-glass-svg-ok .shortcut-dock,
 html.control-glass-svg-ok .launcher-panel,
@@ -1239,7 +1241,8 @@ html[data-theme="light"] .home-kicker {
 .wb-drawer-panel,
 .wb-project-card,
 .wb-banner,
-.modal-panel-cinematic {
+.modal-panel-cinematic,
+.liquid-glass-panel {
   border-radius: var(--radius-frame) !important;
 }
 

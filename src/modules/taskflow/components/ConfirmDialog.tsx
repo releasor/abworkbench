@@ -36,20 +36,20 @@ export function ConfirmDialog({
       aria-labelledby="confirm-title"
       aria-describedby="confirm-message"
     >
-      <button className="absolute inset-0 bg-black/70 backdrop-blur-md" onClick={onCancel} aria-label="关闭确认弹窗" />
-      <div className="relative w-full max-w-md overflow-hidden rounded-[28px] border border-white/10 bg-zinc-950/95 p-6 shadow-2xl shadow-black/60 animate-bounce-in">
+      <button className="absolute inset-0 modal-veil liquid-glass-veil" onClick={onCancel} aria-label="关闭确认弹窗" />
+      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-md overflow-hidden p-6 animate-bounce-in">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         <div className="flex items-start gap-4">
-          <div className={`rounded-2xl p-3 ${isDanger ? 'bg-red-500/15 text-red-300' : 'bg-blue-500/15 text-blue-300'}`}>
+          <div className={`rounded-2xl p-3 ${isDanger ? 'bg-danger/15 text-danger' : 'bg-primary/15 text-primary'}`}>
             <VariantIcon className="h-6 w-6" />
           </div>
           <div className="min-w-0 flex-1">
-            <h3 className="text-lg font-semibold text-white" id="confirm-title">{title}</h3>
-            <p className="mt-2 text-sm leading-6 text-zinc-400" id="confirm-message">{message}</p>
+            <h3 className="text-lg font-semibold text-text" id="confirm-title">{title}</h3>
+            <p className="mt-2 text-sm leading-6 text-text-muted" id="confirm-message">{message}</p>
           </div>
           <button
             onClick={onCancel}
-            className="rounded-full p-2 text-zinc-500 transition hover:bg-white/10 hover:text-white"
+            className="rounded-full p-2 text-text-muted transition hover:bg-white/10 hover:text-text"
             aria-label="关闭"
           >
             <X className="h-4 w-4" />

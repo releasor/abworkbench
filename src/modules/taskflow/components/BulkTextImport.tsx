@@ -59,7 +59,7 @@ export function BulkTextImport({ onClose, onSuccess }: BulkTextImportProps) {
   return (
     <div
       ref={trapRef}
-      className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 backdrop-blur-sm"
+      className="fixed inset-0 z-50 flex items-center justify-center p-4"
       onClick={(e) => {
         if (e.target === e.currentTarget) onClose();
       }}
@@ -67,7 +67,8 @@ export function BulkTextImport({ onClose, onSuccess }: BulkTextImportProps) {
       aria-modal="true"
       aria-label="批量文本导入"
     >
-      <div className="bg-white rounded-xl shadow-2xl w-full max-w-lg mx-4 p-6 animate-slide-in">
+      <div className="absolute inset-0 modal-veil liquid-glass-veil" />
+      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-lg p-6 animate-slide-in">
         <h2 className="text-lg font-semibold text-text mb-4">
           批量文本导入
         </h2>

@@ -149,19 +149,19 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
 
   return (
     <div className="fixed inset-0 z-[80] flex items-center justify-center p-4">
-      <button className="absolute inset-0 bg-black/75 backdrop-blur-md" onClick={onClose} aria-label="关闭快速捕获" />
-      <section className="relative w-full max-w-xl overflow-hidden rounded-[34px] border border-white/10 bg-zinc-950/95 p-5 shadow-2xl shadow-black/70">
+      <button className="absolute inset-0 modal-veil liquid-glass-veil" onClick={onClose} aria-label="关闭快速捕获" />
+      <section className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-xl overflow-hidden p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div className="flex items-center gap-3">
-            <div className="rounded-2xl bg-blue-500/15 p-3 text-blue-300"><Zap className="h-5 w-5" /></div>
+            <div className="rounded-2xl bg-primary/15 p-3 text-primary"><Zap className="h-5 w-5" /></div>
             <div>
-              <h2 className="text-lg font-semibold text-white">全能 Inbox</h2>
-              <p className="text-xs text-zinc-500">{quickCaptureHotkey} · 支持任务/笔记/提醒/支出/健康</p>
+              <h2 className="text-lg font-semibold text-text">全能 Inbox</h2>
+              <p className="text-xs text-text-muted">{quickCaptureHotkey} · 支持任务/笔记/提醒/支出/健康</p>
             </div>
           </div>
           <div className="flex items-center gap-1">
-            <button type="button" onClick={() => setShowHistory((v) => !v)} className="rounded-xl p-2 text-zinc-400 hover:bg-white/5" title="捕获历史"><History size={16} /></button>
-            <button type="button" onClick={onClose} className="rounded-xl p-2 text-zinc-400 hover:bg-white/5"><X size={16} /></button>
+            <button type="button" onClick={() => setShowHistory((v) => !v)} className="rounded-xl p-2 text-text-muted hover:bg-white/10" title="捕获历史"><History size={16} /></button>
+            <button type="button" onClick={onClose} className="rounded-xl p-2 text-text-muted hover:bg-white/10"><X size={16} /></button>
           </div>
         </div>
 
@@ -173,7 +173,7 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
                 key={item.id}
                 type="button"
                 onClick={() => setMode(item.id)}
-                className={clsx('segment-tab interactive-press inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold', mode === item.id ? 'bg-blue-500/20 text-blue-300' : 'bg-white/5 text-zinc-400')}
+                className={clsx('segment-tab interactive-press inline-flex items-center gap-1 rounded-full px-3 py-1 text-xs font-semibold', mode === item.id ? 'bg-primary/20 text-primary' : 'liquid-glass-chip text-text-muted')}
               >
                 <Icon size={12} />{item.label}
               </button>
@@ -182,9 +182,9 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
         </div>
 
         {showHistory && (
-          <div className="mb-3 max-h-32 space-y-1 overflow-auto rounded-2xl border border-white/10 bg-black/30 p-2">
-            {history.length === 0 ? <p className="px-2 py-1 text-xs text-zinc-500">暂无历史</p> : history.map((item) => (
-              <button key={item.id} type="button" className="block w-full truncate rounded-xl px-2 py-1 text-left text-xs text-zinc-300 hover:bg-white/5" onClick={() => { setMode(item.mode); setText(item.raw); setShowHistory(false) }}>
+          <div className="mb-3 max-h-32 space-y-1 overflow-auto rounded-2xl liquid-glass-chip p-2">
+            {history.length === 0 ? <p className="px-2 py-1 text-xs text-text-muted">暂无历史</p> : history.map((item) => (
+              <button key={item.id} type="button" className="block w-full truncate rounded-xl px-2 py-1 text-left text-xs text-text hover:bg-white/10" onClick={() => { setMode(item.mode); setText(item.raw); setShowHistory(false) }}>
                 [{item.mode}] {item.title}
               </button>
             ))}
@@ -202,11 +202,11 @@ export default function QuickCaptureModal({ isOpen, onClose }: QuickCaptureModal
             }
           }}
           placeholder={mode === 'task' ? '任务内容，可用：明天 / 紧急 / 标签#工作 / 子项' : mode === 'reminder' ? '提醒内容，可用：明天下午3点 / 每周' : '输入内容…'}
-          className="min-h-[120px] w-full resize-none rounded-2xl border border-white/10 bg-black/40 px-4 py-3 text-sm text-white outline-none focus:border-blue-400/50"
+          className="min-h-[120px] w-full resize-none rounded-2xl liquid-glass-chip px-4 py-3 text-sm text-text outline-none focus:border-primary/40"
         />
         <div className="mt-3 flex items-center justify-between gap-3">
-          <p className="text-[11px] text-zinc-500">Ctrl/Cmd + Enter 提交 · 到期按北京时间</p>
-          <button type="button" onClick={() => void submit()} className="rounded-2xl bg-blue-500 px-4 py-2 text-sm font-semibold text-white hover:bg-blue-400">保存</button>
+          <p className="text-[11px] text-text-muted">Ctrl/Cmd + Enter 提交 · 到期按北京时间</p>
+          <button type="button" onClick={() => void submit()} className="btn-primary rounded-2xl px-4 py-2 text-sm font-semibold">保存</button>
         </div>
       </section>
     </div>

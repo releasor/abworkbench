@@ -285,13 +285,13 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in"
+        className="absolute inset-0 modal-veil liquid-glass-veil animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal — wider + shorter footprint */}
-      <div className="relative z-10 flex w-full max-w-3xl max-h-[min(68vh,640px)] flex-col overflow-hidden card p-0 shadow-2xl shadow-black/40 animate-bounce-in">
+      <div className="liquid-glass-panel modal-panel-cinematic relative z-10 flex w-full max-w-3xl max-h-[min(68vh,640px)] flex-col overflow-hidden p-0 shadow-2xl animate-bounce-in">
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
           <h2 className="text-lg font-semibold" id="modal-title">
             {isEditing ? '编辑任务' : '新建任务'}
