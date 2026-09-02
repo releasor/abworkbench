@@ -22,7 +22,7 @@ export default function WorkbenchPage() {
 
   return (
     <div className="wb-stage flex h-full min-h-0 flex-col gap-3 p-1 page-enter-key">
-      <div className="min-h-0 flex-1 overflow-auto">
+      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
         {projectId ? (
           <ProjectWorkbench projectId={projectId} onBack={() => setProjectId(null)} />
         ) : (

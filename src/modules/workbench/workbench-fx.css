@@ -5,6 +5,7 @@
   position: relative;
   isolation: isolate;
   min-height: 100%;
+  overflow: hidden;
 }
 
 .wb-stage::before {
@@ -23,7 +24,120 @@
 }
 
 html[data-theme="light"] .wb-stage::before {
-  opacity: 0.45;
+  opacity: 0.2;
+  background:
+    radial-gradient(ellipse 50% 55% at 18% 0%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 72%),
+    radial-gradient(ellipse 40% 45% at 92% 12%, color-mix(in srgb, #93c5fd 8%, transparent), transparent 70%);
+}
+
+html[data-theme="light"] .wb-panel {
+  background: var(--color-surface-light);
+  border-color: color-mix(in srgb, var(--color-border) 58%, #cbd5e1);
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #0f172a 4%, transparent),
+    0 6px 18px color-mix(in srgb, #0f172a 5%, transparent);
+}
+
+html[data-theme="light"] .wb-panel::after {
+  opacity: 0.28;
+  background: linear-gradient(
+    125deg,
+    color-mix(in srgb, #fff 70%, transparent),
+    transparent 34%,
+    transparent 76%,
+    color-mix(in srgb, var(--color-primary) 4%, transparent)
+  );
+}
+
+html[data-theme="light"] .wb-panel--hero {
+  border-color: color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
+  box-shadow:
+    0 1px 2px color-mix(in srgb, #0f172a 5%, transparent),
+    0 8px 24px color-mix(in srgb, #0f172a 6%, transparent);
+}
+
+html[data-theme="light"] .wb-panel--hero::before {
+  opacity: 0.28;
+}
+
+html[data-theme="light"] .wb-panel-header {
+  background: color-mix(in srgb, var(--color-surface-lighter) 42%, transparent);
+  border-bottom-color: color-mix(in srgb, var(--color-border) 48%, transparent);
+}
+
+html[data-theme="light"] .wb-title {
+  text-shadow: none;
+}
+
+html[data-theme="light"] .wb-lane {
+  background: color-mix(in srgb, var(--color-surface-light) 94%, var(--color-surface-lighter));
+  border-color: color-mix(in srgb, var(--color-border) 52%, #cbd5e1);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 88%, transparent);
+}
+
+html[data-theme="light"] .wb-lane[data-status="todo"] {
+  border-color: color-mix(in srgb, var(--color-border) 55%, #cbd5e1);
+}
+
+html[data-theme="light"] .wb-lane[data-status="doing"] {
+  border-color: color-mix(in srgb, var(--color-primary) 26%, var(--color-border));
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 88%, transparent);
+}
+
+html[data-theme="light"] .wb-lane[data-status="done"] {
+  border-color: color-mix(in srgb, var(--color-success) 24%, var(--color-border));
+}
+
+html[data-theme="light"] .wb-task {
+  background: var(--color-surface-light);
+  border-color: color-mix(in srgb, var(--color-border) 58%, #cbd5e1);
+  box-shadow: 0 1px 3px color-mix(in srgb, #0f172a 5%, transparent);
+}
+
+html[data-theme="light"] .wb-task:hover {
+  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
+  box-shadow:
+    0 4px 14px color-mix(in srgb, #0f172a 7%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+html[data-theme="light"] .wb-chip--doing {
+  box-shadow: none;
+}
+
+html[data-theme="light"] .wb-room::before {
+  display: none;
+}
+
+html[data-theme="light"] .wb-project-card:hover {
+  box-shadow:
+    0 8px 22px color-mix(in srgb, #0f172a 7%, transparent),
+    0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
+}
+
+html[data-theme="light"] .wb-btn {
+  background: var(--color-surface-light);
+  border-color: color-mix(in srgb, var(--color-border) 58%, #cbd5e1);
+}
+
+html[data-theme="light"] .wb-btn:hover:not(:disabled) {
+  background: var(--color-surface-lighter);
+  box-shadow: 0 2px 8px color-mix(in srgb, #0f172a 5%, transparent);
+}
+
+html[data-theme="light"] .wb-input {
+  background: var(--color-surface-light);
+  border-color: color-mix(in srgb, var(--color-border) 60%, #cbd5e1);
+  box-shadow: inset 0 1px 2px color-mix(in srgb, #0f172a 4%, transparent);
+}
+
+html[data-theme="light"] .wb-badge-on-mainline {
+  box-shadow: none;
+}
+
+html[data-theme="light"] .wb-banner {
+  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface-light));
+  box-shadow: none;
 }
 
 .wb-stage > * {
@@ -160,31 +274,6 @@ html[data-theme="light"] .wb-stage::before {
     transform var(--motion-med) var(--ease-spring),
     box-shadow var(--motion-med) var(--ease-spring),
     border-color var(--motion-fast) ease;
-}
-
-.wb-task::before {
-  content: '';
-  position: absolute;
-  left: 0;
-  top: 10%;
-  bottom: 10%;
-  width: 3px;
-  border-radius: 999px;
-  background: color-mix(in srgb, var(--color-text-muted) 55%, transparent);
-}
-
-.wb-task[data-status="todo"]::before {
-  background: color-mix(in srgb, var(--color-text-muted) 70%, transparent);
-}
-
-.wb-task[data-status="doing"]::before {
-  background: linear-gradient(180deg, var(--color-primary-light), var(--color-primary));
-  box-shadow: 0 0 12px color-mix(in srgb, var(--color-primary) 55%, transparent);
-}
-
-.wb-task[data-status="done"]::before {
-  background: linear-gradient(180deg, #34d399, var(--color-success));
-  box-shadow: 0 0 10px color-mix(in srgb, var(--color-success) 45%, transparent);
 }
 
 .wb-task:hover {
