@@ -1,0 +1,42 @@
+---
+description: Rebuild the Electron app after code changes that affect runtime UI or behavior
+alwaysApply: true
+---
+
+# Auto-rebuild after changes
+
+When you finish a task that changes application source (`src/**`, `electron/**`, `vite.config.ts`, or styles/assets consumed by the app), **rebuild before considering the task complete**.
+
+## What to run
+
+Prefer the fast rebuild (skip mineradio vendor unless mineradio integration changed):
+
+```bash
+npm run rebuild
+```
+
+If the user needs to see changes in the running desktop app immediately, also restart Electron:
+
+```bash
+npm run rebuild:app
+```
+
+On Windows PowerShell, chain with `;` not `&&` if needed:
+
+```powershell
+npm run rebuild; npx electron .
+```
+
+## When to skip
+
+- Docs-only, CI-only, or test-only edits with **no** runtime effect
+- Changes already verified through an active `npm run desktop:watch` session the user is running
+
+## When vendor is required
+
+Run full `npm run desktop:dev` only when `vendor/mineradio/**` or `scripts/vendor-mineradio.mjs` changed.
+
+## Do not
+
+- Wait for the user to ask for a rebuild after normal feature/fix work
+- Use `npm run build` (installer) unless the user asked to package the app
