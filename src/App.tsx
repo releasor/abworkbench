@@ -27,6 +27,7 @@ import {
   requestPomodoroStart,
   type WorkspaceModeChangeDetail,
 } from './utils/workspaceModeEffects'
+import type { DateTimePanelMode } from './components/dashboard/DateTimePanelModal'
 import { showToast } from './modules/taskflow/utils/toastEvent'
 import AmbientEffects from './components/common/AmbientEffects'
 import DeepWorkTransition from './components/common/DeepWorkTransition'
@@ -45,6 +46,7 @@ const RemindersPage = lazy(() => import('./components/reminders/RemindersPage'))
 const HotlistPage = lazy(() => import('./modules/hotlist/HotlistPage'))
 const MineradioPage = lazy(() => import('./components/mineradio/MineradioPage'))
 const DailyBriefModal = lazy(() => import('./components/dashboard/DailyBriefModal'))
+const DateTimePanelModal = lazy(() => import('./components/dashboard/DateTimePanelModal'))
 
 const pages: Page[] = [...APP_PAGES]
 
@@ -56,6 +58,7 @@ function App() {
   const [showLauncher, setShowLauncher] = useState(false)
   const [showQuickCapture, setShowQuickCapture] = useState(false)
   const [showDailyBrief, setShowDailyBrief] = useState(false)
+  const [dateTimePanel, setDateTimePanel] = useState<DateTimePanelMode | null>(null)
   const [dailyBriefMode, setDailyBriefMode] = useState<'morning' | 'evening'>('morning')
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
@@ -209,6 +212,9 @@ function App() {
     setShowDailyBrief(true)
   }, [])
   const closeDailyBrief = useCallback(() => setShowDailyBrief(false), [])
+  const openClockPanel = useCallback(() => setDateTimePanel('clock'), [])
+  const openDatePanel = useCallback(() => setDateTimePanel('date'), [])
+  const closeDateTimePanel = useCallback(() => setDateTimePanel(null), [])
   const goToPage = useCallback((page: Page) => {
     smoothNavigate(() => {
       setActivePage(page)
@@ -289,11 +295,7 @@ function App() {
       }
       if (eventMatchesShortcut('pageDashboard', event)) { event.preventDefault(); goToPage('dashboard'); return }
       if (eventMatchesShortcut('pageTaskflow', event)) { event.preventDefault(); goToPage('taskflow'); return }
-      if (eventMatchesShortcut('pagePomodoro', event)) { event.preventDefault(); goToPage('pomodoro'); return }
-      if (eventMatchesShortcut('pageHabits', event)) { event.preventDefault(); goToPage('habits'); return }
-      if (eventMatchesShortcut('pageNotes', event)) { event.preventDefault(); goToPage('notes'); return }
       if (eventMatchesShortcut('pageReminders', event)) { event.preventDefault(); goToPage('reminders'); return }
-      if (eventMatchesShortcut('pageWeather', event)) { event.preventDefault(); goToPage('weather'); return }
       if (eventMatchesShortcut('pageHotlist', event)) { event.preventDefault(); goToPage('hotlist'); return }
       if (eventMatchesShortcut('pageMineradio', event)) { event.preventDefault(); goToPage('mineradio'); return }
       if (eventMatchesShortcut('pageSettings', event)) { event.preventDefault(); goToPage('settings'); return }
@@ -430,9 +432,12 @@ function App() {
         <div className={clsx('app-content-column', activePage === 'mineradio' && 'app-content-column--embed')}>
           <Header
             title={pageTitles[activePage]}
+            activePage={activePage}
             onOpenCommandPalette={toggleCommandPalette}
             onOpenMobileSidebar={openMobileSidebar}
             onNavigate={goToPage}
+            onOpenClockPanel={openClockPanel}
+            onOpenDatePanel={openDatePanel}
           />
           <main
             ref={mainRef}
@@ -445,7 +450,13 @@ function App() {
               {visitedPages.has('dashboard') && (
                 <div className={clsx('page-layer', activePage === 'dashboard' && 'is-active')}>
                   <Suspense fallback={<DashboardSkeleton />}>
-                    <DashboardPage onNavigate={goToPage} onOpenDailyBrief={openDailyBrief} onOpenQuickCapture={openQuickCapture} />
+                    <DashboardPage
+                      onNavigate={goToPage}
+                      onOpenDailyBrief={openDailyBrief}
+                      onOpenQuickCapture={openQuickCapture}
+                      onOpenClockPanel={openClockPanel}
+                      onOpenDatePanel={openDatePanel}
+                    />
                   </Suspense>
                 </div>
               )}
@@ -535,6 +546,11 @@ function App() {
           onOpenQuickCapture={openQuickCapture}
         />
         <QuickCaptureModal isOpen={showQuickCapture} onClose={closeQuickCapture} />
+        {dateTimePanel && (
+          <Suspense fallback={null}>
+            <DateTimePanelModal mode={dateTimePanel} onClose={closeDateTimePanel} />
+          </Suspense>
+        )}
         {showDailyBrief && (
           <Suspense fallback={null}>
             <DailyBriefModal

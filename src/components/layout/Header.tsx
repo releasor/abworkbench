@@ -1,5 +1,6 @@
-import { Search, Bell, Menu, X, Moon, Sun, Timer, Pause, Play } from 'lucide-react'
+import { Search, Bell, Menu, X, Moon, Sun, Timer, Pause, Play, Settings } from 'lucide-react'
 import { useState, useEffect, useMemo, useRef, useCallback, memo, type CSSProperties } from 'react'
+import clsx from 'clsx'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useTranslation } from '../../i18n'
@@ -29,11 +30,18 @@ import {
 import { shouldMuteReminder } from '../../utils/focusDnd'
 import { FOCUS_DND_KEY } from '../../utils/workspaceModeEffects'
 import { LOCAL_DATA_CHANGE_EVENT, readLocalValue } from '../../utils/localData'
+import { HEADER_QUICK_NAV_ITEMS } from '../../navigation/headerQuickNav'
 
 const dragRegion = { WebkitAppRegion: 'drag' } as CSSProperties
 const noDragRegion = { WebkitAppRegion: 'no-drag' } as CSSProperties
 
-const LiveClock = memo(function LiveClock() {
+const LiveClock = memo(function LiveClock({
+  onOpenDatePanel,
+  onOpenClockPanel,
+}: {
+  onOpenDatePanel?: () => void
+  onOpenClockPanel?: () => void
+}) {
   const { t } = useTranslation()
   const time = useTick(1000)
   const dayNum = Math.floor(time.getTime() / 86400000)
@@ -45,21 +53,34 @@ const LiveClock = memo(function LiveClock() {
   const s = String(time.getSeconds()).padStart(2, '0')
   return (
     <>
-      <div className="text-sm text-text-muted hidden sm:block">
+      <button
+        type="button"
+        onClick={onOpenDatePanel}
+        className="hidden rounded-lg text-sm text-text-muted transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 sm:block"
+        aria-label="打开日期面板"
+      >
         {dateLabel} {weekday}
-      </div>
-      <div className="hidden md:block text-sm font-mono text-text-muted px-3 py-1.5 bg-surface rounded-lg">
+      </button>
+      <button
+        type="button"
+        onClick={onOpenClockPanel}
+        className="hidden rounded-lg bg-surface px-3 py-1.5 font-mono text-sm text-text-muted transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 md:block"
+        aria-label="打开时钟面板"
+      >
         {h}:{m}:{s}
-      </div>
+      </button>
     </>
   )
 })
 
 interface HeaderProps {
   title: string
+  activePage: Page
   onOpenCommandPalette?: () => void
   onOpenMobileSidebar?: () => void
   onNavigate?: (page: Page) => void
+  onOpenClockPanel?: () => void
+  onOpenDatePanel?: () => void
 }
 
 type NotifKind = 'summary' | 'reminder'
@@ -73,7 +94,7 @@ interface NotifItem {
   reminderId?: string
 }
 
-export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileSidebar, onNavigate }: HeaderProps) {
+export default memo(function Header({ title, activePage, onOpenCommandPalette, onOpenMobileSidebar, onNavigate, onOpenClockPanel, onOpenDatePanel }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [seenCount, setSeenCount] = useState(0)
   const notifRef = useRef<HTMLDivElement>(null)
@@ -83,6 +104,7 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
   const pomodoroSessions = useStore((s) => s.pomodoroSessions)
   const taskFlowTasks = useTaskStore((s) => s.tasks)
   const habits = useStore((s) => s.habits)
+  const notes = useStore((s) => s.notes)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
   const commandPaletteHotkey = useShortcutStore((s) => s.getAccelerator('commandPalette'))
   const { todayStr, todayMidnightMs, tomorrowMidnightMs } = useToday()
@@ -231,6 +253,28 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
     return { r, c, offset }
   }, [todayWorkCount, dailyPomodoroGoal])
 
+  const quickNavBadges = useMemo(() => {
+    let todayWork = 0
+    for (const s of pomodoroSessions) {
+      if (s.type === 'work' && s.completed && s.startedAt >= todayMidnightMs && s.startedAt < tomorrowMidnightMs) todayWork++
+    }
+    let completedHabits = 0
+    for (const h of habits) {
+      if (h.completedDates.includes(todayStr)) completedHabits++
+    }
+    let pinnedNotes = 0
+    for (const n of notes) {
+      if (n.pinned) pinnedNotes++
+    }
+    return {
+      pomodoro: todayWork > 0 ? `${todayWork}/${dailyPomodoroGoal}` : null,
+      pomodoroGoalMet: todayWork >= dailyPomodoroGoal,
+      habits: habits.length > 0 ? `${completedHabits}/${habits.length}` : null,
+      habitsAllDone: habits.length > 0 && completedHabits >= habits.length,
+      notes: pinnedNotes > 0 ? String(pinnedNotes) : null,
+    }
+  }, [pomodoroSessions, habits, notes, dailyPomodoroGoal, todayStr, todayMidnightMs, tomorrowMidnightMs])
+
   const activeRemaining = getActiveRemainingSec(activePomo, nowMs)
   const activeLabel = activePomo
     ? `${Math.floor(activeRemaining / 60)}:${String(activeRemaining % 60).padStart(2, '0')}`
@@ -339,6 +383,50 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
           <Search size={18} />
         </button>
 
+        <div className="flex items-center gap-0.5" role="navigation" aria-label="快捷导航">
+          {HEADER_QUICK_NAV_ITEMS.map((item) => {
+            const Icon = item.icon
+            const isActive = activePage === item.id
+            const label = t(item.labelKey)
+            const badge = quickNavBadges[item.id as keyof typeof quickNavBadges]
+            const badgeText = typeof badge === 'string' ? badge : null
+            const badgeTone = item.id === 'pomodoro' && quickNavBadges.pomodoroGoalMet
+              ? 'success'
+              : item.id === 'habits' && quickNavBadges.habitsAllDone
+                ? 'success'
+                : 'primary'
+
+            return (
+              <button
+                key={item.id}
+                type="button"
+                onClick={() => onNavigate?.(item.id)}
+                aria-label={label}
+                aria-current={isActive ? 'page' : undefined}
+                title={label}
+                className={clsx(
+                  'relative rounded-xl p-2 transition-colors',
+                  isActive
+                    ? 'bg-primary/15 text-primary shadow-sm shadow-primary/10'
+                    : 'text-text-muted hover:bg-surface-lighter hover:text-text',
+                )}
+              >
+                <Icon size={18} className={clsx(isActive && 'scale-110')} />
+                {badgeText && (
+                  <span
+                    className={clsx(
+                      'absolute -right-0.5 -top-0.5 min-w-[14px] rounded-full px-1 text-center text-[9px] font-bold leading-[14px]',
+                      badgeTone === 'success' ? 'bg-success text-white' : 'bg-primary text-white',
+                    )}
+                  >
+                    {badgeText.length > 3 ? '•' : badgeText}
+                  </span>
+                )}
+              </button>
+            )
+          })}
+        </div>
+
         {progressRing && (
             <div className="hidden md:flex items-center gap-2 px-2.5 py-1.5 bg-primary/10 rounded-lg">
               <div className="relative w-5 h-5">
@@ -351,7 +439,7 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
             </div>
         )}
 
-        <LiveClock />
+        <LiveClock onOpenClockPanel={onOpenClockPanel} onOpenDatePanel={onOpenDatePanel} />
 
         <div className="relative" ref={notifRef}>
           <button
@@ -372,13 +460,24 @@ export default memo(function Header({ title, onOpenCommandPalette, onOpenMobileS
           </button>
 
           {showNotifications && (
-            <div className="absolute right-0 top-full mt-2 w-72 glass-card p-3 shadow-xl z-50 animate-fade-in">
-              <div className="flex items-center justify-between mb-2">
-                <span className="text-sm font-medium text-text">{t('header.notifications')}</span>
+            <div className="absolute right-0 top-full mt-2 w-72 liquid-glass-panel glass-card p-3 shadow-xl z-50 animate-fade-in">
+              <div className="mb-2 flex items-center gap-2">
+                <span className="shrink-0 text-sm font-medium text-text">{t('header.notifications')}</span>
+                <button
+                  type="button"
+                  onClick={() => {
+                    setShowNotifications(false)
+                    onNavigate?.('reminders')
+                  }}
+                  className="ml-auto inline-flex items-center gap-1.5 rounded-lg px-2 py-1 text-xs font-medium text-text-muted transition-colors hover:bg-surface-lighter hover:text-text"
+                >
+                  <Settings size={13} aria-hidden="true" />
+                  <span>{t('header.manageReminders')}</span>
+                </button>
                 <button
                   onClick={() => setShowNotifications(false)}
                   aria-label={t('header.closeNotifications')}
-                  className="text-text-muted hover:text-text"
+                  className="shrink-0 text-text-muted hover:text-text"
                 >
                   <X size={14} />
                 </button>

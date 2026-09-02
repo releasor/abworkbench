@@ -72,14 +72,10 @@ const pageIcons: Record<Page, typeof LayoutDashboard> = {
 const pageShortcuts: Partial<Record<Page, string>> = {
   dashboard: 'Ctrl+1',
   taskflow: 'Ctrl+2',
-  pomodoro: 'Ctrl+3',
-  habits: 'Ctrl+4',
-  notes: 'Ctrl+5',
   reminders: 'Ctrl+6',
-  weather: 'Ctrl+7',
-  hotlist: 'Ctrl+0',
-  mineradio: 'Ctrl+8',
-  settings: 'Ctrl+9',
+  hotlist: 'Ctrl+3',
+  mineradio: 'Ctrl+4',
+  settings: 'Ctrl+5',
 }
 
 interface Command {
@@ -672,7 +668,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       <div className="absolute inset-0 modal-veil" />
 
       <div
-        className="relative w-full max-w-lg glass-card overflow-hidden modal-panel-cinematic"
+        className="relative w-full max-w-lg liquid-glass-panel glass-card overflow-hidden modal-panel-cinematic"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
