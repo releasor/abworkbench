@@ -19,10 +19,10 @@ export default function WindowControls() {
 
   if (!api?.windowControl) return null
 
-  const btn = 'no-motion p-2 rounded-lg transition-colors text-text-muted hover:text-text hover:bg-surface-lighter'
+  const btn = 'window-control-btn no-motion rounded-md p-1.5 transition-colors text-text-muted hover:text-text hover:bg-surface-lighter'
 
   return (
-    <div className="flex items-center gap-1" style={noDrag}>
+    <div className="window-controls flex items-center gap-0.5" style={noDrag}>
       <button
         onClick={() => void api.windowControl?.('minimize')}
         aria-label="最小化"
@@ -49,7 +49,7 @@ export default function WindowControls() {
         onClick={() => void api.windowControl?.('close')}
         aria-label="关闭（最小化到托盘）"
         title="关闭（最小化到托盘）"
-        className="p-2 rounded-lg transition-colors text-text-muted hover:text-white hover:bg-danger"
+        className="window-control-btn window-control-btn--close rounded-md p-1.5 transition-colors text-text-muted hover:text-white hover:bg-danger"
       >
         <X size={16} />
       </button>

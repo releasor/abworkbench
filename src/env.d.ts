@@ -10,7 +10,6 @@ interface TranslateProviderConfig {
 interface LauncherSettingsConfig {
   hotkey: string
   mainWindowHotkey: string
-  quickCaptureHotkey: string
   esPath: string
   everythingHttpUrl: string
   defaultProviderId: string
@@ -90,9 +89,7 @@ declare global {
   interface Window {
     electronAPI?: {
       platform: string
-      onOpenQuickCapture?: (callback: () => void) => () => void
       openMiniWindow?: () => Promise<void>
-      openQuickCapture?: () => Promise<boolean>
       showMainWindow?: () => Promise<boolean>
       openTarget?: (target: string) => Promise<boolean>
       readClipboard?: () => Promise<{ text: string; imageDataUrl: string }>
@@ -138,6 +135,7 @@ declare global {
       pinRecentApp?: (appPath: string) => Promise<DesktopAppInfo[]>
       unpinRecentApp?: (appPath: string) => Promise<DesktopAppInfo[]>
       hideRecentApp?: (appPath: string) => Promise<DesktopAppInfo[]>
+      hideRecentPath?: (targetPath: string) => Promise<LauncherRecentHomeInfo>
       openReader?: (req?: { mode?: 'auto' | 'library' | 'reading'; bookId?: string }) => Promise<{ mode: string; bookId?: string; bossKeyError?: string }>
       hideReader?: () => Promise<boolean>
       onReaderShown?: (callback: (payload: { mode: string; bookId?: string }) => void) => (() => void) | undefined

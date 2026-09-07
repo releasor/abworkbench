@@ -136,6 +136,12 @@ interface AppState {
   setVisualNoise: (enabled: boolean) => void
   visualParticles: boolean
   setVisualParticles: (enabled: boolean) => void
+  /** Soft luminous cursor trail over the app background */
+  glowCursor: boolean
+  setGlowCursor: (enabled: boolean) => void
+  /** Window chrome glass opacity, 40–100 (higher = less see-through) */
+  glassOpacity: number
+  setGlassOpacity: (opacity: number) => void
 
   // Weather
   weatherCity: string
@@ -306,6 +312,11 @@ export const useStore = create<AppState>()(
       setVisualNoise: (enabled) => set({ visualNoise: enabled }),
       visualParticles: true,
       setVisualParticles: (enabled) => set({ visualParticles: enabled }),
+      glowCursor: true,
+      setGlowCursor: (enabled) => set({ glowCursor: enabled }),
+      glassOpacity: 90,
+      setGlassOpacity: (opacity) =>
+        set({ glassOpacity: Math.min(100, Math.max(40, Math.round(opacity))) }),
 
       // Weather
       weatherCity: '北京',
@@ -404,6 +415,8 @@ export const useStore = create<AppState>()(
         workspaceMode: state.workspaceMode,
         visualNoise: state.visualNoise,
         visualParticles: state.visualParticles,
+        glowCursor: state.glowCursor,
+        glassOpacity: state.glassOpacity,
         habits: state.habits,
         userName: state.userName,
         dailyPomodoroGoal: state.dailyPomodoroGoal,
@@ -417,7 +430,16 @@ export const useStore = create<AppState>()(
         weatherAutoLocate: state.weatherAutoLocate,
       }),
       onRehydrateStorage: () => (state) => {
-        if (!state?.habits?.length) return
+        if (!state) return
+        if (typeof state.glassOpacity !== 'number' || Number.isNaN(state.glassOpacity)) {
+          state.glassOpacity = 90
+        } else {
+          state.glassOpacity = Math.min(100, Math.max(40, Math.round(state.glassOpacity)))
+        }
+        if (typeof state.glowCursor !== 'boolean') {
+          state.glowCursor = true
+        }
+        if (!state.habits?.length) return
         state.habits = state.habits.map((habit) => normalizeHabit(habit as Habit))
       },
     }

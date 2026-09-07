@@ -1,5 +1,5 @@
-/* Abworkbench ← Mineradio control glass (exact tokens).
-   Transparent black glass + white rim — no cyan tint on panels. */
+/* Abworkbench 鈫?Mineradio control glass (exact tokens).
+   Transparent black glass + white rim 鈥?no cyan tint on panels. */
 
 :root {
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
@@ -46,13 +46,25 @@
     0 12px 34px rgba(0, 0, 0, 0.22),
     0 0 18px rgba(255, 255, 255, 0.06);
 
+  /* 快搜：�”侧栏/顶栏更不透明，避�...�悬浮�-下�...容透出来 */
+  --launcher-panel-glass-bg: linear-gradient(
+    112deg,
+    rgba(38, 40, 44, 0.9),
+    rgba(18, 20, 22, 0.94) 48%,
+    rgba(10, 12, 14, 0.96)
+  );
+  --launcher-panel-glass-filter: blur(18px) saturate(1.35) brightness(1.06);
+  --launcher-chip-glass-bg: rgba(255, 255, 255, 0.08);
+  --launcher-chip-glass-filter: blur(10px) saturate(1.25) brightness(1.08);
+  --launcher-footer-bg: rgba(0, 0, 0, 0.28);
+
   --radius-sm: 14px;
   --radius-md: 18px;
   --radius-card: 22px;
   --radius-panel: 22px;
   --radius-shell: 22px;
   --radius-frame: 22px;
-  --radius-window: 34px;
+  --radius-window: 22px;
   --radius-pill: 50px;
   --glass-blur: 12px;
   --glass-sat: 1.8;
@@ -76,35 +88,27 @@ html[data-theme="dark"] {
   --radius-panel: 22px;
   --radius-shell: 22px;
   --radius-frame: 22px;
-  --radius-window: 34px;
+  --radius-window: 22px;
   --radius-pill: 50px;
   --home-accent: #e8eef2;
 }
 
 html[data-theme="light"] {
   --saved-panel-glass-bg: rgba(255, 255, 255, 0.82);
-  --saved-panel-glass-filter: blur(16px) saturate(1.2) brightness(1.01);
-  --saved-panel-glass-shadow:
-    inset 0 0 1px 1px rgba(255, 255, 255, 0.9),
-    0 1px 0 rgba(15, 23, 42, 0.04),
-    0 10px 32px rgba(15, 23, 42, 0.1);
-  --saved-button-glass-bg: rgba(241, 245, 249, 0.92);
-  --saved-button-glass-filter: blur(10px) saturate(1.15);
-  --saved-button-glass-shadow:
-    inset 0 0 1px 1px rgba(255, 255, 255, 0.85),
-    0 1px 2px rgba(15, 23, 42, 0.06),
-    0 6px 16px rgba(15, 23, 42, 0.08);
-  --saved-button-glass-hover-bg: rgba(226, 232, 240, 0.98);
-  --saved-button-glass-hover-shadow:
-    inset 0 0 1px 1px rgba(255, 255, 255, 0.95),
-    0 8px 22px rgba(15, 23, 42, 0.12);
-  --glass-bg: linear-gradient(118deg, rgba(255, 255, 255, 0.94), rgba(248, 250, 252, 0.96) 52%, rgba(241, 245, 249, 0.92));
-  --glass-bg-focus: linear-gradient(118deg, #fff, #f8fafc 50%, #f1f5f9);
-  --glass-border: rgba(15, 23, 42, 0.14);
-  --glass-border-soft: rgba(15, 23, 42, 0.12);
-  --glass-shadow:
-    0 12px 36px rgba(15, 23, 42, 0.1),
-    inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  --saved-panel-glass-filter: blur(12px) saturate(1.08) brightness(1.01);
+  /* --saved-panel-glass-shadow, --glass-shadow* defined in light-shadows.css */
+  --saved-button-glass-bg: #ffffff;
+  --saved-button-glass-filter: none;
+  --saved-button-glass-hover-bg: #f8fafc;
+  --launcher-panel-glass-bg: rgba(255, 255, 255, 0.98);
+  --launcher-panel-glass-filter: blur(14px) saturate(1.04) brightness(1);
+  --launcher-chip-glass-bg: rgba(255, 255, 255, 0.94);
+  --launcher-chip-glass-filter: blur(8px) saturate(1.02);
+  --launcher-footer-bg: rgba(241, 245, 249, 0.96);
+  --glass-bg: linear-gradient(165deg, color-mix(in srgb, #fff 62%, #f1f5f9), color-mix(in srgb, #fff 48%, #f1f5f9));
+  --glass-bg-focus: linear-gradient(165deg, color-mix(in srgb, #fff 72%, #f8fafc), color-mix(in srgb, #fff 58%, #f1f5f9));
+  --glass-border: transparent;
+  --glass-border-soft: transparent;
   --color-primary: #1e40af;
   --color-primary-light: #2563eb;
   --color-primary-dark: #1e3a8a;
@@ -113,27 +117,32 @@ html[data-theme="light"] {
   --color-text-secondary: #334155;
   --color-border: #94a3b8;
   --home-accent: #1e40af;
+  --radius-sm: 14px;
+  --radius-md: 18px;
+  --radius-card: 22px;
+  --radius-panel: 22px;
+  --radius-shell: 22px;
+  --radius-frame: 22px;
+  --radius-window: 22px;
+  --radius-pill: 50px;
+  --saved-panel-glass-radius: var(--radius-frame);
 }
 
 html[data-theme="light"] body {
   background: transparent !important;
 }
 
-html[data-theme="light"] .app-frame {
-  background: var(--color-surface) !important;
+html[data-theme="light"] .app-frame.border-glow-card--glass {
+  background: color-mix(in srgb, #fff calc(var(--app-glass-opacity, 90) * 1%), transparent) !important;
+  box-shadow:
+    var(--saved-panel-glass-shadow),
+    var(--shadow-elevation-2, 0 24px 80px rgba(15, 23, 42, 0.12)) !important;
+  border: 1px solid color-mix(in srgb, #0f172a 10%, transparent) !important;
 }
 
 /* ---- Stage: keep canvas dark so glass can refract ---- */
 html[data-theme="dark"] body {
   background: transparent !important;
-}
-
-html[data-theme="dark"] .app-frame {
-  background:
-    radial-gradient(ellipse 70% 55% at 50% -12%, rgba(255, 255, 255, 0.06), transparent 55%),
-    radial-gradient(ellipse 42% 38% at 92% 18%, rgba(180, 50, 60, 0.1), transparent 52%),
-    radial-gradient(ellipse 40% 36% at 8% 78%, rgba(40, 50, 70, 0.2), transparent 55%),
-    #050505 !important;
 }
 
 html[data-theme="dark"] .app-shell::before {
@@ -147,6 +156,24 @@ html[data-theme="dark"] .app-shell::before {
 .app-main-stage {
   position: relative;
   background: transparent !important;
+}
+
+html[data-theme="light"] .app-main-stage:not(.app-main-stage--embed)::before {
+  content: '';
+  pointer-events: none;
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  background: radial-gradient(
+    ellipse 80% 60% at 50% -8%,
+    rgba(37, 99, 235, 0.05),
+    transparent 70%
+  );
+}
+
+html[data-theme="light"] .app-main-stage:not(.app-main-stage--embed) > * {
+  position: relative;
+  z-index: 1;
 }
 
 html[data-theme="dark"] .app-main-stage:not(.app-main-stage--embed)::before {
@@ -170,16 +197,18 @@ html[data-theme="dark"] .app-main-stage:not(.app-main-stage--embed) > * {
 
 /* ---- Exact Mineradio panel glass ---- */
 .glass-saved-panel,
-.glass-card,
+.glass-card:not(.glass-surface),
 .panel-glass,
 .dashboard-hero,
 .wb-panel,
+.hotlist-card,
 .sidebar-glass,
 .header-glass,
 .modal-panel-cinematic,
 .liquid-glass-panel,
+.settings-glass-tablist,
 .search-pill,
-.shortcut-dock {
+.shortcut-dock:not(.glass-surface) {
   background: var(--saved-panel-glass-bg) !important;
   border: 0 !important;
   border-radius: var(--saved-panel-glass-radius) !important;
@@ -189,17 +218,18 @@ html[data-theme="dark"] .app-main-stage:not(.app-main-stage--embed) > * {
 }
 
 html.control-glass-svg-ok .glass-saved-panel,
-html.control-glass-svg-ok .glass-card,
+html.control-glass-svg-ok .glass-card:not(.glass-surface),
 html.control-glass-svg-ok .panel-glass,
 html.control-glass-svg-ok .dashboard-hero,
 html.control-glass-svg-ok .wb-panel,
+html.control-glass-svg-ok .hotlist-card,
 html.control-glass-svg-ok .sidebar-glass,
 html.control-glass-svg-ok .header-glass,
 html.control-glass-svg-ok .modal-panel-cinematic,
 html.control-glass-svg-ok .liquid-glass-panel,
+html.control-glass-svg-ok .settings-glass-tablist,
 html.control-glass-svg-ok .search-pill,
-html.control-glass-svg-ok .shortcut-dock,
-html.control-glass-svg-ok .launcher-panel,
+html.control-glass-svg-ok .shortcut-dock:not(.glass-surface),
 html.control-glass-svg-ok .launcher-tile,
 html.control-glass-svg-ok .launcher-chip,
 html.control-glass-svg-ok .launcher-feature-card,
@@ -208,8 +238,13 @@ html.control-glass-svg-ok .launcher-menu {
   -webkit-backdrop-filter: var(--saved-panel-glass-svg-filter) !important;
 }
 
+html.control-glass-svg-ok .launcher-panel {
+  backdrop-filter: var(--launcher-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--launcher-panel-glass-filter) !important;
+}
+
 /* Content cards: Mineradio home-card / glass-bg shape (still clear, not cyan) */
-.glass-card,
+.glass-card:not(.glass-surface),
 .dashboard-hero,
 .wb-panel,
 .panel-glass {
@@ -221,13 +256,31 @@ html.control-glass-svg-ok .launcher-menu {
   -webkit-backdrop-filter: blur(24px) saturate(1.12) !important;
 }
 
-.glass-card:hover,
+html[data-theme="light"] .wb-panel,
+html[data-theme="light"] .wb-panel.wb-project-card {
+  border: none !important;
+}
+
+.glass-card:not(.glass-surface):hover,
 .wb-panel:hover,
 .panel-glass:hover {
   background: var(--glass-bg-focus) !important;
   border-color: rgba(255, 255, 255, 0.16) !important;
   box-shadow: var(--glass-shadow-focus) !important;
-  transform: translateY(-2px);
+  transform: none;
+}
+
+html[data-theme="light"] .wb-panel:hover {
+  background: var(--wb-surface) !important;
+  border: none !important;
+  box-shadow: var(--wb-ambient) !important;
+  transform: none;
+}
+
+/* Dashboard weather snippet: brighten only (match quick-stats pills, no lift/scale) */
+.dashboard-weather-snippet:hover,
+html[data-theme="light"] .dashboard-weather-snippet:hover {
+  transform: none !important;
 }
 
 .dashboard-hero {
@@ -262,7 +315,7 @@ html.control-glass-svg-ok .launcher-menu {
   z-index: 1;
 }
 
-/* Floating chrome layout — one progress drives sidebar + gap + header inset (no pop) */
+/* Floating chrome layout �” one progress drives sidebar + gap + header inset (no pop) */
 @property --sidebar-open {
   syntax: '<number>';
   inherits: true;
@@ -301,8 +354,118 @@ html.control-glass-svg-ok .launcher-menu {
   min-height: 0;
   display: flex;
   flex-direction: column;
-  gap: 12px;
+  /* Match dashboard card stack gap (1rem) between header and page content */
+  gap: 1rem;
+  overflow: visible;
+  container-type: inline-size;
+  container-name: app-main;
+}
+
+/* Header chrome �” responsive to content column width (not viewport) */
+.header-glass {
+  min-width: 0;
+  max-width: 100%;
+  overflow: visible;
+}
+
+.header-glass .icon-glass-btn:hover,
+.header-glass .header-quick-nav button:hover {
+  transform: none !important;
+  filter: none !important;
+}
+
+.header-page-title {
   overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.header-search-wide {
+  display: none;
+}
+
+.header-search-compact {
+  display: flex;
+}
+
+.header-live-clock {
+  display: none;
+  align-items: center;
+  gap: 0.5rem;
+}
+
+.header-progress-ring {
+  display: none;
+}
+
+.header-window-controls {
+  margin-left: 0.25rem;
+  padding-left: 0.5rem;
+  border-left: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
+}
+
+@container app-main (min-width: 721px) {
+  .header-search-wide {
+    display: flex;
+  }
+
+  .header-search-compact {
+    display: none;
+  }
+
+  .header-quick-nav {
+    display: flex;
+  }
+
+  .header-live-clock {
+    display: flex;
+  }
+
+  .header-progress-ring {
+    display: flex;
+  }
+}
+
+@container app-main (max-width: 720px) {
+  .header-quick-nav {
+    display: none !important;
+  }
+
+  .header-window-controls {
+    margin-left: 0;
+    padding-left: 0.25rem;
+    border-left: 0;
+  }
+
+  .header-glass {
+    padding-right: 0.375rem !important;
+  }
+}
+
+@container app-main (max-width: 600px) {
+  .header-live-clock {
+    display: none !important;
+  }
+
+  .header-active-pomo {
+    display: none !important;
+  }
+
+  .header-dnd-badge {
+    display: none !important;
+  }
+}
+
+@container app-main (max-width: 520px) {
+  .header-page-title {
+    display: none;
+  }
+}
+
+@container app-main (max-width: 420px) {
+  .header-theme-toggle {
+    display: none;
+  }
 }
 
 .app-shell--float .app-main-stage {
@@ -314,10 +477,15 @@ html.control-glass-svg-ok .launcher-menu {
 /* Chrome rails: floating glass panels */
 .sidebar-glass,
 .sidebar-float {
-  border-radius: var(--radius-frame, 22px) !important;
+  border-radius: inherit !important;
   border: 0 !important;
   flex-shrink: 0;
   z-index: 20;
+  clip-path: none;
+}
+
+.sidebar-glow-shell.border-glow-card--glass {
+  border-radius: var(--radius-frame, 22px) !important;
 }
 
 /* Brand pin stays fixed; width is driven by --sidebar-open on the shell */
@@ -356,6 +524,10 @@ html.control-glass-svg-ok .launcher-menu {
   pointer-events: none;
 }
 
+.sidebar-stack:not(.sidebar-stack--collapsed):not(.sidebar-stack--animating) .sidebar-rail-clip {
+  overflow: visible;
+}
+
 .sidebar-stack:not(.sidebar-stack--collapsed) .sidebar-rail-clip {
   pointer-events: auto;
 }
@@ -373,7 +545,7 @@ html.control-glass-svg-ok .launcher-menu {
   margin: 0;
   padding: 0;
   border: 0;
-  /* Hit area only — never paint a glass square behind the glyph */
+  /* Hit area only �” never paint a glass square behind the glyph */
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
@@ -437,6 +609,7 @@ html.control-glass-svg-ok .launcher-menu {
 }
 
 /* While tweening: kill expensive live blur so width/layout stays smooth */
+.sidebar-stack--animating .sidebar-glow-shell.border-glow-card--glass,
 .sidebar-stack--animating .sidebar-rail.sidebar-glass,
 .sidebar-stack--animating .sidebar-rail {
   backdrop-filter: none !important;
@@ -465,45 +638,8 @@ html.control-glass-svg-ok .launcher-menu {
   border-bottom: 0 !important;
   z-index: 15;
   position: relative;
-  /* Inset grows as sidebar closes — same --sidebar-open as width/gap, so no jump */
+  /* Inset grows as sidebar closes �” same --sidebar-open as width/gap, so no jump */
   margin-left: calc((var(--sidebar-dock-size) + 12px) * (1 - var(--sidebar-open, 1)));
-}
-
-/* Light chrome: flat rails + bleed header across sidebar gap (no left-edge shadow seam) */
-html[data-theme="light"] .header-glass,
-html[data-theme="light"] .header-float {
-  margin-left: calc(
-    -12px * var(--sidebar-open, 1) +
-    (var(--sidebar-dock-size) + 12px) * (1 - var(--sidebar-open, 1))
-  );
-  padding-left: calc(1rem + 12px * var(--sidebar-open, 1)) !important;
-  border-radius: var(--radius-frame, 22px) !important;
-  background: #f1f5f9 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
-}
-
-@media (min-width: 768px) {
-  html[data-theme="light"] .header-glass,
-  html[data-theme="light"] .header-float {
-    padding-left: calc(1.25rem + 12px * var(--sidebar-open, 1)) !important;
-  }
-}
-
-html[data-theme="light"] .sidebar-glass,
-html[data-theme="light"] .sidebar-float {
-  border-radius: var(--radius-frame, 22px) !important;
-  background: #f1f5f9 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
-}
-
-html.control-glass-svg-ok[data-theme="light"] .header-glass,
-html.control-glass-svg-ok[data-theme="light"] .sidebar-glass {
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
 }
 
 .search-pill {
@@ -539,6 +675,7 @@ html[data-theme="light"] .shortcut-dock kbd {
 
 /* ---- Buttons = Mineradio glass-saved-button ---- */
 .glass-saved-button,
+.interactive-glass,
 .btn-primary,
 .btn-secondary,
 .wb-btn-primary,
@@ -549,13 +686,22 @@ html[data-theme="light"] .shortcut-dock kbd {
   backdrop-filter: var(--saved-button-glass-filter) !important;
   -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
   box-shadow: var(--saved-button-glass-shadow) !important;
-  border-radius: var(--radius-md) !important;
   font-weight: 600;
   text-shadow: none !important;
   filter: none !important;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
 }
 
-/* White ink only on dark glass — light mode must not inherit this */
+.glass-saved-button,
+.btn-primary,
+.btn-secondary,
+.wb-btn-primary,
+.wb-btn,
+.icon-glass-btn {
+  border-radius: var(--radius-md) !important;
+}
+
+/* White ink only on dark glass 鈥?light mode must not inherit this */
 html[data-theme="dark"] .glass-saved-button,
 html[data-theme="dark"] .btn-primary,
 html[data-theme="dark"] .btn-secondary,
@@ -579,6 +725,7 @@ html[data-theme="light"] .icon-glass-btn {
 }
 
 html.control-glass-svg-ok .glass-saved-button,
+html.control-glass-svg-ok .interactive-glass,
 html.control-glass-svg-ok .btn-primary,
 html.control-glass-svg-ok .btn-secondary,
 html.control-glass-svg-ok .wb-btn-primary,
@@ -589,6 +736,7 @@ html.control-glass-svg-ok .icon-glass-btn {
 }
 
 .glass-saved-button:hover,
+.interactive-glass:hover,
 .btn-primary:hover,
 .btn-secondary:hover,
 .wb-btn-primary:hover:not(:disabled),
@@ -596,7 +744,7 @@ html.control-glass-svg-ok .icon-glass-btn {
 .icon-glass-btn:hover {
   background: var(--saved-button-glass-hover-bg) !important;
   box-shadow: var(--saved-button-glass-hover-shadow) !important;
-  transform: translateY(-1px);
+  transform: none;
   filter: none !important;
 }
 
@@ -678,7 +826,7 @@ html.dark .border-border {
 }
 
 /* =========================================================
-   Feature surfaces → Mineradio glass (every page / module)
+   Feature surfaces 鈫?Mineradio glass (every page / module)
    ========================================================= */
 
 html.dark,
@@ -753,7 +901,7 @@ html.dark .dark\:bg-white\/\[0\.05\] {
   box-shadow: var(--feature-glass-shadow) !important;
 }
 
-/* Bordered rounded shells in content + overlays → glass card */
+/* Bordered rounded shells in content + overlays 鈫?glass card */
 html.dark .app-main-stage .rounded-xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
 html.dark .app-main-stage .rounded-2xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
 html.dark .app-main-stage .rounded-3xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
@@ -848,7 +996,7 @@ html[data-theme="light"] .bg-white\/80.rounded-3xl {
   box-shadow: var(--glass-shadow) !important;
 }
 
-/* Nav: glass active pill — no left indicator bar */
+/* Nav: glass active pill 鈥?no left indicator bar */
 .nav-item-spring {
   border-radius: var(--radius-sm) !important;
   border: 1px solid transparent;
@@ -856,8 +1004,9 @@ html[data-theme="light"] .bg-white\/80.rounded-3xl {
 }
 
 .nav-item-spring:hover {
-  background: rgba(255, 255, 255, 0.04) !important;
-  box-shadow: none !important;
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+  transform: none;
 }
 
 .nav-item-spring[aria-current="page"],
@@ -881,6 +1030,7 @@ html[data-theme="light"] .bg-white\/80.rounded-3xl {
 /* ---- Light mode: readable contrast (fix washed-out glass text) ---- */
 html[data-theme="light"] .nav-item-spring {
   color: #334155 !important;
+  border: 1px solid transparent !important;
 }
 
 html[data-theme="light"] .nav-item-spring:hover {
@@ -889,12 +1039,12 @@ html[data-theme="light"] .nav-item-spring:hover {
 }
 
 /* Selected nav: opaque blue wash + dark ink (never white-on-white) */
-html[data-theme="light"] .nav-item-spring[aria-current="page"],
-html[data-theme="light"] .nav-item-spring.nav-item-spring--active {
+html[data-theme='light'] .nav-item-spring[aria-current="page"],
+html[data-theme='light'] .nav-item-spring.nav-item-spring--active {
   background: #dbeafe !important;
   color: #1e3a8a !important;
   border: 1px solid #93c5fd !important;
-  box-shadow: inset 0 1px 0 #fff, 0 4px 12px rgba(37, 99, 235, 0.18) !important;
+  box-shadow: var(--shadow-inset-highlight), var(--shadow-primary-soft) !important;
 }
 
 html[data-theme="light"] .nav-item-spring[aria-current="page"] *,
@@ -932,14 +1082,16 @@ html[data-theme="light"] kbd {
 html[data-theme="light"] .btn-primary {
   background: linear-gradient(135deg, #2563eb, #1e40af) !important;
   color: #fff !important;
-  box-shadow: 0 8px 22px rgba(37, 99, 235, 0.28) !important;
+  box-shadow: var(--shadow-primary-soft) !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
 }
 
 html[data-theme="light"] .btn-primary:hover {
   color: #fff !important;
+  transform: none;
   filter: brightness(1.05);
+  box-shadow: var(--shadow-primary-md) !important;
 }
 
 html[data-theme="light"] .btn-secondary,
@@ -948,7 +1100,8 @@ html[data-theme="light"] .icon-glass-btn,
 html[data-theme="light"] .glass-saved-button {
   color: #0f172a !important;
   background: rgba(241, 245, 249, 0.95) !important;
-  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  border: 0 !important;
+  box-shadow: var(--shadow-ring), var(--saved-button-glass-shadow) !important;
 }
 
 html[data-theme="light"] .wb-btn-primary {
@@ -964,14 +1117,19 @@ html[data-theme="light"] .home-card-label {
 html[data-theme="light"] .home-card {
   border: 1px solid rgba(15, 23, 42, 0.12);
   background: linear-gradient(142deg, rgba(255, 255, 255, 0.92), rgba(241, 245, 249, 0.95));
-  box-shadow: 0 14px 40px rgba(15, 23, 42, 0.1), inset 0 1px 0 rgba(255, 255, 255, 0.9);
+  box-shadow: var(--shadow-elevation-1), var(--shadow-inset-highlight);
   color: #0f172a;
 }
 
 html[data-theme="light"] .home-card:hover {
   border-color: rgba(30, 64, 175, 0.28);
   background: linear-gradient(142deg, #fff, #f8fafc);
-  box-shadow: 0 18px 48px rgba(15, 23, 42, 0.14), inset 0 1px 0 #fff;
+  box-shadow: var(--shadow-elevation-1-hover), var(--shadow-inset-highlight);
+  transform: none;
+}
+
+html[data-theme="light"] .home-card:active {
+  transform: scale(0.985);
 }
 
 html[data-theme="light"] .home-card-title {
@@ -1066,18 +1224,14 @@ html[data-theme="light"] .border-border {
 }
 
 html[data-theme="light"] .app-shell::before {
-  opacity: 0.35;
+  opacity: 0.22;
   background:
-    radial-gradient(ellipse 55% 50% at 12% 8%, rgba(37, 99, 235, 0.12), transparent 68%),
-    radial-gradient(ellipse 45% 40% at 88% 10%, rgba(245, 158, 11, 0.1), transparent 65%),
-    radial-gradient(ellipse 40% 35% at 55% 40%, rgba(148, 163, 184, 0.12), transparent 70%) !important;
+    radial-gradient(ellipse 55% 50% at 12% 8%, rgba(37, 99, 235, 0.08), transparent 68%),
+    radial-gradient(ellipse 45% 40% at 88% 10%, rgba(186, 230, 253, 0.1), transparent 65%),
+    radial-gradient(ellipse 40% 35% at 55% 40%, rgba(148, 163, 184, 0.06), transparent 70%) !important;
 }
 
-html[data-theme="light"] .app-frame {
-  background: #f1f5f9 !important;
-}
-
-/* Home cards — Mineradio-like clear glass */
+/* Home cards 鈥?Mineradio-like clear glass */
 .home-kicker {
   font-size: 10px;
   font-weight: 780;
@@ -1110,7 +1264,7 @@ html[data-theme="light"] .home-kicker {
 }
 
 .home-card:hover {
-  transform: translateY(-3px);
+  transform: none;
   border-color: rgba(255, 255, 255, 0.18);
   background: linear-gradient(142deg, rgba(36, 33, 39, 0.72), rgba(10, 10, 14, 0.84));
   box-shadow:
@@ -1119,7 +1273,7 @@ html[data-theme="light"] .home-kicker {
 }
 
 .home-card:active {
-  transform: translateY(-1px) scale(0.985);
+  transform: scale(0.985);
   border-color: rgba(255, 255, 255, 0.22);
 }
 
@@ -1152,16 +1306,16 @@ html[data-theme="light"] .home-kicker {
   display: none;
 }
 
-/* Workbench: same clear glass language */
-.wb-panel--hero {
+/* Workbench: same clear glass language (dark theme only 鈥?light uses workbench-fx.css) */
+html[data-theme="dark"] .wb-panel--hero {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
 
-.wb-panel--hero::before {
+html[data-theme="dark"] .wb-panel--hero::before {
   background: radial-gradient(circle, rgba(255, 255, 255, 0.08), transparent 68%) !important;
 }
 
-.wb-task {
+html[data-theme="dark"] .wb-task {
   background: rgba(0, 0, 0, 0.12) !important;
   border: 0 !important;
   box-shadow: var(--saved-button-glass-shadow) !important;
@@ -1169,29 +1323,29 @@ html[data-theme="light"] .home-kicker {
   -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
 }
 
-.wb-task:hover {
+html[data-theme="dark"] .wb-task:hover {
   background: var(--saved-button-glass-hover-bg) !important;
   box-shadow: var(--saved-button-glass-hover-shadow) !important;
   border-color: transparent !important;
 }
 
-.wb-lane {
+html[data-theme="dark"] .wb-lane {
   background: rgba(0, 0, 0, 0.08) !important;
   border: 1px solid rgba(255, 255, 255, 0.08) !important;
   box-shadow: inset 0 1px 0 rgba(255, 255, 255, 0.06);
 }
 
-.wb-drawer-panel {
+html[data-theme="dark"] .wb-drawer-panel {
   background: var(--glass-bg) !important;
   border-left: 1px solid rgba(255, 255, 255, 0.1) !important;
   box-shadow: -18px 0 48px rgba(0, 0, 0, 0.35) !important;
   backdrop-filter: blur(24px) saturate(1.12) !important;
 }
 
-.wb-chip--doing,
-.wb-badge-on-mainline,
-.wb-mode-pill[data-mode="hosting"],
-.wb-mode-pill[data-mode="joined"] {
+html[data-theme="dark"] .wb-chip--doing,
+html[data-theme="dark"] .wb-badge-on-mainline,
+html[data-theme="dark"] .wb-mode-pill[data-mode="hosting"],
+html[data-theme="dark"] .wb-mode-pill[data-mode="joined"] {
   color: rgba(255, 255, 255, 0.9) !important;
   background: rgba(255, 255, 255, 0.08) !important;
   border-color: rgba(255, 255, 255, 0.18) !important;
@@ -1241,6 +1395,7 @@ html[data-theme="light"] .home-kicker {
 .wb-drawer-panel,
 .wb-project-card,
 .wb-banner,
+.hotlist-card,
 .modal-panel-cinematic,
 .liquid-glass-panel {
   border-radius: var(--radius-frame) !important;
@@ -1264,11 +1419,11 @@ html[data-theme="light"] .home-kicker {
 }
 
 .search-pill,
-.shortcut-dock {
+.shortcut-dock:not(.glass-surface) {
   border-radius: var(--radius-pill) !important;
 }
 
-/* ---- Outermost window shell (Mineradio #desktop-window-shell = 34px) ---- */
+/* ---- Outermost window shell: same radius as sidebar / header chrome ---- */
 html,
 body {
   background: transparent !important;
@@ -1283,10 +1438,8 @@ body {
   height: 100vh;
   width: 100vw;
   overflow: hidden;
-  border-radius: var(--radius-window, 34px);
-  clip-path: inset(0 round var(--radius-window, 34px));
-  background: var(--color-surface) !important;
-  box-shadow: 0 24px 80px rgba(0, 0, 0, 0.46);
+  border-radius: var(--radius-window, var(--radius-frame, 22px)) !important;
+  clip-path: inset(0 round var(--radius-window, var(--radius-frame, 22px)));
   transform: translateZ(0);
   transition:
     border-radius 0.22s ease,
@@ -1294,11 +1447,48 @@ body {
     clip-path 0.22s ease;
 }
 
+/* Window chrome = same glass rim as dashboard hero / cards; opacity from settings */
+.app-frame.border-glow-card--glass {
+  background: color-mix(
+    in srgb,
+    var(--color-surface, #050505) calc(var(--app-glass-opacity, 90) * 1%),
+    transparent
+  ) !important;
+  backdrop-filter: blur(28px) saturate(1.35) brightness(1.05) !important;
+  -webkit-backdrop-filter: blur(28px) saturate(1.35) brightness(1.05) !important;
+  box-shadow:
+    var(--saved-panel-glass-shadow),
+    0 24px 80px rgba(0, 0, 0, 0.46) !important;
+  border: 1px solid color-mix(in srgb, #fff 18%, transparent) !important;
+}
+
+.app-frame > .border-glow-inner.app-frame-shell,
+.app-frame.border-glow-card--glass > .border-glow-inner {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+  width: 100%;
+  overflow: hidden;
+  border-radius: inherit;
+  /* Stage canvas behind glass chrome */
+  background:
+    radial-gradient(ellipse 70% 55% at 50% -12%, rgba(255, 255, 255, 0.06), transparent 55%),
+    radial-gradient(ellipse 42% 38% at 92% 18%, rgba(180, 50, 60, 0.1), transparent 52%),
+    radial-gradient(ellipse 40% 36% at 8% 78%, rgba(40, 50, 70, 0.2), transparent 55%),
+    #050505;
+}
+
+html[data-theme="light"] .app-frame > .border-glow-inner.app-frame-shell,
+html[data-theme="light"] .app-frame.border-glow-card--glass > .border-glow-inner {
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%);
+}
+
 html[data-window-maximized="1"] .app-frame,
 html:fullscreen .app-frame {
   border-radius: 0 !important;
   clip-path: none !important;
-  box-shadow: none !important;
+  box-shadow: var(--saved-panel-glass-shadow) !important;
 }
 
 /* ---- Launcher (Mineradio glass spotlight) ---- */
@@ -1310,10 +1500,10 @@ html:fullscreen .app-frame {
 
 .launcher-panel {
   border: 0 !important;
-  background: var(--saved-panel-glass-bg) !important;
-  backdrop-filter: var(--saved-panel-glass-filter) !important;
-  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
-  /* Inset rim only — outer glow lives on .launcher-shell */
+  background: var(--launcher-panel-glass-bg) !important;
+  backdrop-filter: var(--launcher-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--launcher-panel-glass-filter) !important;
+  /* Inset rim only 鈥?outer glow lives on .launcher-shell */
   box-shadow: var(--saved-panel-glass-shadow) !important;
   border-radius: var(--radius-frame, 22px) !important;
   overflow: hidden !important;
@@ -1349,11 +1539,11 @@ html:fullscreen .app-frame {
 
 .launcher-footer {
   border-top: 1px solid var(--glass-border-soft);
-  background: rgba(0, 0, 0, 0.14);
+  background: var(--launcher-footer-bg);
 }
 
 html[data-theme="light"] .launcher-footer {
-  background: rgba(255, 255, 255, 0.28);
+  background: var(--launcher-footer-bg);
 }
 
 .launcher-section-label {
@@ -1445,16 +1635,16 @@ html[data-theme="light"] .launcher-row.is-selected {
 .launcher-tile--command {
   gap: 0.5rem;
   padding: 0.75rem 0.5rem;
-  background: var(--saved-button-glass-bg) !important;
-  backdrop-filter: var(--saved-button-glass-filter) !important;
-  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  background: var(--launcher-chip-glass-bg) !important;
+  backdrop-filter: var(--launcher-chip-glass-filter) !important;
+  -webkit-backdrop-filter: var(--launcher-chip-glass-filter) !important;
   box-shadow: var(--saved-button-glass-shadow) !important;
 }
 
 .launcher-tile--command:hover {
   background: var(--saved-button-glass-hover-bg) !important;
   box-shadow: var(--saved-button-glass-hover-shadow) !important;
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .launcher-chip,
@@ -1467,9 +1657,9 @@ html[data-theme="light"] .launcher-row.is-selected {
   border: 0 !important;
   border-radius: 16px;
   text-align: left;
-  background: var(--saved-button-glass-bg) !important;
-  backdrop-filter: var(--saved-button-glass-filter) !important;
-  -webkit-backdrop-filter: var(--saved-button-glass-filter) !important;
+  background: var(--launcher-chip-glass-bg) !important;
+  backdrop-filter: var(--launcher-chip-glass-filter) !important;
+  -webkit-backdrop-filter: var(--launcher-chip-glass-filter) !important;
   box-shadow: var(--saved-button-glass-shadow) !important;
   transition: background 160ms ease, box-shadow 160ms ease, transform 160ms ease;
 }
@@ -1555,9 +1745,9 @@ html[data-theme="light"] .launcher-icon-well {
 .launcher-menu {
   border: 0 !important;
   border-radius: 14px !important;
-  background: var(--saved-panel-glass-bg) !important;
-  backdrop-filter: var(--saved-panel-glass-filter) !important;
-  -webkit-backdrop-filter: var(--saved-panel-glass-filter) !important;
+  background: var(--launcher-panel-glass-bg) !important;
+  backdrop-filter: var(--launcher-panel-glass-filter) !important;
+  -webkit-backdrop-filter: var(--launcher-panel-glass-filter) !important;
   box-shadow: var(--saved-panel-glass-shadow), 0 16px 40px rgba(0, 0, 0, 0.35) !important;
   overflow: hidden;
 }
@@ -1605,7 +1795,7 @@ html[data-workspace-mode="minimal"] .app-main-stage::before {
 }
 
 @media (prefers-reduced-motion: reduce) {
-  .glass-card:hover,
+  .glass-card:not(.glass-surface):hover,
   .wb-panel:hover,
   .home-card:hover,
   .btn-primary:hover,
@@ -1615,7 +1805,7 @@ html[data-workspace-mode="minimal"] .app-main-stage::before {
 }
 
 /* =========================================================
-   Light mode — final pass: kill leftover dark-glass white ink
+   Light mode 鈥?final pass: kill leftover dark-glass white ink
    ========================================================= */
 html[data-theme="light"] .app-frame,
 html[data-theme="light"] .app-overlay-root {
@@ -1671,4 +1861,204 @@ html[data-theme="light"] .nav-item-spring[aria-current="page"] *,
 html[data-theme="light"] .pomo-mode-tab.pomo-mode-tab--active,
 html[data-theme="light"] .pomo-mode-tab.pomo-mode-tab--active * {
   color: #1e3a8a !important;
+}
+
+/* =========================================================
+   Theme parity �” chrome stability + matching motion
+   ========================================================= */
+
+/* Top chrome: no hover lift (beats cinematic-motion .app-frame rules) */
+.app-frame .header-glass button:not(:disabled):not(.absolute):hover,
+.app-frame .header-glass button:not(:disabled):not(.absolute):active,
+.app-frame .header-glass .icon-glass-btn:hover,
+.app-frame .header-glass .icon-glass-btn:active,
+.app-frame .header-quick-nav button:hover,
+.app-frame .header-quick-nav button:active,
+.app-frame .sidebar-glass .nav-item-spring:hover,
+.app-frame .sidebar-glass .nav-item-spring:active,
+.app-frame .sidebar-brand-pin:hover,
+.app-frame .sidebar-brand-pin:active {
+  transform: none !important;
+  filter: none !important;
+}
+
+/* Light cards: same lift as dark */
+html[data-theme="light"] .glass-card:not(.glass-surface):hover,
+html[data-theme="light"] .dashboard-hero:hover,
+html[data-theme="light"] .panel-glass:hover {
+  transform: none;
+}
+
+/* Light overlays / menus: mirror dark popover glass */
+html[data-theme="light"] .app-main-stage .absolute.z-50.rounded-2xl,
+html[data-theme="light"] .app-main-stage .absolute.z-50.rounded-3xl,
+html[data-theme="light"] .app-main-stage .absolute.z-20.rounded-2xl,
+html[data-theme="light"] .app-overlay-root .absolute.z-50.rounded-2xl,
+html[data-theme="light"] .app-overlay-root .absolute.z-50.rounded-3xl,
+html[data-theme="light"] .app-overlay-root .relative.w-full.max-w-sm,
+html[data-theme="light"] .app-overlay-root .relative.w-full.max-w-2xl,
+html[data-theme="light"] .modal-panel-cinematic,
+html[data-theme="light"] .liquid-glass-panel {
+  background: var(--modal-glass-bg, color-mix(in srgb, #fff 68%, transparent)) !important;
+  border: 1px solid var(--modal-glass-border, var(--glass-border)) !important;
+  border-radius: var(--radius-card) !important;
+  backdrop-filter: var(--modal-glass-blur, blur(28px) saturate(1.25)) !important;
+  -webkit-backdrop-filter: var(--modal-glass-blur, blur(28px) saturate(1.25)) !important;
+  box-shadow: var(--modal-glass-shadow, var(--glass-shadow)) !important;
+}
+
+html[data-theme="light"] .liquid-glass-panel::before {
+  opacity: 0.32;
+}
+
+html[data-theme="light"] .liquid-glass-panel::after {
+  display: none;
+}
+
+/* Light controls: match dark hover motion (chrome excluded above) */
+html[data-theme="light"] .icon-glass-btn:hover,
+html[data-theme="light"] .glass-saved-button:hover,
+html[data-theme="light"] .btn-secondary:hover,
+html[data-theme="light"] .wb-btn:hover:not(:disabled),
+html[data-theme="light"] .search-pill:hover {
+  transform: none;
+}
+
+html[data-theme="light"] .shortcut-dock {
+  border: 0 !important;
+}
+
+html[data-theme="light"] .shortcut-dock kbd {
+  border: 0 !important;
+}
+
+/* React Bits GlassSurface �” block legacy mineradio glass from overriding refraction */
+.glass-surface.glass-card,
+.glass-surface.shortcut-dock {
+  background: unset !important;
+  border: unset !important;
+}
+
+html.control-glass-svg-ok .glass-surface.glass-card.glass-surface--svg,
+html.control-glass-svg-ok .glass-surface.shortcut-dock.glass-surface--svg {
+  backdrop-filter: var(--filter-id) saturate(var(--glass-saturation, 1)) !important;
+  -webkit-backdrop-filter: var(--filter-id) saturate(var(--glass-saturation, 1)) !important;
+}
+
+.glass-surface.glass-card:not(.glass-surface--svg),
+.glass-surface.shortcut-dock:not(.glass-surface--svg) {
+  backdrop-filter: blur(12px) saturate(1.8) brightness(1.1) !important;
+  -webkit-backdrop-filter: blur(12px) saturate(1.8) brightness(1.1) !important;
+}
+
+.glass-surface.glass-card:hover {
+  transform: none !important;
+}
+
+html[data-theme="light"] .glass-surface.glass-card:hover,
+html[data-theme="light"] .glass-surface.shortcut-dock:hover {
+  transform: none !important;
+}
+
+/* === Unified modal frosted glass (slightly translucent) === */
+.modal-panel-cinematic.border-glow-card--glass,
+.glow-panel.border-glow-card--glass.modal-panel-cinematic,
+.datetime-modal-panel .border-glow-card--glass,
+.liquid-glass-panel.modal-panel-cinematic,
+.surface-panel.modal-panel-cinematic,
+.datetime-modal-panel .liquid-glass-panel {
+  background: var(--modal-glass-bg, color-mix(in srgb, var(--color-surface) 58%, transparent)) !important;
+  backdrop-filter: var(--modal-glass-blur, blur(30px) saturate(1.4) brightness(1.08)) !important;
+  -webkit-backdrop-filter: var(--modal-glass-blur, blur(30px) saturate(1.4) brightness(1.08)) !important;
+  border: 1px solid var(--modal-glass-border, color-mix(in srgb, #fff 22%, transparent)) !important;
+  box-shadow: var(--modal-glass-shadow,
+    0 24px 64px color-mix(in srgb, #000 42%, transparent),
+    inset 0 0 2px 1px color-mix(in srgb, #fff 32%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent)
+  ) !important;
+}
+
+html[data-theme="light"] .modal-panel-cinematic.border-glow-card--glass,
+html[data-theme="light"] .glow-panel.border-glow-card--glass.modal-panel-cinematic,
+html[data-theme="light"] .datetime-modal-panel .border-glow-card--glass,
+html[data-theme="light"] .liquid-glass-panel.modal-panel-cinematic,
+html[data-theme="light"] .surface-panel.modal-panel-cinematic,
+html[data-theme="light"] .datetime-modal-panel .liquid-glass-panel {
+  background: var(--modal-glass-bg, color-mix(in srgb, #fff 68%, transparent)) !important;
+}
+
+/* === Interactive glass cards (same hover as red-box quick-stat pills) === */
+.glass-card-glow.interactive-glass-card,
+.border-glow-card--glass.interactive-glass-card,
+.glass-surface.interactive-glass-card {
+  cursor: pointer;
+  transition: background 0.2s ease, box-shadow 0.2s ease, transform 0.2s ease;
+}
+
+.glass-card-glow.interactive-glass-card:hover,
+.border-glow-card--glass.interactive-glass-card:hover,
+.glass-surface.interactive-glass-card:hover {
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+  transform: none;
+}
+
+/* Avoid double-lift: motion on the shell, not the inner role=button */
+.app-frame .interactive-glass-card > .border-glow-inner > [role="button"]:hover,
+.app-frame .interactive-glass-card > .border-glow-inner > [role="button"]:active,
+.app-frame .interactive-glass-card.glass-surface[role="button"]:hover,
+.app-frame .interactive-glass-card.glass-surface[role="button"]:active {
+  transform: none !important;
+}
+
+html[data-theme="dark"] .glass-card-glow.interactive-glass-card:hover,
+html.dark .glass-card-glow.interactive-glass-card:hover {
+  background: color-mix(in srgb, var(--saved-panel-glass-bg) 88%, rgba(255, 255, 255, 0.08)) !important;
+}
+
+.dashboard-quick-stat.interactive-glass {
+  border-radius: 1rem !important;
+  font-weight: 500;
+}
+
+.dashboard-hero-weather.interactive-glass,
+.dashboard-hero-score.interactive-glass {
+  border-radius: 28px !important;
+}
+
+.dashboard-page .interactive-glass.dashboard-chip {
+  border-radius: 0.75rem !important;
+  font-weight: 600;
+}
+
+html[data-theme="light"] .nav-item-spring:hover {
+  background: var(--saved-button-glass-hover-bg) !important;
+  box-shadow: var(--saved-button-glass-hover-shadow) !important;
+  transform: none;
+}
+
+/* No hover lift on cards/buttons (CSS translate axis); press scale on :active still ok */
+.app-frame :is(
+  button,
+  [role='button'],
+  [role='tab'],
+  .interactive-glass,
+  .interactive-glass-card,
+  .glass-saved-button,
+  .icon-glass-btn,
+  .nav-item-spring,
+  .btn-primary,
+  .btn-secondary,
+  .btn-danger,
+  .home-card,
+  .wb-btn,
+  .wb-btn-primary,
+  .wb-task,
+  .wb-project-card,
+  .launcher-tile,
+  .launcher-chip,
+  .search-pill,
+  .glass-card,
+  .shortcut-dock
+):hover {
+  translate: 0 !important;
 }

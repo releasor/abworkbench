@@ -4,15 +4,13 @@ import Sidebar from './components/layout/Sidebar'
 import type { Page } from './components/layout/Sidebar'
 import { APP_PAGES, PAGE_TITLE_KEYS } from './navigation/pages'
 import Header from './components/layout/Header'
-import CommandPalette from './components/common/CommandPalette'
-import QuickCaptureModal from './components/common/QuickCaptureModal'
 import MiniWindow from './components/common/MiniWindow'
 import LauncherApp from './launcher/LauncherApp'
 import StealthReaderApp from './modules/stealthReader/StealthReaderApp'
 import GlobalToastHost from './components/common/GlobalToastHost'
 import ErrorBoundary from './components/common/ErrorBoundary'
 import { useI18nStore, useTranslation } from './i18n'
-import { acceleratorToKeys, eventMatchesShortcut, useShortcutStore, useSyncElectronShortcuts } from './shortcuts'
+import { eventMatchesShortcut, useShortcutStore, useSyncElectronShortcuts } from './shortcuts'
 import {
   DashboardSkeleton, PomodoroSkeleton, NotesSkeleton,
   WeatherSkeleton, HabitsSkeleton, SettingsSkeleton,
@@ -32,7 +30,11 @@ import { showToast } from './modules/taskflow/utils/toastEvent'
 import AmbientEffects from './components/common/AmbientEffects'
 import DeepWorkTransition from './components/common/DeepWorkTransition'
 import GlassFilterSvg from './components/common/GlassFilterSvg'
+import BorderGlow from './components/common/BorderGlow/BorderGlow'
+import { useBorderGlowSurfaceColor, useBorderGlowTheme } from './components/common/BorderGlow/borderGlowTheme'
+import GlowCursor from './components/common/GlowCursor'
 import { smoothNavigate } from './utils/smoothNavigate'
+import { consumeLauncherWorkspaceIntent } from './launcher/workspaceSearch'
 import clsx from 'clsx'
 
 const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'))
@@ -45,7 +47,6 @@ const WorkbenchPage = lazy(() => import('./modules/workbench/WorkbenchPage'))
 const RemindersPage = lazy(() => import('./components/reminders/RemindersPage'))
 const HotlistPage = lazy(() => import('./modules/hotlist/HotlistPage'))
 const MineradioPage = lazy(() => import('./components/mineradio/MineradioPage'))
-const DailyBriefModal = lazy(() => import('./components/dashboard/DailyBriefModal'))
 const DateTimePanelModal = lazy(() => import('./components/dashboard/DateTimePanelModal'))
 
 const pages: Page[] = [...APP_PAGES]
@@ -54,12 +55,8 @@ function App() {
   const { t } = useTranslation()
   const setLanguage = useI18nStore((s) => s.setLanguage)
   const [activePage, setActivePage] = useState<Page>('dashboard')
-  const [showCommandPalette, setShowCommandPalette] = useState(false)
   const [showLauncher, setShowLauncher] = useState(false)
-  const [showQuickCapture, setShowQuickCapture] = useState(false)
-  const [showDailyBrief, setShowDailyBrief] = useState(false)
   const [dateTimePanel, setDateTimePanel] = useState<DateTimePanelMode | null>(null)
-  const [dailyBriefMode, setDailyBriefMode] = useState<'morning' | 'evening'>('morning')
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
   const mainRef = useRef<HTMLElement>(null)
   const accentColor = useStore((s) => s.accentColor)
@@ -68,8 +65,12 @@ function App() {
   const workspaceMode = useStore((s) => s.workspaceMode)
   const visualNoise = useStore((s) => s.visualNoise)
   const visualParticles = useStore((s) => s.visualParticles)
+  const glowCursor = useStore((s) => s.glowCursor)
+  const [reduceMotion, setReduceMotion] = useState(false)
   const toggleSidebar = useStore((s) => s.toggleSidebar)
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed)
+  const glowTheme = useBorderGlowTheme()
+  const surfaceColor = useBorderGlowSurfaceColor()
   const isMiniMode = useMemo(() => new URLSearchParams(window.location.search).get('mini') === '1', [])
   const isLauncherMode = useMemo(() => new URLSearchParams(window.location.search).get('launcher') === '1', [])
   const isReaderMode = useMemo(() => new URLSearchParams(window.location.search).get('reader') === '1', [])
@@ -153,7 +154,22 @@ function App() {
   useEffect(() => {
     document.documentElement.dataset.fxNoise = visualNoise ? '1' : '0'
     document.documentElement.dataset.fxParticles = visualParticles ? '1' : '0'
-  }, [visualNoise, visualParticles])
+    document.documentElement.dataset.fxGlowCursor = glowCursor ? '1' : '0'
+  }, [visualNoise, visualParticles, glowCursor])
+
+  useEffect(() => {
+    const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
+    const sync = () => setReduceMotion(mq.matches)
+    sync()
+    mq.addEventListener('change', sync)
+    return () => mq.removeEventListener('change', sync)
+  }, [])
+
+  const glassOpacity = useStore((s) => s.glassOpacity)
+  useEffect(() => {
+    const value = Math.min(100, Math.max(40, Math.round(glassOpacity ?? 90)))
+    document.documentElement.style.setProperty('--app-glass-opacity', String(value))
+  }, [glassOpacity])
 
   useEffect(() => {
     const api = typeof window !== 'undefined' ? window.electronAPI : undefined
@@ -189,29 +205,15 @@ function App() {
     }
   }, [isLauncherMode])
 
-  const toggleCommandPalette = useCallback(() => {
-    setShowLauncher(false)
-    setShowCommandPalette((prev) => !prev)
+  const toggleLauncher = useCallback(() => {
+    setShowLauncher((prev) => !prev)
   }, [])
-  const openMobileSidebar = useCallback(() => setMobileSidebarOpen(true), [])
-  const closeMobileSidebar = useCallback(() => setMobileSidebarOpen(false), [])
-  const closeCommandPalette = useCallback(() => setShowCommandPalette(false), [])
   const openLauncher = useCallback(() => {
-    setShowCommandPalette(false)
     setShowLauncher(true)
   }, [])
   const closeLauncher = useCallback(() => setShowLauncher(false), [])
-  const toggleLauncher = useCallback(() => {
-    setShowCommandPalette(false)
-    setShowLauncher((prev) => !prev)
-  }, [])
-  const openQuickCapture = useCallback(() => setShowQuickCapture(true), [])
-  const closeQuickCapture = useCallback(() => setShowQuickCapture(false), [])
-  const openDailyBrief = useCallback((mode: 'morning' | 'evening' = 'morning') => {
-    setDailyBriefMode(mode)
-    setShowDailyBrief(true)
-  }, [])
-  const closeDailyBrief = useCallback(() => setShowDailyBrief(false), [])
+  const openMobileSidebar = useCallback(() => setMobileSidebarOpen(true), [])
+  const closeMobileSidebar = useCallback(() => setMobileSidebarOpen(false), [])
   const openClockPanel = useCallback(() => setDateTimePanel('clock'), [])
   const openDatePanel = useCallback(() => setDateTimePanel('date'), [])
   const closeDateTimePanel = useCallback(() => setDateTimePanel(null), [])
@@ -226,19 +228,25 @@ function App() {
       })
     })
   }, [])
-  const navigateFromPalette = useCallback((page: Page) => {
-    smoothNavigate(() => {
-      setActivePage(page)
-      setVisitedPages((prev) => {
-        if (prev.has(page)) return prev
-        const next = new Set(prev)
-        next.add(page)
-        return next
-      })
-      setShowCommandPalette(false)
-    })
+  const applyLauncherWorkspaceIntent = useCallback(() => {
+    const result = consumeLauncherWorkspaceIntent()
+    if (!result) return
+    if (result.type === 'task') {
+      useTaskStore.getState().setFilters({ search: result.title })
+    } else if (result.type === 'note') {
+      useStore.getState().setActiveNote(result.targetId)
+    } else if (result.type === 'habit') {
+      try {
+        sessionStorage.setItem('abworkbench-focus-habit', result.targetId)
+      } catch {
+        // ignore storage failures
+      }
+    } else if (result.type === 'project') {
+      useTaskStore.getState().setFilters({ category: result.targetId })
+    }
   }, [])
   const navigateFromLauncher = useCallback((page: string) => {
+    applyLauncherWorkspaceIntent()
     smoothNavigate(() => {
       if ((APP_PAGES as readonly string[]).includes(page)) {
         const nextPage = page as Page
@@ -252,15 +260,11 @@ function App() {
       }
       setShowLauncher(false)
     })
-  }, [])
+  }, [applyLauncherWorkspaceIntent])
 
   useSyncElectronShortcuts()
 
   const shortcutOverrides = useShortcutStore((s) => s.overrides)
-  const launcherHint = useShortcutStore((s) => s.getAccelerator('launcher'))
-  const commandPaletteHint = useShortcutStore((s) => s.getAccelerator('commandPalette'))
-  const quickCaptureHint = useShortcutStore((s) => s.getAccelerator('quickCapture'))
-
   useEffect(() => {
     void shortcutOverrides
     const handler = (event: KeyboardEvent) => {
@@ -270,31 +274,18 @@ function App() {
       if (eventMatchesShortcut('escapeClose', event)) {
         if (showLauncher) return
         event.preventDefault()
-        setShowCommandPalette(false)
         setMobileSidebarOpen(false)
         return
       }
 
       if (inField) return
 
-      if (eventMatchesShortcut('commandPalette', event)) {
-        event.preventDefault()
-        toggleCommandPalette()
-        return
-      }
-      if (eventMatchesShortcut('quickCapture', event)) {
-        // Global Electron hotkey also fires; allow in-window binding too.
-        event.preventDefault()
-        openQuickCapture()
-        return
-      }
       if (eventMatchesShortcut('toggleSidebar', event)) {
         event.preventDefault()
         toggleSidebar()
         return
       }
       if (eventMatchesShortcut('pageDashboard', event)) { event.preventDefault(); goToPage('dashboard'); return }
-      if (eventMatchesShortcut('pageTaskflow', event)) { event.preventDefault(); goToPage('taskflow'); return }
       if (eventMatchesShortcut('pageReminders', event)) { event.preventDefault(); goToPage('reminders'); return }
       if (eventMatchesShortcut('pageHotlist', event)) { event.preventDefault(); goToPage('hotlist'); return }
       if (eventMatchesShortcut('pageMineradio', event)) { event.preventDefault(); goToPage('mineradio'); return }
@@ -302,34 +293,7 @@ function App() {
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [goToPage, openQuickCapture, shortcutOverrides, showLauncher, toggleCommandPalette, toggleSidebar])
-
-  useEffect(() => {
-    return window.electronAPI?.onOpenQuickCapture?.(openQuickCapture)
-  }, [openQuickCapture])
-
-  useEffect(() => {
-    const handler = (event: Event) => {
-      const mode = (event as CustomEvent<{ mode?: 'morning' | 'evening' }>).detail?.mode || 'morning'
-      openDailyBrief(mode)
-    }
-    window.addEventListener('abworkbench:daily-brief', handler)
-    return () => window.removeEventListener('abworkbench:daily-brief', handler)
-  }, [openDailyBrief])
-
-  // Auto-open Daily Brief once per Beijing calendar day.
-  useEffect(() => {
-    if (isMiniMode || isLauncherMode || isReaderMode) return
-    import('./modules/taskflow/dateUtils').then(({ todayStr }) => {
-      const key = 'abworkbench-daily-brief-shown'
-      const today = todayStr()
-      if (localStorage.getItem(key) === today) return
-      const hour = new Date().getHours()
-      const mode = hour >= 18 ? 'evening' : 'morning'
-      localStorage.setItem(key, today)
-      openDailyBrief(mode)
-    }).catch(() => { /* ignore */ })
-  }, [isMiniMode, isLauncherMode, isReaderMode, openDailyBrief])
+  }, [goToPage, shortcutOverrides, showLauncher, toggleSidebar])
 
   // Global Alt+Space: when main window is focused, Electron routes here for the embedded launcher.
   useEffect(() => {
@@ -339,11 +303,12 @@ function App() {
   // Navigate when the floating launcher asks the main window to open a specific page.
   useEffect(() => {
     return window.electronAPI?.onOpenMainPage?.((page) => {
+      applyLauncherWorkspaceIntent()
       if ((APP_PAGES as readonly string[]).includes(page)) {
         goToPage(page as Page)
       }
     })
-  }, [goToPage])
+  }, [applyLauncherWorkspaceIntent, goToPage])
 
   // Browser notification polling for overdue/due-today tasks and custom reminders
   useEffect(() => {
@@ -381,7 +346,6 @@ function App() {
       applyWorkspaceModeSideEffects(plan)
       if (plan.navigatePomodoro) {
         goToPage('pomodoro')
-        setShowCommandPalette(false)
         setShowLauncher(false)
       }
       if (plan.startPomodoro) requestPomodoroStart()
@@ -411,172 +375,167 @@ function App() {
   if (isMiniMode) {
     return (
       <>
-        <MiniWindow onOpenQuickCapture={openQuickCapture} />
-        <QuickCaptureModal isOpen={showQuickCapture} onClose={closeQuickCapture} />
+        <MiniWindow />
         <GlobalToastHost />
       </>
     )
   }
 
   return (
-    <div className="app-frame">
-      <GlassFilterSvg />
-      <div className={clsx('app-shell app-shell--float', sidebarCollapsed && 'app-shell--sidebar-collapsed')}>
-        <Sidebar
-          activePage={activePage}
-          onPageChange={goToPage}
-          onOpenLauncher={openLauncher}
-          isMobileOpen={mobileSidebarOpen}
-          onMobileClose={closeMobileSidebar}
-        />
-        <div className={clsx('app-content-column', activePage === 'mineradio' && 'app-content-column--embed')}>
-          <Header
-            title={pageTitles[activePage]}
+    <BorderGlow
+      {...glowTheme}
+      borderRadius={22}
+      backgroundColor={surfaceColor}
+      glowMaskColor={surfaceColor}
+      className="app-frame border-glow-card--glass"
+      innerClassName="app-frame-shell"
+    >
+      <GlowCursor
+        className="glow-cursor--app"
+        enabled={glowCursor && !reduceMotion}
+        color="#67E8F9"
+        secondaryColor="#A78BFA"
+        trailLength={40}
+        trailWidth={8}
+        trailTaper={0.8}
+        followSpeed={0.16}
+        glowIntensity={1.45}
+        glowSpread={1.2}
+        hotspot={0.45}
+        brightness={0.95}
+        opacity={0.42}
+        pulseSpeed={1.1}
+        noiseStrength={0.035}
+        idleFade
+        idleTimeout={700}
+        fadeDuration={900}
+        blendMode="screen"
+        maxDevicePixelRatio={1.5}
+      >
+        <GlassFilterSvg />
+        <div className={clsx('app-shell app-shell--float', sidebarCollapsed && 'app-shell--sidebar-collapsed')}>
+          <Sidebar
             activePage={activePage}
-            onOpenCommandPalette={toggleCommandPalette}
-            onOpenMobileSidebar={openMobileSidebar}
-            onNavigate={goToPage}
-            onOpenClockPanel={openClockPanel}
-            onOpenDatePanel={openDatePanel}
+            onPageChange={goToPage}
+            onOpenLauncher={openLauncher}
+            isMobileOpen={mobileSidebarOpen}
+            onMobileClose={closeMobileSidebar}
           />
-          <main
-            ref={mainRef}
-            className={clsx(
-              'app-main-stage page-stack',
-              activePage === 'mineradio' ? 'app-main-stage--embed p-0 overflow-hidden' : 'p-4 md:p-6 overflow-auto',
-            )}
-          >
-            <ErrorBoundary>
-              {visitedPages.has('dashboard') && (
-                <div className={clsx('page-layer', activePage === 'dashboard' && 'is-active')}>
-                  <Suspense fallback={<DashboardSkeleton />}>
-                    <DashboardPage
-                      onNavigate={goToPage}
-                      onOpenDailyBrief={openDailyBrief}
-                      onOpenQuickCapture={openQuickCapture}
-                      onOpenClockPanel={openClockPanel}
-                      onOpenDatePanel={openDatePanel}
-                    />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('taskflow') && (
-                <div className={clsx('page-layer', activePage === 'taskflow' && 'is-active')}>
-                  <Suspense fallback={<TaskFlowSkeleton />}>
-                    <WorkbenchPage />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('pomodoro') && (
-                <div className={clsx('page-layer', activePage === 'pomodoro' && 'is-active')}>
-                  <Suspense fallback={<PomodoroSkeleton />}>
-                    <PomodoroTimer />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('habits') && (
-                <div className={clsx('page-layer', activePage === 'habits' && 'is-active')}>
-                  <Suspense fallback={<HabitsSkeleton />}>
-                    <HabitTracker />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('notes') && (
-                <div className={clsx('page-layer', activePage === 'notes' && 'is-active')}>
-                  <Suspense fallback={<NotesSkeleton />}>
-                    <NotesList />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('reminders') && (
-                <div className={clsx('page-layer', activePage === 'reminders' && 'is-active')}>
-                  <Suspense fallback={<NotesSkeleton />}>
-                    <RemindersPage />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('weather') && (
-                <div className={clsx('page-layer', activePage === 'weather' && 'is-active')}>
-                  <Suspense fallback={<WeatherSkeleton />}>
-                    <WeatherWidget />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('hotlist') && (
-                <div className={clsx('page-layer', activePage === 'hotlist' && 'is-active')}>
-                  <Suspense fallback={<HotlistSkeleton />}>
-                    <HotlistPage />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('mineradio') && (
-                <div className={clsx('page-layer page-layer--embed', activePage === 'mineradio' && 'is-active')}>
-                  <Suspense fallback={<DashboardSkeleton />}>
-                    <MineradioPage />
-                  </Suspense>
-                </div>
-              )}
-              {visitedPages.has('settings') && (
-                <div className={clsx('page-layer', activePage === 'settings' && 'is-active')}>
-                  <Suspense fallback={<SettingsSkeleton />}>
-                    <SettingsPage />
-                  </Suspense>
-                </div>
-              )}
-            </ErrorBoundary>
-          </main>
-        </div>
-      </div>
-
-      {/* Overlays must stay outside the flex shell or they steal horizontal space */}
-      <div className="app-overlay-root">
-        <CommandPalette
-          isOpen={showCommandPalette}
-          onClose={closeCommandPalette}
-          pages={pages}
-          pageTitles={pageTitles}
-          onNavigate={navigateFromPalette}
-          onOpenQuickCapture={openQuickCapture}
-        />
-        <LauncherApp
-          variant="embedded"
-          isOpen={showLauncher}
-          onClose={closeLauncher}
-          onNavigate={navigateFromLauncher}
-          onOpenQuickCapture={openQuickCapture}
-        />
-        <QuickCaptureModal isOpen={showQuickCapture} onClose={closeQuickCapture} />
-        {dateTimePanel && (
-          <Suspense fallback={null}>
-            <DateTimePanelModal mode={dateTimePanel} onClose={closeDateTimePanel} />
-          </Suspense>
-        )}
-        {showDailyBrief && (
-          <Suspense fallback={null}>
-            <DailyBriefModal
-              isOpen={showDailyBrief}
-              mode={dailyBriefMode}
-              onClose={closeDailyBrief}
-              onNavigate={(page) => { goToPage(page); closeDailyBrief() }}
-              onOpenQuickCapture={openQuickCapture}
+          <div className={clsx('app-content-column', activePage === 'mineradio' && 'app-content-column--embed')}>
+            <Header
+              title={pageTitles[activePage]}
+              activePage={activePage}
+              onOpenMobileSidebar={openMobileSidebar}
+              onNavigate={goToPage}
+              onOpenClockPanel={openClockPanel}
+              onOpenDatePanel={openDatePanel}
             />
-          </Suspense>
-        )}
-        <GlobalToastHost />
-        <AmbientEffects />
-        <DeepWorkTransition />
-        <div className="shortcut-dock hidden md:flex" data-overlay-interactive="true" title="快捷键">
-          <kbd>{acceleratorToKeys(launcherHint).join('+')}</kbd>
-          <span>启动器</span>
-          <span className="opacity-40">·</span>
-          <kbd>{acceleratorToKeys(commandPaletteHint).join('+')}</kbd>
-          <span>命令</span>
-          <span className="opacity-40">·</span>
-          <kbd>{acceleratorToKeys(quickCaptureHint).join('+')}</kbd>
-          <span>捕获</span>
+            <main
+              ref={mainRef}
+              className={clsx(
+                'app-main-stage page-stack',
+                activePage === 'mineradio' ? 'app-main-stage--embed p-0 overflow-hidden' : 'pb-4 md:pb-6 overflow-auto',
+              )}
+            >
+              <ErrorBoundary>
+                {visitedPages.has('dashboard') && (
+                  <div className={clsx('page-layer', activePage === 'dashboard' && 'is-active')}>
+                    <Suspense fallback={<DashboardSkeleton />}>
+                      <DashboardPage
+                        onNavigate={goToPage}
+                        onOpenClockPanel={openClockPanel}
+                        onOpenDatePanel={openDatePanel}
+                      />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('taskflow') && (
+                  <div className={clsx('page-layer', activePage === 'taskflow' && 'is-active')}>
+                    <Suspense fallback={<TaskFlowSkeleton />}>
+                      <WorkbenchPage />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('pomodoro') && (
+                  <div className={clsx('page-layer', activePage === 'pomodoro' && 'is-active')}>
+                    <Suspense fallback={<PomodoroSkeleton />}>
+                      <PomodoroTimer />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('habits') && (
+                  <div className={clsx('page-layer', activePage === 'habits' && 'is-active')}>
+                    <Suspense fallback={<HabitsSkeleton />}>
+                      <HabitTracker />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('notes') && (
+                  <div className={clsx('page-layer', activePage === 'notes' && 'is-active')}>
+                    <Suspense fallback={<NotesSkeleton />}>
+                      <NotesList />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('reminders') && (
+                  <div className={clsx('page-layer', activePage === 'reminders' && 'is-active')}>
+                    <Suspense fallback={<NotesSkeleton />}>
+                      <RemindersPage />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('weather') && (
+                  <div className={clsx('page-layer', activePage === 'weather' && 'is-active')}>
+                    <Suspense fallback={<WeatherSkeleton />}>
+                      <WeatherWidget />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('hotlist') && (
+                  <div className={clsx('page-layer', activePage === 'hotlist' && 'is-active')}>
+                    <Suspense fallback={<HotlistSkeleton />}>
+                      <HotlistPage />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('mineradio') && (
+                  <div className={clsx('page-layer page-layer--embed', activePage === 'mineradio' && 'is-active')}>
+                    <Suspense fallback={<DashboardSkeleton />}>
+                      <MineradioPage />
+                    </Suspense>
+                  </div>
+                )}
+                {visitedPages.has('settings') && (
+                  <div className={clsx('page-layer page-layer--natural', activePage === 'settings' && 'is-active')}>
+                    <Suspense fallback={<SettingsSkeleton />}>
+                      <SettingsPage />
+                    </Suspense>
+                  </div>
+                )}
+              </ErrorBoundary>
+            </main>
+          </div>
         </div>
-      </div>
-    </div>
+
+        {/* Overlays must stay outside the flex shell or they steal horizontal space */}
+        <div className="app-overlay-root">
+          <LauncherApp
+            variant="embedded"
+            isOpen={showLauncher}
+            onClose={closeLauncher}
+            onNavigate={navigateFromLauncher}
+          />
+          {dateTimePanel && (
+            <Suspense fallback={null}>
+              <DateTimePanelModal mode={dateTimePanel} onClose={closeDateTimePanel} />
+            </Suspense>
+          )}
+          <GlobalToastHost />
+          <AmbientEffects />
+          <DeepWorkTransition />
+        </div>
+      </GlowCursor>
+    </BorderGlow>
   )
 }
 

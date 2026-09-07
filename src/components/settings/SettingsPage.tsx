@@ -92,6 +92,10 @@ export default function SettingsPage() {
   const setVisualNoise = useStore((s) => s.setVisualNoise)
   const visualParticles = useStore((s) => s.visualParticles)
   const setVisualParticles = useStore((s) => s.setVisualParticles)
+  const glowCursor = useStore((s) => s.glowCursor)
+  const setGlowCursor = useStore((s) => s.setGlowCursor)
+  const glassOpacity = useStore((s) => s.glassOpacity)
+  const setGlassOpacity = useStore((s) => s.setGlassOpacity)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
   const setDailyPomodoroGoal = useStore((s) => s.setDailyPomodoroGoal)
   const pomodoroWorkDuration = useStore((s) => s.pomodoroWorkDuration)
@@ -199,6 +203,10 @@ export default function SettingsPage() {
       accentColor,
       themeMode,
       workspaceMode,
+      glassOpacity,
+      glowCursor,
+      visualNoise,
+      visualParticles,
       dailyPomodoroGoal,
       pomodoroWorkDuration,
       pomodoroShortBreakDuration,
@@ -243,6 +251,10 @@ export default function SettingsPage() {
           if (typeof d.accentColor === 'string') patch.accentColor = d.accentColor
           if (d.themeMode === 'dark' || d.themeMode === 'light' || d.themeMode === 'system') patch.themeMode = d.themeMode
           if (d.workspaceMode === 'focus' || d.workspaceMode === 'deep' || d.workspaceMode === 'night' || d.workspaceMode === 'minimal' || d.workspaceMode === 'dashboard') patch.workspaceMode = d.workspaceMode
+          if (typeof d.glassOpacity === 'number' && d.glassOpacity >= 40 && d.glassOpacity <= 100) patch.glassOpacity = Math.round(d.glassOpacity)
+          if (typeof d.glowCursor === 'boolean') patch.glowCursor = d.glowCursor
+          if (typeof d.visualNoise === 'boolean') patch.visualNoise = d.visualNoise
+          if (typeof d.visualParticles === 'boolean') patch.visualParticles = d.visualParticles
           if (typeof d.dailyPomodoroGoal === 'number' && d.dailyPomodoroGoal > 0) patch.dailyPomodoroGoal = d.dailyPomodoroGoal
           if (typeof d.pomodoroWorkDuration === 'number' && d.pomodoroWorkDuration > 0) {
             patch.pomodoroWorkDuration = d.pomodoroWorkDuration
@@ -553,6 +565,40 @@ export default function SettingsPage() {
             </div>
           </div>
 
+          {/* Window glass opacity */}
+          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+            <div className="mb-4 flex items-center gap-2">
+              <Sparkles size={20} className="text-primary" />
+              <h2 className="text-lg font-semibold text-text">窗口玻璃透明度</h2>
+            </div>
+            <p className="mb-4 text-xs text-text-muted">
+              调节主窗口外壳的磨砂不透明度。数值越高越不透、越接近实色；越低越能透出桌面。
+            </p>
+            <div className="flex items-center gap-4">
+              <span className="w-10 shrink-0 text-xs text-text-muted">透</span>
+              <input
+                type="range"
+                min={40}
+                max={100}
+                step={1}
+                value={glassOpacity}
+                onChange={(e) => setGlassOpacity(Number(e.target.value))}
+                aria-label="窗口玻璃不透明度"
+                className="h-2 w-full flex-1 cursor-pointer appearance-none rounded-full bg-surface-lighter accent-[var(--color-primary)]"
+              />
+              <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums text-text">{glassOpacity}%</span>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setGlassOpacity(90)}
+                className="rounded-xl px-3 py-1.5 text-xs font-semibold text-text-muted transition hover:bg-surface-lighter hover:text-text"
+              >
+                恢复默认 90%
+              </button>
+            </div>
+          </div>
+
           {/* Cinematic FX */}
           <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
             <div className="mb-4 flex items-center gap-2">
@@ -594,6 +640,22 @@ export default function SettingsPage() {
                   <span className={`h-3 w-3 rounded-full ${visualParticles ? 'bg-primary' : 'bg-text-muted/30'}`} />
                 </div>
                 <p className="mt-1 text-xs text-text-muted">极轻漂浮光点（默认开启，可关）</p>
+              </button>
+              <button
+                type="button"
+                onClick={() => setGlowCursor(!glowCursor)}
+                aria-pressed={glowCursor}
+                className={`rounded-2xl border p-4 text-left transition-all md:col-span-2 ${
+                  glowCursor
+                    ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
+                    : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
+                }`}
+              >
+                <div className="flex items-center justify-between">
+                  <span className="text-sm font-bold text-text">光标光迹</span>
+                  <span className={`h-3 w-3 rounded-full ${glowCursor ? 'bg-primary' : 'bg-text-muted/30'}`} />
+                </div>
+                <p className="mt-1 text-xs text-text-muted">跟随指针的发光拖尾（WebGL，可关以省 GPU）</p>
               </button>
             </div>
           </div>

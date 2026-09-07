@@ -1,7 +1,9 @@
 @import "tailwindcss";
 @import "./styles/cinematic-motion.css";
 @import "./styles/mineradio-skin.css";
+@import "./components/settings/settings-glass.css";
 @import "./modules/workbench/workbench-fx.css";
+@import "./styles/light-shadows.css";
 @custom-variant dark (&:where(.dark, .dark *));
 
 @theme {
@@ -54,14 +56,14 @@
   --color-background: #f9fafb;
   --color-text-secondary: #6b7280;
   --font-mono: "JetBrains Mono", ui-monospace, monospace;
-  /* Mineradio radius scale — frames share one card radius */
+  /* Mineradio radius scale - frames share one card radius */
   --radius-sm: 14px;
   --radius-md: 18px;
   --radius-card: 22px;
   --radius-panel: 22px;
   --radius-shell: 22px;
   --radius-frame: 22px;
-  --radius-window: 34px;
+  --radius-window: 22px;
   --radius-pill: 50px;
 }
 
@@ -158,6 +160,85 @@
 
   html[data-workspace-mode="dashboard"] .dashboard-stats-section {
     display: block !important;
+  }
+
+  .dashboard-page,
+  .dashboard-stack {
+    display: flex;
+    flex-direction: column;
+    gap: 1rem;
+  }
+
+  /* Same 1rem rhythm as .app-content-column header-to-content gap */
+  .app-content-column:not(.app-content-column--embed) {
+    gap: 1rem;
+  }
+
+  .dashboard-card-header {
+    display: flex;
+    align-items: flex-start;
+    justify-content: space-between;
+    gap: 0.75rem;
+    margin-bottom: 0.75rem;
+    width: 100%;
+    flex-shrink: 0;
+  }
+
+  .dashboard-panel__empty {
+    padding: 0.25rem 0;
+    font-size: 0.75rem;
+    line-height: 1.25rem;
+    color: var(--color-text-muted);
+    text-align: left;
+  }
+
+  .dashboard-panel {
+    height: 100%;
+  }
+
+  .dashboard-planning-time-row {
+    display: grid;
+    grid-template-columns: 1fr;
+    gap: 1rem;
+    align-items: stretch;
+  }
+
+  @media (min-width: 1024px) {
+    .dashboard-planning-time-row {
+      grid-template-columns: minmax(0, 2fr) minmax(0, 1fr);
+    }
+  }
+
+  .dashboard-planning-time-row .dashboard-panel {
+    min-height: 18rem;
+  }
+
+  .dashboard-panel__body {
+    flex: 1 1 auto;
+    min-height: 0;
+    overflow-y: auto;
+    max-height: 22rem;
+    /* Room for nested interactive-glass hover rim (avoid header-edge clip) */
+    padding: 0.375rem 0.2rem 0.25rem;
+    margin: -0.125rem -0.1rem 0;
+  }
+
+  /* Inside scroll panels: no lift + inset-only glow so top item isn't cut by header */
+  .dashboard-panel__body .interactive-glass:hover {
+    transform: none !important;
+    box-shadow:
+      inset 0 0 2px 1px rgba(255, 255, 255, 0.42),
+      inset 0 0 12px 5px rgba(255, 255, 255, 0.17) !important;
+  }
+
+  html[data-theme="light"] .dashboard-panel__body .interactive-glass:hover {
+    box-shadow:
+      inset 0 0 1px 1px rgba(15, 23, 42, 0.12),
+      0 2px 8px rgba(15, 23, 42, 0.06) !important;
+  }
+
+  .dashboard-stat-tile {
+    min-height: 5.5rem;
   }
 
   html[data-workspace-mode="minimal"] aside .rounded-xl {
@@ -467,7 +548,7 @@
   }
 
   .btn-primary:hover {
-    transform: translateY(-1px);
+    transform: none;
     box-shadow: 0 4px 12px color-mix(in srgb, var(--color-primary) 40%, transparent);
   }
 
@@ -494,7 +575,7 @@
   .btn-secondary:hover {
     background: var(--color-surface-light);
     border-color: var(--color-text-muted);
-    transform: translateY(-1px);
+    transform: none;
   }
 
   .btn-secondary:active {
@@ -519,7 +600,7 @@
   .btn-danger:hover {
     background: rgba(239, 68, 68, 0.2);
     border-color: rgba(239, 68, 68, 0.4);
-    transform: translateY(-1px);
+    transform: none;
   }
 
   .btn-danger:active {
@@ -891,7 +972,7 @@
   background-color: var(--heat-dark, var(--color-surface-light)) !important;
 }
 
-/* Mineradio embed tab — flush with the workbench content pane */
+/* Mineradio embed tab - flush with the workbench content pane */
 .app-main-stage--embed {
   display: flex;
   flex-direction: column;
@@ -909,19 +990,21 @@ html[data-theme="light"] .page-layer--embed.is-active {
   background: #f1f5f9 !important;
 }
 
-/* Mineradio: one continuous canvas — header + embed share the same flat fill */
+/* Mineradio: one continuous canvas - header + embed share the same flat fill */
 html[data-theme="light"] .app-content-column--embed {
   gap: 0;
   background: #f1f5f9;
-  border-radius: var(--radius-frame, 22px);
+  border-radius: 0;
   overflow: hidden;
 }
 
 html[data-theme="light"] .app-content-column--embed .header-glass {
+  margin-left: calc((var(--sidebar-dock-size) + 12px) * (1 - var(--sidebar-open, 1)));
   background: #f1f5f9 !important;
   backdrop-filter: none !important;
   -webkit-backdrop-filter: none !important;
   box-shadow: none !important;
+  border: 0 !important;
   border-radius: var(--radius-frame, 22px) var(--radius-frame, 22px) 0 0 !important;
 }
 
@@ -995,4 +1078,34 @@ html[data-theme="light"] .mineradio-embed__frame,
   flex-direction: column;
   overflow: hidden;
   background: #050505;
+}
+
+.header-notif-anchor {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  align-self: center;
+  flex-shrink: 0;
+  z-index: 30;
+}
+
+.header-notif-menu {
+  position: absolute !important;
+  top: calc(100% + 8px);
+  right: 0;
+  width: 18rem;
+  z-index: 200;
+  margin: 0;
+  padding: 0.75rem;
+  border-radius: 22px;
+  color: var(--color-text);
+  background: color-mix(in srgb, var(--color-surface-light) 88%, transparent);
+  border: 1px solid color-mix(in srgb, #fff 18%, var(--color-border));
+  backdrop-filter: blur(24px) saturate(1.3);
+  -webkit-backdrop-filter: blur(24px) saturate(1.3);
+  box-shadow:
+    0 20px 48px color-mix(in srgb, #000 42%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent);
+  -webkit-app-region: no-drag;
+  animation: fade-in 180ms ease both;
 }

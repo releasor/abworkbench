@@ -31,14 +31,7 @@ html[data-theme="light"] {
     color-mix(in srgb, var(--color-surface) 94%, transparent)
   );
   --glass-border: color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
-  --glass-shadow:
-    0 14px 36px color-mix(in srgb, #0f172a 12%, transparent),
-    0 0 18px color-mix(in srgb, var(--color-primary) 6%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 90%, transparent);
-  --glass-shadow-hover:
-    0 18px 44px color-mix(in srgb, #0f172a 14%, transparent),
-    0 0 22px color-mix(in srgb, var(--color-primary) 10%, transparent),
-    inset 0 1px 0 #fff;
+  /* --glass-shadow* defined in light-shadows.css */
 }
 
 /* ---- Ambient shell ---- */
@@ -109,6 +102,11 @@ html[data-theme="light"] .app-shell::before {
   z-index: 40;
   align-items: center;
   gap: 8px;
+  color: var(--color-text-muted);
+  font-size: 11px;
+}
+
+.shortcut-dock:not(.glass-surface) {
   padding: 8px 12px;
   border-radius: 999px;
   border: 1px solid color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
@@ -116,15 +114,13 @@ html[data-theme="light"] .app-shell::before {
   backdrop-filter: blur(14px) saturate(1.2);
   -webkit-backdrop-filter: blur(14px) saturate(1.2);
   box-shadow: var(--glass-shadow);
-  color: var(--color-text-muted);
-  font-size: 11px;
   opacity: 0.55;
   transition: opacity var(--motion-fast) ease, transform var(--motion-med) var(--ease-spring);
 }
 
-.shortcut-dock:hover {
+.shortcut-dock:not(.glass-surface):hover {
   opacity: 1;
-  transform: translateY(-2px);
+  transform: none;
 }
 
 .shortcut-dock kbd {
@@ -139,7 +135,7 @@ html[data-theme="light"] .app-shell::before {
 
 
 /* ---- Upgraded glass ---- */
-.glass-card {
+.glass-card:not(.glass-surface) {
   background: var(--glass-bg);
   backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
   -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
@@ -153,7 +149,7 @@ html[data-theme="light"] .app-shell::before {
     background var(--motion-med) ease;
 }
 
-.glass-card:hover {
+.glass-card:not(.glass-surface):hover {
   box-shadow: var(--glass-shadow-hover);
 }
 
@@ -168,16 +164,16 @@ html[data-theme="light"] .app-shell::before {
 .glass-hover:hover {
   background: color-mix(in srgb, var(--color-surface-lighter) 78%, transparent);
   border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
-  transform: translateY(-1px);
+  transform: none;
 }
 
-html[data-workspace-mode="minimal"] .glass-card {
+html[data-workspace-mode="minimal"] .glass-card:not(.glass-surface) {
   box-shadow: none;
   backdrop-filter: none;
   -webkit-backdrop-filter: none;
 }
 
-html[data-workspace-mode="minimal"] .glass-card:hover {
+html[data-workspace-mode="minimal"] .glass-card:not(.glass-surface):hover {
   box-shadow: none;
   transform: none;
 }
@@ -193,7 +189,7 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 }
 
 .btn-primary:hover {
-  transform: translateY(-2px);
+  transform: none;
   box-shadow:
     0 10px 28px color-mix(in srgb, var(--color-primary) 38%, transparent),
     0 0 18px color-mix(in srgb, var(--color-primary) 18%, transparent);
@@ -206,10 +202,6 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
     transform var(--motion-med) var(--ease-spring),
     box-shadow var(--motion-med) var(--ease-spring),
     border-color var(--motion-fast) ease;
-}
-
-.nav-item-spring:hover {
-  transform: translateX(2px);
 }
 
 .nav-item-spring[aria-current="page"] {
@@ -314,6 +306,14 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
   view-transition-name: abwb-main-stage;
 }
 
+.page-stack:has(> .page-layer--natural.is-active) {
+  min-height: auto;
+}
+
+.page-layer--natural.is-active {
+  min-height: auto;
+}
+
 .page-layer {
   width: 100%;
   min-width: 0;
@@ -375,6 +375,78 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
   animation: panel-soft-enter 280ms var(--ease-spring) both;
 }
 
+@keyframes panel-slide-from-right {
+  from {
+    opacity: 0;
+    transform: translate3d(28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+@keyframes panel-slide-from-left {
+  from {
+    opacity: 0;
+    transform: translate3d(-28px, 0, 0);
+  }
+  to {
+    opacity: 1;
+    transform: translate3d(0, 0, 0);
+  }
+}
+
+.panel-switch--from-right {
+  animation: panel-slide-from-right 300ms var(--ease-spring) both;
+}
+
+.panel-switch--from-left {
+  animation: panel-slide-from-left 300ms var(--ease-spring) both;
+}
+
+/* Settings tab panels — crossfade (avoid transform on glass-card ancestors) */
+.settings-tab-viewport {
+  position: relative;
+  overflow: visible;
+  width: 100%;
+  transition: height 360ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.settings-tab-track {
+  position: relative;
+  width: 100%;
+}
+
+.settings-tab-panel {
+  width: 100%;
+  min-width: 0;
+  box-sizing: border-box;
+  opacity: 0;
+  visibility: hidden;
+  pointer-events: none;
+  user-select: none;
+  position: absolute;
+  inset: 0;
+  transition:
+    opacity 280ms cubic-bezier(0.32, 0.72, 0, 1),
+    visibility 280ms linear;
+}
+
+.settings-tab-panel--active {
+  opacity: 1;
+  visibility: visible;
+  pointer-events: auto;
+  user-select: auto;
+  position: relative;
+  inset: auto;
+}
+
+.settings-tab-panel[aria-hidden='true'] {
+  pointer-events: none;
+  user-select: none;
+}
+
 /* Pomodoro mode tabs — slightly richer enter so the big timer feels intentional */
 @keyframes pomo-mode-enter {
   from {
@@ -425,7 +497,7 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 }
 
 .interactive-press:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 /* =========================================================
@@ -447,6 +519,8 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 .app-frame .icon-glass-btn,
 .app-frame .search-pill,
 .app-frame .glass-saved-button,
+.app-frame .interactive-glass,
+.app-frame .interactive-glass-card,
 .app-frame .launcher-row,
 .app-frame .launcher-tile,
 .app-frame .launcher-chip,
@@ -490,15 +564,15 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 .app-frame .search-pill:hover,
 .app-frame .launcher-tile:hover,
 .app-frame .launcher-chip:hover {
-  transform: translateY(-1px);
+  transform: none;
 }
 
 .app-frame .home-card:hover {
-  transform: translateY(-3px);
+  transform: none;
 }
 
 .app-frame .wb-task:hover {
-  transform: translateY(-1px) scale(1.01);
+  transform: none;
 }
 
 /* Crisp press feedback */
@@ -597,7 +671,7 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 
 .pomo-stage .pomo-btn:hover:not(:disabled),
 .pomo-stage button:hover:not(:disabled) {
-  transform: translateY(-2px);
+  transform: none;
 }
 
 .pomo-stage .pomo-btn:active:not(:disabled),
@@ -608,7 +682,7 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 }
 
 .pomo-stage .pomo-btn--primary:hover:not(:disabled) {
-  transform: translateY(-2px) scale(1.02);
+  transform: scale(1.02);
   box-shadow:
     0 14px 36px color-mix(in srgb, var(--color-primary) 36%, transparent),
     0 0 20px color-mix(in srgb, var(--color-primary) 18%, transparent);
@@ -689,8 +763,16 @@ html[data-workspace-mode="minimal"] .glass-card:hover {
 }
 
 html[data-theme="light"] .ambient-noise {
-  opacity: 0.04;
+  opacity: 0.025;
   mix-blend-mode: multiply;
+}
+
+html[data-theme="light"] .ambient-particle {
+  width: 3px;
+  height: 3px;
+  opacity: 0.28;
+  background: color-mix(in srgb, var(--color-primary) 30%, #94a3b8);
+  box-shadow: 0 0 6px color-mix(in srgb, var(--color-primary) 14%, transparent);
 }
 
 .ambient-particles {
@@ -757,6 +839,59 @@ html[data-fx-noise="0"] .ambient-noise {
   box-shadow: var(--glass-shadow-hover);
 }
 
+/* Unified modal glass — frosted, slightly translucent (not solid) */
+:root {
+  --modal-glass-bg: color-mix(in srgb, var(--color-surface) 58%, transparent);
+  --modal-glass-blur: blur(30px) saturate(1.4) brightness(1.08);
+  --modal-glass-border: color-mix(in srgb, #fff 22%, var(--glass-border-soft, var(--color-border)));
+  --modal-glass-shadow:
+    0 24px 64px color-mix(in srgb, #000 42%, transparent),
+    inset 0 0 2px 1px color-mix(in srgb, #fff 32%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 22%, transparent),
+    inset 0 -18px 36px color-mix(in srgb, #000 12%, transparent);
+}
+
+html[data-theme='light'] {
+  --modal-glass-bg: color-mix(in srgb, #fff 68%, transparent);
+  --modal-glass-blur: blur(28px) saturate(1.25) brightness(1.02);
+  --modal-glass-border: color-mix(in srgb, #fff 55%, var(--color-border));
+  --modal-glass-shadow:
+    0 22px 56px color-mix(in srgb, #0f172a 16%, transparent),
+    inset 0 0 1px 1px color-mix(in srgb, #fff 70%, transparent),
+    inset 0 1px 0 color-mix(in srgb, #fff 80%, transparent);
+}
+
+.modal-panel-cinematic.border-glow-card--glass,
+.glow-panel.border-glow-card--glass.modal-panel-cinematic,
+.datetime-modal-panel .border-glow-card--glass,
+.liquid-glass-panel.modal-panel-cinematic,
+.surface-panel.modal-panel-cinematic,
+.datetime-modal-panel .liquid-glass-panel,
+.datetime-modal-panel .border-glow-card--glass.modal-panel-cinematic {
+  background: var(--modal-glass-bg) !important;
+  backdrop-filter: var(--modal-glass-blur) !important;
+  -webkit-backdrop-filter: var(--modal-glass-blur) !important;
+  border: 1px solid var(--modal-glass-border) !important;
+  box-shadow: var(--modal-glass-shadow) !important;
+}
+
+.datetime-modal-panel .liquid-glass-panel::before,
+.liquid-glass-panel.modal-panel-cinematic::before {
+  opacity: 0.45;
+}
+
+.datetime-modal-panel .liquid-glass-pane {
+  background: color-mix(in srgb, var(--color-surface) 42%, transparent);
+}
+
+.datetime-modal-panel .liquid-glass-chip {
+  background: color-mix(in srgb, var(--color-surface-light) 48%, transparent);
+}
+
+html[data-theme='light'] .datetime-modal-panel .liquid-glass-pane {
+  background: color-mix(in srgb, var(--color-surface-light) 62%, transparent);
+}
+
 .dashboard-hero {
   background:
     linear-gradient(
@@ -792,6 +927,11 @@ html[data-fx-noise="0"] .ambient-noise {
     transform: none !important;
     filter: none !important;
   }
+  .settings-tab-viewport,
+  .settings-tab-track {
+    transition: none !important;
+  }
+
   .page-layer,
   .page-layer.is-active,
   .panel-switch,

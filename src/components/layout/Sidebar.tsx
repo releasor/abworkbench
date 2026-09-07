@@ -15,6 +15,8 @@ import { useTranslation } from '../../i18n'
 import type { TranslationKey } from '../../i18n'
 import { useShortcutStore } from '../../shortcuts'
 import clsx from 'clsx'
+import BorderGlow from '../common/BorderGlow/BorderGlow'
+import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../common/BorderGlow/borderGlowTheme'
 import type { Page } from '../../navigation/pages'
 
 export type { Page } from '../../navigation/pages'
@@ -70,6 +72,8 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
     mineradio: pageMineradioHotkey,
     settings: pageSettingsHotkey,
   }
+  const glowTheme = useBorderGlowTheme()
+  const surfaceColor = useBorderGlowSurfaceColor()
 
   const handleNavClick = (page: Page) => {
     onPageChange(page)
@@ -124,7 +128,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
             onMobileClose?.()
           }}
           aria-label="打开启动器"
-          title={sidebarCollapsed ? `启动器 · ${launcherHotkey} 快速启动` : undefined}
+          title={sidebarCollapsed ? `快搜 · ${launcherHotkey}` : undefined}
           className="relative w-full flex items-center gap-3 px-3 py-2.5 rounded-xl transition-all duration-200 group text-text-muted hover:text-text hover:bg-primary/10 border border-transparent hover:border-primary/25 mb-2 active:scale-[0.98]"
         >
           <div className="relative flex-shrink-0 h-5 w-5 flex items-center justify-center">
@@ -134,7 +138,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
               className="relative text-primary transition-transform duration-200 group-hover:scale-105"
             />
           </div>
-          <span className="text-sm font-medium text-text">启动器</span>
+          <span className="text-sm font-medium text-text">快搜</span>
           <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-surface-lighter text-text-muted opacity-80 font-mono hidden lg:inline">
             {launcherHotkey}
           </kbd>
@@ -221,17 +225,26 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
           </span>
         </button>
         <div className="sidebar-rail-clip">
-          <aside
-            className={clsx(
-              'sidebar-glass sidebar-float sidebar-rail',
-              sidebarCollapsed && 'sidebar-rail--collapsed',
-            )}
-            aria-hidden={sidebarCollapsed}
+          <BorderGlow
+            {...glowTheme}
+            borderRadius={22}
+            backgroundColor={surfaceColor}
+            glowMaskColor={surfaceColor}
+            className="sidebar-glow-shell border-glow-card--glass h-full min-h-0 w-full"
+            innerClassName="sidebar-glass-shell h-full min-h-0"
           >
-            <div className="sidebar-rail-inner">
-              {renderSidebarBody('desktop')}
-            </div>
-          </aside>
+            <aside
+              className={clsx(
+                'sidebar-glass sidebar-float sidebar-rail',
+                sidebarCollapsed && 'sidebar-rail--collapsed',
+              )}
+              aria-hidden={sidebarCollapsed}
+            >
+              <div className="sidebar-rail-inner">
+                {renderSidebarBody('desktop')}
+              </div>
+            </aside>
+          </BorderGlow>
         </div>
       </div>
 
@@ -239,12 +252,21 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
       {isMobileOpen && (
         <div className="fixed inset-0 z-50 lg:hidden" onClick={onMobileClose}>
           <div className="absolute inset-0 bg-black/50 backdrop-blur-sm animate-fade-in" />
-          <aside
-            className="sidebar-glass absolute left-3 top-3 bottom-3 w-[280px] flex flex-col animate-slide-in overflow-hidden"
-            onClick={(e) => e.stopPropagation()}
+          <BorderGlow
+            {...glowTheme}
+            borderRadius={22}
+            backgroundColor={surfaceColor}
+            glowMaskColor={surfaceColor}
+            className="sidebar-glow-shell border-glow-card--glass absolute left-3 top-3 bottom-3 w-[280px]"
+            innerClassName="sidebar-glass-shell h-full min-h-0"
           >
-            {renderSidebarBody('mobile')}
-          </aside>
+            <aside
+              className="sidebar-glass flex h-full min-h-0 w-full flex-col animate-slide-in overflow-hidden"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {renderSidebarBody('mobile')}
+            </aside>
+          </BorderGlow>
         </div>
       )}
     </>
