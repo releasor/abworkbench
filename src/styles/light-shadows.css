@@ -1,0 +1,269 @@
+/* Light-mode shadow system — matches settings-glass soft elevation.
+   Multi-layer slate shadows that fade into #f1f5f9 / #f8fafc without hard cutoffs. */
+
+html[data-theme='light'] {
+  --shadow-ink: 15, 23, 42;
+  --shadow-primary-ink: 30, 64, 175;
+
+  --shadow-ring: 0 0 0 1px rgba(var(--shadow-ink), 0.04);
+  --shadow-ring-hover: 0 0 0 1px rgba(var(--shadow-ink), 0.05);
+
+  --shadow-soft-xs: 0 1px 3px -1px rgba(var(--shadow-ink), 0.04);
+  --shadow-soft-sm: 0 2px 8px -3px rgba(var(--shadow-ink), 0.06);
+  --shadow-soft-sm-hover: 0 3px 10px -3px rgba(var(--shadow-ink), 0.07);
+  --shadow-soft-md: 0 10px 28px -10px rgba(var(--shadow-ink), 0.08);
+  --shadow-soft-md-hover: 0 12px 32px -10px rgba(var(--shadow-ink), 0.09);
+  --shadow-soft-lg: 0 16px 40px -14px rgba(var(--shadow-ink), 0.09);
+  --shadow-soft-xl: 0 20px 48px -16px rgba(var(--shadow-ink), 0.1);
+
+  /* Tile cards in grids — no ring, tight spread (won't clip at scroll edges) */
+ --shadow-card-tile: var(--shadow-soft-sm), var(--shadow-soft-md);
+
+ /* Settings-reference card elevation */
+ --shadow-elevation-1: var(--shadow-ring), var(--shadow-soft-sm), var(--shadow-soft-md);
+ --shadow-elevation-1-hover: var(--shadow-ring-hover), var(--shadow-soft-sm-hover), var(--shadow-soft-md-hover);
+ --shadow-elevation-2: var(--shadow-ring-hover), 0 4px 10px rgba(var(--shadow-ink), 0.05), var(--shadow-soft-lg);
+ --shadow-elevation-3: var(--shadow-ring-hover), 0 6px 14px rgba(var(--shadow-ink), 0.05), var(--shadow-soft-xl);
+
+ --shadow-primary-soft: 0 0 0 1px rgba(var(--shadow-primary-ink), 0.06),
+ 0 2px 8px rgba(var(--shadow-primary-ink), 0.08),
+ 0 10px 28px rgba(var(--shadow-primary-ink), 0.1);
+ --shadow-primary-md: 0 0 0 1px rgba(var(--shadow-primary-ink), 0.08),
+ 0 4px 12px rgba(var(--shadow-primary-ink), 0.1),
+ 0 14px 32px rgba(var(--shadow-primary-ink), 0.12);
+
+ --shadow-danger-soft: 0 0 0 1px rgba(185, 28, 28, 0.06),
+ 0 2px 8px rgba(185, 28, 28, 0.08),
+ 0 10px 28px rgba(185, 28, 28, 0.1);
+
+ --shadow-warning-soft: 0 0 0 1px rgba(180, 83, 9, 0.06),
+ 0 2px 8px rgba(180, 83, 9, 0.08),
+ 0 10px 28px rgba(180, 83, 9, 0.1);
+
+ --shadow-inset-highlight: inset 0 1px 0 rgba(255, 255, 255, 0.88);
+ --shadow-inset-subtle: inset 0 1px 0 rgba(255, 255, 255, 0.72);
+
+ /* Bridge tokens consumed across the app */
+ --glass-shadow: var(--shadow-elevation-1);
+ --glass-shadow-hover: var(--shadow-elevation-1-hover);
+ --glass-shadow-focus: var(--shadow-elevation-1-hover);
+ --saved-panel-glass-shadow: var(--shadow-ring),
+ var(--shadow-soft-xs),
+ 0 6px 18px rgba(var(--shadow-ink), 0.05),
+ var(--shadow-inset-highlight);
+ --saved-button-glass-shadow: var(--shadow-soft-xs), var(--shadow-inset-highlight);
+ --saved-button-glass-hover-shadow: 0 4px 12px rgba(var(--shadow-primary-ink), 0.07),
+ var(--shadow-soft-xs);
+ --feature-glass-shadow: var(--shadow-elevation-1);
+
+ --wb-ambient: var(--shadow-elevation-1);
+ --wb-lift: var(--shadow-elevation-2);
+
+ /* Chrome rails: soft drop only — no 1px ring (avoids vertical seam at sidebar edge) */
+ --shadow-chrome: var(--shadow-card-tile);
+ --shadow-chrome-hover: var(--shadow-soft-sm-hover), var(--shadow-soft-md-hover);
+}
+
+html[data-theme='light'] .wb-stage {
+  --wb-ambient: var(--shadow-elevation-1);
+  --wb-lift: var(--shadow-elevation-2);
+}
+
+/* ---- Tailwind shadow utilities (light) ---- */
+@layer utilities {
+  html[data-theme='light'] .shadow-sm {
+    box-shadow: var(--shadow-ring), var(--shadow-soft-xs) !important;
+  }
+
+  html[data-theme='light'] .shadow,
+  html[data-theme='light'] .shadow-md {
+    box-shadow: var(--shadow-elevation-1) !important;
+  }
+
+  html[data-theme='light'] .shadow-lg {
+    box-shadow: var(--shadow-elevation-1) !important;
+  }
+
+  html[data-theme='light'] .shadow-xl {
+    box-shadow: var(--shadow-elevation-2) !important;
+  }
+
+  html[data-theme='light'] .shadow-2xl {
+    box-shadow: var(--shadow-elevation-3) !important;
+  }
+
+  html[data-theme='light'] [class*='shadow-primary'] {
+    box-shadow: var(--shadow-primary-soft) !important;
+  }
+
+  html[data-theme='light'] [class*='shadow-black'],
+  html[data-theme='light'] [class*='shadow-slate'],
+  html[data-theme='light'] [class*='shadow-gray'],
+  html[data-theme='light'] [class*='shadow-neutral'] {
+    box-shadow: var(--shadow-elevation-1) !important;
+  }
+
+  html[data-theme='light'] .shadow-xl[class*='shadow-black'],
+  html[data-theme='light'] .shadow-xl[class*='shadow-slate'],
+  html[data-theme='light'] .shadow-xl[class*='shadow-gray'],
+  html[data-theme='light'] .shadow-xl[class*='shadow-neutral'] {
+    box-shadow: var(--shadow-elevation-2) !important;
+  }
+
+  html[data-theme='light'] .shadow-2xl[class*='shadow-black'],
+  html[data-theme='light'] .shadow-2xl[class*='shadow-slate'],
+  html[data-theme='light'] .shadow-2xl[class*='shadow-gray'],
+  html[data-theme='light'] .shadow-2xl[class*='shadow-neutral'] {
+    box-shadow: var(--shadow-elevation-3) !important;
+  }
+
+  html[data-theme='light'] .shadow-lg[class*='shadow-primary'],
+  html[data-theme='light'] .shadow-xl[class*='shadow-primary'],
+  html[data-theme='light'] .shadow-2xl[class*='shadow-primary'],
+  html[data-theme='light'] [class*='shadow-blue'] {
+    box-shadow: var(--shadow-primary-md) !important;
+  }
+
+  html[data-theme='light'] [class*='shadow-warning'] {
+    box-shadow: var(--shadow-warning-soft) !important;
+  }
+
+  html[data-theme='light'] [class*='shadow-red'] {
+    box-shadow: var(--shadow-danger-soft) !important;
+  }
+
+  html[data-theme='light'] .shadow-inner {
+    box-shadow: var(--shadow-inset-subtle) !important;
+  }
+
+  html[data-theme='light'] .shadow-inner[class*='shadow-white'] {
+    box-shadow: var(--shadow-inset-highlight) !important;
+  }
+}
+
+/* ---- Component surfaces (light) ---- */
+html[data-theme='light'] .glass-surface--svg {
+  box-shadow: var(--shadow-elevation-1) !important;
+}
+
+html[data-theme='light'] .glass-surface--fallback {
+  box-shadow: var(--shadow-elevation-1) !important;
+}
+
+html[data-theme='light'] .dashboard-hero {
+  box-shadow: var(--shadow-elevation-2) !important;
+}
+
+html[data-theme='light'] .modal-panel-cinematic {
+  box-shadow: var(--shadow-elevation-3) !important;
+}
+
+html[data-theme='light'] .liquid-glass-panel {
+  box-shadow: var(--shadow-elevation-3) !important;
+}
+
+html[data-theme='light'] .header-notif-menu {
+  box-shadow: var(--shadow-elevation-2), var(--shadow-inset-highlight) !important;
+}
+
+html[data-theme='light'] .note-list-item--active {
+  box-shadow: var(--shadow-primary-soft), var(--shadow-inset-highlight) !important;
+}
+
+html[data-theme='light'] .note-list-item:hover:not(.note-list-item--active) {
+ box-shadow: var(--shadow-inset-subtle) !important;
+}
+
+html[data-theme='light'] .btn-primary:hover {
+ box-shadow: var(--shadow-primary-md) !important;
+}
+
+html[data-theme='light'] .pomo-stage .pomo-btn--primary:hover:not(:disabled) {
+ box-shadow: var(--shadow-primary-md) !important;
+}
+
+html[data-theme='light'] .settings-glass-tab.liquid-glass-chip {
+  box-shadow: var(--shadow-inset-highlight), var(--shadow-soft-xs) !important;
+}
+
+html[data-theme='light'] .settings-glass-tab--active.liquid-glass-chip {
+  box-shadow: var(--shadow-inset-highlight), var(--shadow-primary-soft) !important;
+}
+
+/* ---- Chrome layout: kill sidebar/main seam ---- */
+html[data-theme='light'] .sidebar-glass {
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html[data-theme='light'] .sidebar-glow-shell.border-glow-card--glass {
+  background: rgba(255, 255, 255, 0.72) !important;
+  box-shadow: none !important;
+}
+
+html[data-theme='light'] .header-glass {
+  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+}
+
+/* Hotlist boards — tile shadow (no ring), fades inside grid gutter */
+html[data-theme='light'] .hotlist-card {
+ box-shadow: var(--shadow-card-tile) !important;
+ background: rgba(255, 255, 255, 0.82) !important;
+ border: 0 !important;
+ backdrop-filter: blur(12px) saturate(1.06) !important;
+ -webkit-backdrop-filter: blur(12px) saturate(1.06) !important;
+}
+
+/* Scrollable card grids: horizontal gutter so tile shadows are not clipped */
+html[data-theme='light'] .hotlist-grid,
+html[data-theme='light'] .dashboard-stat-grid {
+  padding-inline: 16px;
+  padding-block: 8px;
+}
+
+/* Workbench panels — tile shadow, no ring */
+html[data-theme='light'] .wb-stage .wb-panel,
+html[data-theme='light'] .wb-stage .wb-panel--hero,
+html[data-theme='light'] .wb-stage .wb-project-card {
+ box-shadow: var(--shadow-card-tile) !important;
+}
+
+html[data-theme='light'] .wb-content-scroll {
+  padding-inline: 14px;
+  padding-block: 8px;
+}
+
+html[data-theme='light'] .app-main-stage.page-stack:not(.app-main-stage--embed) {
+  padding-inline: 1.75rem !important;
+  overflow-x: clip;
+  overflow-y: auto;
+}
+
+html[data-theme='light'] .sidebar-glass,
+html[data-theme='light'] .sidebar-float {
+  clip-path: none;
+}
+
+html[data-theme='light'] .sidebar-stack:not(.sidebar-stack--animating) .sidebar-rail-clip {
+  overflow: visible;
+}
+
+html[data-theme='light'] .app-shell--float {
+  overflow: visible;
+}
+
+html[data-theme='light'] .app-main-stage:not(.app-main-stage--embed)::before {
+  background: radial-gradient(
+    ellipse 80% 60% at 50% -8%,
+    rgba(37, 99, 235, 0.04),
+    transparent 70%
+  );
+}
+
+html[data-theme='light'] .app-frame.border-glow-card--glass {
+  background: color-mix(in srgb, #fff calc(var(--app-glass-opacity, 90) * 1%), transparent) !important;
+  box-shadow:
+    var(--saved-panel-glass-shadow),
+    var(--shadow-elevation-2) !important;
+}
