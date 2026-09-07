@@ -23,7 +23,6 @@ import {
   FileText,
   BookOpen,
   PictureInPicture2,
-  PenLine,
   Zap,
   Radio,
   Flame,
@@ -54,7 +53,6 @@ interface CommandPaletteProps {
   pages: Page[]
   pageTitles: Record<Page, string>
   onNavigate: (page: Page) => void
-  onOpenQuickCapture?: () => void
 }
 
 const pageIcons: Record<Page, typeof LayoutDashboard> = {
@@ -126,7 +124,7 @@ function readIndexedFilesForSearch(): Array<{ id: string; name: string; path: st
   return readLocalCollection('abworkbench-indexed-files', [])
 }
 
-export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onNavigate, onOpenQuickCapture }: CommandPaletteProps) {
+export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onNavigate }: CommandPaletteProps) {
   const { t, tWith } = useTranslation()
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -194,18 +192,18 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       return
     }
     if (suggestion.kind === 'quick-expense') {
-      createNoteWithContent(`支出 - ${timestamp}`, `#支出\n\n- ${suggestion.payload}\n- 记录时间：${timestamp}`)
+      createNoteWithContent(`?? - ${timestamp}`, `#??\n\n- ${suggestion.payload}\n- ?????${timestamp}`)
       return
     }
     if (suggestion.kind === 'quick-health') {
-      createNoteWithContent(`健康 - ${timestamp}`, `#健康\n\n- ${suggestion.payload}\n- 记录时间：${timestamp}`)
+      createNoteWithContent(`?? - ${timestamp}`, `#??\n\n- ${suggestion.payload}\n- ?????${timestamp}`)
       return
     }
     if (suggestion.kind === 'quick-reminder') {
-      const parsed = parseQuickCreateInput(`提醒 ${suggestion.payload}`, { projects: categories })
+      const parsed = parseQuickCreateInput(`?? ${suggestion.payload}`, { projects: categories })
       appendWorkspaceReminder({
         title: parsed.title || suggestion.payload,
-        body: `Ctrl+K 创建：${suggestion.payload}\n记录时间：${timestamp}`,
+        body: `Ctrl+K ???${suggestion.payload}\n?????${timestamp}`,
         dueAt: buildQuickCreateDueAt(parsed) || formatLocalDateTimeMinute(new Date(Date.now() + 60 * 60 * 1000)),
         repeat: parsed.repeat,
         projectId: parsed.projectId,
@@ -248,7 +246,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     const result = runLocalMacro(macro.id)
     if (macro.id === 'macro-evening-review') {
       const timestamp = new Date().toLocaleString('zh-CN')
-      createNoteWithContent(`晚间复盘 - ${timestamp.slice(0, 10)}`, `# 晚间复盘\n\n- 完成：\n- 拖延：\n- 明天优先：\n\n创建时间：${timestamp}`)
+      createNoteWithContent(`???? - ${timestamp.slice(0, 10)}`, `# ????\n\n- ???\n- ???\n- ?????\n\n?????${timestamp}`)
       return
     }
     // TaskFlow macros: navigate then dispatch so TaskFlowPage can open filters/modals
@@ -289,8 +287,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       description: t('command.quickAddTaskDesc'),
       icon: Plus,
       action: () => {
-        if (onOpenQuickCapture) onOpenQuickCapture()
-        else onNavigate('taskflow')
+        onNavigate('taskflow')
       },
       category: t('command.action'),
     },
@@ -322,8 +319,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'daily-brief',
-      label: '今日作战板',
-      description: '打开今日任务、提醒与番茄摘要',
+      label: '?????',
+      description: '??????????????',
       icon: Zap,
       action: () => {
         window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'morning' } }))
@@ -333,8 +330,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'evening-review',
-      label: '晚间复盘',
-      description: '打开晚间复盘并生成笔记',
+      label: '????',
+      description: '???????????',
       icon: FileText,
       action: () => {
         window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'evening' } }))
@@ -355,8 +352,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'stealth-reader-library',
-      label: '打开摸鱼书架',
-      description: '直接进入摸鱼阅读书架管理',
+      label: '??????',
+      description: '????????????',
       icon: BookOpen,
       action: () => {
         void window.electronAPI?.openReader?.({ mode: 'library' })
@@ -366,8 +363,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'open-mini',
-      label: '打开迷你窗',
-      description: '悬浮小窗查看任务与提醒',
+      label: '?????',
+      description: '???????????',
       icon: PictureInPicture2,
       action: () => {
         void window.electronAPI?.openMiniWindow?.()
@@ -376,21 +373,9 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       category: t('command.action'),
     },
     {
-      id: 'quick-capture',
-      label: '快速捕获',
-      description: '快速记下任务、笔记或提醒',
-      icon: PenLine,
-      action: () => {
-        if (onOpenQuickCapture) onOpenQuickCapture()
-        else void window.electronAPI?.openQuickCapture?.()
-        onClose()
-      },
-      category: t('command.action'),
-    },
-    {
       id: 'toggle-theme',
-      label: themeMode === 'dark' ? '切换到浅色主题' : '切换到深色主题',
-      description: '立即切换当前界面主题',
+      label: themeMode === 'dark' ? '???????' : '???????',
+      description: '??????????',
       icon: Palette,
       action: () => {
         toggleThemeMode()
@@ -400,26 +385,26 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'quick-expense-template',
-      label: '快速记录支出',
-      description: '输入示例：支出 午餐 36',
+      label: '??????',
+      description: '??????? ?? 36',
       icon: Wallet,
-      action: () => setQuery('支出 '),
+      action: () => setQuery('?? '),
       category: t('command.action'),
     },
     {
       id: 'quick-health-template',
-      label: '快速记录健康',
-      description: '输入示例：健康 跑步 20 分钟',
+      label: '??????',
+      description: '??????? ?? 20 ??',
       icon: HeartPulse,
-      action: () => setQuery('健康 '),
+      action: () => setQuery('?? '),
       category: t('command.action'),
     },
     {
       id: 'quick-reminder-template',
-      label: '快速记录提醒',
-      description: '输入示例：提醒 明天 10 点交材料',
+      label: '??????',
+      description: '??????? ?? 10 ????',
       icon: Bell,
-      action: () => setQuery('提醒 '),
+      action: () => setQuery('?? '),
       category: t('command.action'),
     },
     {
@@ -524,16 +509,16 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
           .map((task) => task.id)
         if (doneIds.length === 0) {
           clearCompletedTodos()
-          showToast('没有可归档的已完成任务', 'info')
+          showToast('???????????', 'info')
           onClose()
           return
         }
         useTaskStore.setState({ selectedIds: new Set(doneIds) })
         void useTaskStore.getState().batchArchive().then(() => {
           clearCompletedTodos()
-          showToast(`已归档 ${doneIds.length} 个已完成任务`, 'success')
+          showToast(`??? ${doneIds.length} ??????`, 'success')
         }).catch(() => {
-          showToast('归档失败，请稍后重试', 'error')
+          showToast('??????????', 'error')
         })
         onClose()
       },
@@ -555,16 +540,16 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       action: () => onNavigate('settings'),
       category: t('command.help'),
     },
-  ], [pages, pageTitles, onNavigate, onClose, onOpenQuickCapture, addNote, toggleSidebar, sidebarCollapsed, clearCompletedTodos, completedCount, t, tWith, themeMode, toggleThemeMode])
+  ], [pages, pageTitles, onNavigate, onClose, addNote, toggleSidebar, sidebarCollapsed, clearCompletedTodos, completedCount, t, tWith, themeMode, toggleThemeMode])
 
   const dynamicCommands: Command[] = useMemo(() => {
     const macroCommands = buildCommandMacroSuggestions(query).map((macro) => ({
       id: macro.id,
       label: macro.label,
-      description: `${macro.description} 步骤：${macro.steps.join(' / ')}`,
+      description: `${macro.description} ???${macro.steps.join(' / ')}`,
       icon: Keyboard,
       action: () => executeMacro(macro),
-      category: '宏命令',
+      category: '???',
     }))
     const actionCommands = buildCommandCenterSuggestions(query, notes).map((suggestion) => ({
       id: suggestion.id,
@@ -572,7 +557,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       description: suggestion.description,
       icon: getSuggestionIcon(suggestion),
       action: () => executeSuggestion(suggestion),
-      category: suggestion.kind === 'open-note' ? '笔记搜索' : '快速行动',
+      category: suggestion.kind === 'open-note' ? '????' : '????',
     }))
     const searchCommands = buildGlobalSearchResults(query, {
       tasks,
@@ -582,11 +567,11 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       files: readIndexedFilesForSearch(),
     }).map((result) => ({
       id: `global-${result.type}-${result.id}`,
-      label: `${result.type === 'task' ? '任务' : result.type === 'note' ? '笔记' : result.type === 'habit' ? '习惯' : '项目'}：${result.title}`,
+      label: `${result.type === 'task' ? '??' : result.type === 'note' ? '??' : result.type === 'habit' ? '??' : '??'}?${result.title}`,
       description: result.description,
       icon: getSearchResultIcon(result),
       action: () => executeSearchResult(result),
-      category: '全局搜索',
+      category: '????',
     }))
     return [...macroCommands, ...actionCommands, ...searchCommands]
   }, [categories, executeMacro, executeSearchResult, executeSuggestion, habits, notes, query, tasks])
@@ -699,7 +684,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
         {activeQuote && (
           <div className="px-4 py-3 border-b border-border bg-primary/5">
             <p className="text-sm text-text italic leading-relaxed">"{activeQuote.text}"</p>
-            <p className="text-xs text-text-muted mt-1.5 text-right">— {activeQuote.author}</p>
+            <p className="text-xs text-text-muted mt-1.5 text-right">� {activeQuote.author}</p>
           </div>
         )}
 
@@ -760,11 +745,11 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
         <div className="flex items-center justify-between px-4 py-2 border-t border-border text-xs text-text-muted">
           <div className="flex items-center gap-3">
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 bg-surface rounded border border-border text-[10px]">↑↓</kbd>
+              <kbd className="px-1 py-0.5 bg-surface rounded border border-border text-[10px]">??</kbd>
               {t('command.navigate')}
             </span>
             <span className="flex items-center gap-1">
-              <kbd className="px-1 py-0.5 bg-surface rounded border border-border text-[10px]">↵</kbd>
+              <kbd className="px-1 py-0.5 bg-surface rounded border border-border text-[10px]">?</kbd>
               {t('command.select')}
             </span>
             <span className="flex items-center gap-1">

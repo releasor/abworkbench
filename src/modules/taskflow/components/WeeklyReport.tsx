@@ -5,7 +5,6 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { showToast } from '../utils/toastEvent';
 import { Icon } from './Icon';
-import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface WeeklyReportData {
   weekStart: string;

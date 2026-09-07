@@ -105,7 +105,7 @@ export default function HotlistPage() {
   }, [])
 
   useEffect(() => {
-    void load(false)
+    void Promise.resolve().then(() => load(false))
   }, [load])
 
   const handleOpen = useCallback((url: string) => {

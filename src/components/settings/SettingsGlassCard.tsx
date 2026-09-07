@@ -1,30 +1,28 @@
-import type { ElementType, ReactNode } from 'react'
+import type { ReactNode } from 'react'
 import GlassCard, { type GlassCardProps } from '../common/GlassSurface/GlassCard'
 
-/** Match ShortcutDock / React Bits GlassSurface refraction defaults */
-export const SETTINGS_GLASS_SURFACE = {
-  borderWidth: 0.08,
-  backgroundOpacity: 0,
-  saturation: 1.08,
-} as const
-
-type SettingsGlassCardProps<T extends ElementType = 'div'> = GlassCardProps<T> & {
+type SettingsGlassCardProps = GlassCardProps & {
   children?: ReactNode
 }
 
-export default function SettingsGlassCard<T extends ElementType = 'div'>({
+export default function SettingsGlassCard({
   borderRadius = 22,
   className = '',
   contentClassName = '',
+  borderWidth = 0.08,
+  backgroundOpacity = 0,
+  saturation = 1.08,
   children,
   ...props
-}: SettingsGlassCardProps<T>) {
+}: SettingsGlassCardProps) {
   return (
     <GlassCard
       borderRadius={borderRadius}
       className={`settings-glass-surface ${className}`.trim()}
       contentClassName={contentClassName}
-      {...SETTINGS_GLASS_SURFACE}
+      borderWidth={borderWidth}
+      backgroundOpacity={backgroundOpacity}
+      saturation={saturation}
       {...props}
     >
       {children}

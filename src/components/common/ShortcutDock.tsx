@@ -6,7 +6,7 @@ interface ShortcutDockProps {
   launcherHint: string
 }
 
-/** Bottom-right shortcut pill â?React Bits GlassSurface (reference defaults) */
+/** Bottom-right shortcut pill ? React Bits GlassSurface (reference defaults) */
 export default memo(function ShortcutDock({ launcherHint }: ShortcutDockProps) {
   return (
     <GlassSurface
@@ -17,10 +17,10 @@ export default memo(function ShortcutDock({ launcherHint }: ShortcutDockProps) {
       className="shortcut-dock hidden md:flex no-motion"
       contentClassName="shortcut-dock__content"
       data-overlay-interactive="true"
-      title="ĺżŤćˇé?
+      title={'\u6253\u5f00\u542f\u52a8\u5668'}
     >
       <kbd>{acceleratorToKeys(launcherHint).join('+')}</kbd>
-      <span>ĺżŤć</span>
+      <span>{'\u5feb\u641c'}</span>
     </GlassSurface>
   )
 })

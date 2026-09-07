@@ -28,7 +28,7 @@ export type BorderGlowProps = {
   animated?: boolean
   colors?: string[]
   fillOpacity?: number
-} & Omit<ComponentPropsWithoutRef<'div'>, 'children' | 'className' | 'style'>
+} & Omit<ComponentPropsWithoutRef<'div'>, 'children' | 'className'>
 
 function parseHSL(hslStr: string): { h: number; s: number; l: number } {
   const match = hslStr.match(/([\d.]+)\s+([\d.]+)%?\s+([\d.]+)%?/)
@@ -76,7 +76,7 @@ function easeOutCubic(x: number) { return 1 - Math.pow(1 - x, 3) }
 function easeInCubic(x: number) { return x * x * x }
 
 function lerpAngle(current: number, target: number, t: number): number {
-  let delta = ((target - current + 540) % 360) - 180
+  const delta = ((target - current + 540) % 360) - 180
   return current + delta * t
 }
 

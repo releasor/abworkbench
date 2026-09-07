@@ -110,3 +110,7 @@ export function getScheduleLabel(schedule: HabitSchedule): string {
 export function formatHourLabel(hour: number): string {
   return `${String(hour).padStart(2, '0')}:00`
 }
+
+export function createDefaultSchedule(): HabitSchedule {
+  return { ...DEFAULT_HABIT_SCHEDULE }
+}

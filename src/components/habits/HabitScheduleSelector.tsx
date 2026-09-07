@@ -1,5 +1,4 @@
 import type { HabitSchedule } from '../../store'
-import { DEFAULT_HABIT_SCHEDULE } from './habitSchedule'
 import { HourSelect } from './HourSelect'
 
 interface HabitScheduleSelectorProps {
@@ -87,8 +86,4 @@ export function HabitScheduleSelector({ schedule, onChange }: HabitScheduleSelec
       )}
     </div>
   )
-}
-
-export function createDefaultSchedule(): HabitSchedule {
-  return { ...DEFAULT_HABIT_SCHEDULE }
 }

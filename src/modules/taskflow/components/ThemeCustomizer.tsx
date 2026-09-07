@@ -178,7 +178,7 @@ export function ThemeCustomizer({ onClose, onSuccess, onError, onRestore }: Them
         </section>
 
         <p className="mt-5 text-center text-xs text-zinc-600">设置会自动保存到本机。</p>
-      </div>
+      </GlowPanel>
 
       {showRestoreConfirm && (
         <div className="fixed inset-0 z-[60] flex items-center justify-center p-4" role="alertdialog" aria-modal="true" aria-labelledby="restore-title">
@@ -228,6 +228,6 @@ export function ThemeCustomizer({ onClose, onSuccess, onError, onRestore }: Them
           </GlowPanel>
         </div>
       )}
-      </GlowPanel>
+    </div>
   );
 }

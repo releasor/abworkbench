@@ -1,13 +1,8 @@
 import type { ComponentProps, ComponentPropsWithoutRef, CSSProperties, ElementType } from 'react'
 import BorderGlow from '../BorderGlow/BorderGlow'
 import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../BorderGlow/borderGlowTheme'
+import { GLASS_CARD_DEFAULTS } from './glassCardDefaults'
 import GlassSurface, { type GlassSurfaceProps } from './GlassSurface'
-
-/** React Bits reference defaults — chromatic edge refraction via difference blend */
-export const GLASS_CARD_DEFAULTS = {
-  backgroundOpacity: 0,
-  saturation: 1.08,
-} satisfies Partial<GlassSurfaceProps>
 
 type GlassCardOwnProps = {
   borderRadius?: number

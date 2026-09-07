@@ -217,6 +217,12 @@ export function StatsChart() {
             <div className="h-4 bg-surface-lighter rounded w-24 mb-4" />
             <div className="h-[200px] bg-surface-lighter rounded" />
           </Card>
+        ))}
+      </div>
+    );
+  }
+
+  return (
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4" role="region" aria-label="任务统计图表">
       {/* Status Pie Chart */}
       <Card className="p-4" role="img" aria-label={`状态分布: ${statusData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>

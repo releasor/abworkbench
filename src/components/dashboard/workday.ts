@@ -1,4 +1,4 @@
-import { safeGet } from '../../utils/safeLocalStorage'
+import { safeGet } from '../../utils/safeLocalStorage.ts'
 
 export const WORKDAY_SETTINGS_KEY = 'abworkbench-workday-settings'
 

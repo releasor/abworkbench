@@ -45,7 +45,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
   const unsyncedCount = useMemo(() => {
     if (!isLive) return 0
     return unsyncedLocalMainline(projectId).length
-  }, [isLive, unsyncedLocalMainline, projectId, tasks])
+  }, [isLive, unsyncedLocalMainline, projectId])
 
   if (!project) {
     return (

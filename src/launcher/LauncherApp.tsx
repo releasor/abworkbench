@@ -23,7 +23,6 @@ import {
   X,
   BookOpen,
   PictureInPicture2,
-  PenLine,
   Bell,
   Radio,
   Flame,
@@ -86,7 +85,6 @@ const COMMAND_ICONS: Record<string, typeof LayoutDashboard> = {
   'stealth-reader': BookOpen,
   'stealth-reader-library': BookOpen,
   'open-mini': PictureInPicture2,
-  'quick-capture': PenLine,
   'daily-brief': Zap,
 }
 
@@ -137,7 +135,6 @@ export interface LauncherAppProps {
   isOpen?: boolean
   onClose?: () => void
   onNavigate?: (page: string) => void
-  onOpenQuickCapture?: () => void
 }
 
 function rowClass(isSelected: boolean) {
@@ -149,7 +146,6 @@ export default function LauncherApp({
   isOpen = true,
   onClose,
   onNavigate,
-  onOpenQuickCapture,
 }: LauncherAppProps) {
   const [query, setQuery] = useState('')
   const [selectedIndex, setSelectedIndex] = useState(0)
@@ -340,16 +336,6 @@ export default function LauncherApp({
       hideLauncher()
       return
     }
-    if (commandId === 'quick-capture') {
-      if (onOpenQuickCapture) {
-        onOpenQuickCapture()
-        hideLauncher()
-        return
-      }
-      void window.electronAPI?.openQuickCapture?.()
-      hideLauncher()
-      return
-    }
     if (commandId === 'daily-brief') {
       window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'morning' } }))
       if (onNavigate) onNavigate('dashboard')
@@ -373,7 +359,7 @@ export default function LauncherApp({
     }
     void window.electronAPI?.showMainWindow?.()
     hideLauncher()
-  }, [clipboardText, hideLauncher, onNavigate, onOpenQuickCapture, variant])
+  }, [clipboardText, hideLauncher, onNavigate, variant])
 
   const openApp = useCallback((appEntry: DesktopAppInfo) => {
     setLaunchError('')

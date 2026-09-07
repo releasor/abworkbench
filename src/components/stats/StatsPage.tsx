@@ -403,13 +403,9 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
     const todayHabitRate = habits.length > 0 ? Math.round((todayHabits / habits.length) * 100) : 0
     let totalHabitDays = 0
     let monthHabitCount = 0
-    let lastMonthHabitCount = 0
-    const lastMonthStartStr = dayNumToDateStr(Math.floor(lastMonthStartMs / DAY))
-    const lastMonthEndStr = dayNumToDateStr(Math.floor(lastMonthEndMs / DAY))
     for (const [d, count] of habitsCountByDate) {
       totalHabitDays += count
       if (d >= monthStartStr) monthHabitCount += count
-      if (d >= lastMonthStartStr && d <= lastMonthEndStr) lastMonthHabitCount += count
     }
     const monthRate = habits.length > 0 ? Math.round((monthHabitCount / (habits.length * daysInMonth)) * 100) : 0
 
@@ -417,17 +413,15 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
     const avgPomodoroPerDay = daysInMonth > 0 ? (monthPomodoroCount / daysInMonth).toFixed(1) : '0'
     const monthFocusDisplay = fmtMin(monthFocusMinutes)
     const monthTodoRate = monthTotalTodos > 0 ? Math.round((monthTodos / monthTotalTodos) * 100) : -1
-    const avgFocusPerDay = daysInMonth > 0 ? Math.round(monthFocusMinutes / daysInMonth) : 0
     const focusTrend = lastMonthFocusMinutes > 0 ? Math.round(((monthFocusMinutes - lastMonthFocusMinutes) / lastMonthFocusMinutes) * 100) : monthFocusMinutes > 0 ? 100 : 0
     const pomodoroTrend = lastMonthPomodoroCount > 0 ? Math.round(((monthPomodoroCount - lastMonthPomodoroCount) / lastMonthPomodoroCount) * 100) : monthPomodoroCount > 0 ? 100 : 0
-    const habitTrend = lastMonthHabitCount > 0 ? Math.round(((monthHabitCount - lastMonthHabitCount) / lastMonthHabitCount) * 100) : monthHabitCount > 0 ? 100 : 0
 
     return {
       todayPomodoro, todayCompletedTodos, weekCompletedTodos, totalPomodoro, focusDisplay, totalCompletedTodos, totalHabitDays, longestSession, avgSessionDuration, workBreakRatio, todayFocusMin, todayHabits, todayHabitRate, monthRate,
-      monthPomodoro: monthPomodoroCount, monthTodos, monthFocusDisplay, avgPomodoroPerDay, daysInMonth, monthHabitCount, monthTodoRate, avgFocusPerDay, monthActiveDays: monthActiveDayNums.size, focusTrend, pomodoroTrend, habitTrend, currentMonthLabel: getMonthLabel(todayMidnightMs),
+      monthPomodoro: monthPomodoroCount, monthTodos, monthFocusDisplay, avgPomodoroPerDay, daysInMonth, monthHabitCount, monthTodoRate, monthActiveDays: monthActiveDayNums.size, focusTrend, pomodoroTrend, currentMonthLabel: getMonthLabel(todayMidnightMs),
     }
   }, [pomodoroSessions, todos, habits, habitsCountByDate, todayStr, todayMidnightMs, tomorrowMidnightMs])
-  const { todayPomodoro, todayCompletedTodos, weekCompletedTodos, totalPomodoro, focusDisplay, totalCompletedTodos, totalHabitDays, longestSession, avgSessionDuration, workBreakRatio, todayFocusMin, todayHabits, todayHabitRate, monthRate, monthPomodoro, monthTodos, monthFocusDisplay, avgPomodoroPerDay, daysInMonth, monthHabitCount, monthTodoRate, avgFocusPerDay, monthActiveDays, focusTrend, pomodoroTrend, habitTrend, currentMonthLabel } = overallStats
+  const { todayPomodoro, todayCompletedTodos, weekCompletedTodos, totalPomodoro, focusDisplay, totalCompletedTodos, totalHabitDays, longestSession, avgSessionDuration, workBreakRatio, todayFocusMin, todayHabits, todayHabitRate, monthRate, monthPomodoro, monthTodos, monthFocusDisplay, avgPomodoroPerDay, daysInMonth, monthHabitCount, monthTodoRate, monthActiveDays, focusTrend, pomodoroTrend, currentMonthLabel } = overallStats
 
   // Consolidated weekly summary + avgPomodoro + goalDays — single pass over pomodoroByDay
   const weeklySummary = useMemo(() => {

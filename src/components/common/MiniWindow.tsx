@@ -1,5 +1,5 @@
 import { useEffect, useMemo, useState, useCallback } from 'react'
-import { Bell, ClipboardPlus, ExternalLink, Timer, Zap, Check } from 'lucide-react'
+import { Bell, ExternalLink, Timer, Zap, Check } from 'lucide-react'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { buildMiniWindowModel, type MiniReminder } from './miniWindowModel'
@@ -9,11 +9,7 @@ import { formatLocalDateTimeMinute } from '../../modules/taskflow/dateUtils'
 import { ACTIVE_POMODORO_EVENT, getActiveRemainingSec, pauseActivePomodoro, readActivePomodoro, resumeActivePomodoro, type ActivePomodoroState } from '../../utils/activePomodoro'
 import { completeReminder as rollCompleteReminder } from '../../utils/reminders'
 
-interface MiniWindowProps {
-  onOpenQuickCapture: () => void
-}
-
-export default function MiniWindow({ onOpenQuickCapture }: MiniWindowProps) {
+export default function MiniWindow() {
   const tasks = useTaskStore((state) => state.tasks)
   const fetchTasks = useTaskStore((state) => state.fetchTasks)
   const updateTask = useTaskStore((state) => state.updateTask)
@@ -104,10 +100,6 @@ export default function MiniWindow({ onOpenQuickCapture }: MiniWindowProps) {
               <p className="text-xs text-text-muted">悬浮工作小窗</p>
             </div>
           </div>
-          <button onClick={onOpenQuickCapture} className="rounded-xl bg-primary px-3 py-2 text-sm font-semibold text-white hover:bg-primary-dark">
-            <ClipboardPlus size={16} className="mr-1 inline" />
-            捕获
-          </button>
         </div>
 
         <div className="mt-4 grid grid-cols-2 gap-3">
@@ -193,11 +185,6 @@ export default function MiniWindow({ onOpenQuickCapture }: MiniWindowProps) {
             </div>
           ))}
         </div>
-
-        <button onClick={onOpenQuickCapture} className="mt-4 w-full rounded-panel border border-border bg-surface/50 px-4 py-3 text-sm font-semibold text-text hover:bg-surface-lighter">
-          <ClipboardPlus size={16} className="mr-2 inline" />
-          快速捕获
-        </button>
 
         <button onClick={() => window.electronAPI?.showMainWindow?.()} className="mt-4 w-full rounded-panel border border-primary/30 bg-primary/10 px-4 py-3 text-sm font-semibold text-primary hover:bg-primary/15">
           <ExternalLink size={16} className="mr-2 inline" />

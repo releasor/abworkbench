@@ -66,7 +66,9 @@ export function NoteListItem({
     setColorMenuOpen(false)
   }, [])
 
-  closeMenuRef.current = closeMenu
+  useEffect(() => {
+    closeMenuRef.current = closeMenu
+  }, [closeMenu])
 
   useEffect(() => {
     if (!menuOpen) return

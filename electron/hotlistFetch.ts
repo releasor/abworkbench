@@ -128,7 +128,13 @@ function decodeXmlEntities(value: string): string {
 function sanitizeTitle(title: string): string {
   return decodeXmlEntities(title)
     .replace(/\uFFFD/g, '')
-    .replace(/[\x00-\x08\x0b\x0c\x0e-\x1f]/g, '')
+    .split('')
+    .filter((ch) => {
+      const code = ch.charCodeAt(0)
+      // Keep tab/LF/CR; drop other C0 controls
+      return code > 0x1f || code === 0x09 || code === 0x0a || code === 0x0d
+    })
+    .join('')
     .replace(/\s+/g, ' ')
     .trim()
 }

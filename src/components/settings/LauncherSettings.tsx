@@ -13,7 +13,6 @@ interface TranslateProviderConfig {
 interface LauncherSettingsConfig {
   hotkey: string
   mainWindowHotkey: string
-  quickCaptureHotkey: string
   esPath: string
   everythingHttpUrl: string
   defaultProviderId: string
@@ -45,7 +44,6 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
       setSettings({
         ...loaded,
         mainWindowHotkey: loaded.mainWindowHotkey || 'Ctrl+Alt+Space',
-        quickCaptureHotkey: loaded.quickCaptureHotkey || 'Ctrl+Shift+Space',
       })
       setEsPathDraft(loaded.esPath)
       setHttpUrlDraft(loaded.everythingHttpUrl)

@@ -58,6 +58,8 @@ function App() {
   const [showLauncher, setShowLauncher] = useState(false)
   const [dateTimePanel, setDateTimePanel] = useState<DateTimePanelMode | null>(null)
   const [mobileSidebarOpen, setMobileSidebarOpen] = useState(false)
+  // Track which pages have been visited to lazily mount them (but never unmount)
+  const [visitedPages, setVisitedPages] = useState<Set<Page>>(new Set(['dashboard']))
   const mainRef = useRef<HTMLElement>(null)
   const accentColor = useStore((s) => s.accentColor)
   const setAccentColor = useStore((s) => s.setAccentColor)
@@ -355,9 +357,6 @@ function App() {
     window.addEventListener(WORKSPACE_MODE_EVENT, handler)
     return () => window.removeEventListener(WORKSPACE_MODE_EVENT, handler)
   }, [goToPage])
-
-  // Track which pages have been visited to lazily mount them (but never unmount)
-  const [visitedPages, setVisitedPages] = useState<Set<Page>>(new Set(['dashboard']))
 
   if (isReaderMode) {
     return <StealthReaderApp />

@@ -24,10 +24,17 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
 
   useEffect(() => {
     if (!task) return
-    setTitle(task.title)
-    setStatus(task.status)
-    setDueDate(task.dueDate ?? '')
-    setDescription(task.description ?? '')
+    // Reset editable fields when the selected task changes.
+    const nextTitle = task.title
+    const nextStatus = task.status
+    const nextDue = task.dueDate ?? ''
+    const nextDescription = task.description ?? ''
+    void Promise.resolve().then(() => {
+      setTitle(nextTitle)
+      setStatus(nextStatus)
+      setDueDate(nextDue)
+      setDescription(nextDescription)
+    })
   }, [task])
 
   if (!task) return null

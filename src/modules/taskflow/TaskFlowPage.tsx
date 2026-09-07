@@ -11,16 +11,12 @@ import { ConfirmDialog } from './components/ConfirmDialog'
 import { TaskFlowToolbar } from './components/TaskFlowToolbar'
 import { TaskFlowView } from './components/TaskFlowView'
 import { ErrorBoundary } from './components/ErrorBoundary'
-import type { Task, ViewMode, Status } from './types'
-import { STATUS_CYCLE } from './types'
+import type { Task, ViewMode } from './types'
 import { showToast } from './utils/toastEvent'
-import { setSoundEnabled, isSoundEnabled } from './utils/sound'
 import { migrateTodosIfNeeded } from './utils/migrateTodos'
 import { getTaskFlowSummaryStats } from './utils/summaryStats'
 import { buildTodaySchedule } from './utils/todaySchedule'
 import { todayStr } from './dateUtils'
-
-const REVERSE_CYCLE: Record<Status, Status> = { 'todo': 'done', 'in-progress': 'todo', 'review': 'in-progress', 'done': 'review' }
 
 const TaskModal = lazy(() => import('./components/TaskModal').then(m => ({ default: m.TaskModal })))
 const StatsPanel = lazy(() => import('./components/StatsPanel').then(m => ({ default: m.StatsPanel })))
@@ -41,8 +37,6 @@ export default function TaskFlowPage() {
   const error = useTaskStore((state) => state.error)
   const clearError = useTaskStore((state) => state.clearError)
   const undoDelete = useTaskStore((state) => state.undoDelete)
-  const updateTask = useTaskStore((state) => state.updateTask)
-  const selectAll = useTaskStore((state) => state.selectAll)
   const clearSelection = useTaskStore((state) => state.clearSelection)
   const batchDelete = useTaskStore((state) => state.batchDelete)
   const selectedIds = useTaskStore((state) => state.selectedIds)
@@ -63,7 +57,7 @@ export default function TaskFlowPage() {
   const [showCompleted, setShowCompleted] = useState(false)
   const [focusedTask, setFocusedTask] = useState<Task | null>(null)
   const [showDeleteConfirm, setShowDeleteConfirm] = useState(false)
-  const [pomodoroToggle, setPomodoroToggle] = useState(false)
+  const [pomodoroToggle] = useState(false)
   const [showDailyReview, setShowDailyReview] = useState(false)
   const [showWeeklyReport, setShowWeeklyReport] = useState(false)
   const [showBulkImport, setShowBulkImport] = useState(false)
@@ -120,7 +114,6 @@ export default function TaskFlowPage() {
     today,
     tasks,
   }), [today, tasks])
-  const taskById = useMemo(() => new Map(tasks.map((task) => [task.id, task])), [tasks])
   const taskFlowHealth = useMemo(() => summaryStats.overdue > 0 ? '需要处理逾期' : summaryStats.active > 0 ? '节奏稳定推进中' : '今天很清爽', [summaryStats])
   const heroStats = useMemo(() => [
     { label: '总任务', value: summaryStats.total, icon: ListChecks, tone: 'text-blue-400 bg-blue-500/10 border-blue-500/20' },
@@ -132,7 +125,6 @@ export default function TaskFlowPage() {
   const hasModal = editingTask !== null || showCreateModal || showKeyboardHelp || focusedTask !== null || showTimeline || showCompleted || showDailyReview || showWeeklyReport || showBulkImport
 
   useKeyboard({
-    onNewTask: () => setShowCreateModal(true),
     onCloseModal: () => {
       setEditingTask(null)
       setShowCreateModal(false)
@@ -145,94 +137,6 @@ export default function TaskFlowPage() {
       setShowBulkImport(false)
     },
     onClearSelection: hasModal ? undefined : () => clearSelection(),
-    onToggleStats: () => setShowStats(prev => !prev),
-    onChangeViewMode: setViewMode,
-    onToggleHelp: () => setShowKeyboardHelp(prev => !prev),
-    onToggleTimeline: () => setShowTimeline(prev => !prev),
-    onToggleSearch: () => {
-      const searchInput = document.querySelector('input[placeholder*="搜索"]') as HTMLInputElement
-      searchInput?.focus()
-    },
-    onToggleCompleted: () => setShowCompleted(prev => !prev),
-    onSelectAll: () => selectAll(),
-    onUndo: async () => {
-      const items = useTaskStore.getState().lastDeletedTasks
-      if (items.length > 0) {
-        try {
-          const count = items.length
-          const title = items[0]?.title || ''
-          await undoDelete()
-          success(count > 1 ? `已恢复 ${count} 个任务` : `已恢复任务: ${title}`)
-        } catch (err) { console.error('恢复任务失败:', err); showError('恢复任务失败') }
-      }
-    },
-    onDeleteSelected: async () => {
-      if (selectedIds.size > 0) setShowDeleteConfirm(true)
-    },
-    onFocusMode: () => {
-      if (selectedIds.size > 0) {
-        const firstSelectedId = selectedIds.values().next().value
-        if (!firstSelectedId) return
-        const task = taskById.get(firstSelectedId)
-        if (task) setFocusedTask(task)
-      }
-    },
-    onTogglePin: async () => {
-      if (selectedIds.size > 0) {
-        const firstSelectedId = selectedIds.values().next().value
-        if (!firstSelectedId) return
-        const task = taskById.get(firstSelectedId)
-        if (task) {
-          try {
-            await updateTask(task.id, { pinned: !task.pinned })
-            success(task.pinned ? '已取消置顶' : '已置顶任务')
-          } catch (err) { console.error('置顶操作失败:', err); showError('置顶操作失败') }
-        }
-      }
-    },
-    onSnoozeSelected: async () => {
-      if (selectedIds.size > 0) {
-        try {
-          const { batchSnooze } = useTaskStore.getState()
-          await batchSnooze(1)
-          success(`已将 ${selectedIds.size} 个任务推迟1天`)
-        } catch (err) { console.error('推迟失败:', err); showError('推迟失败') }
-      }
-    },
-    onTogglePomodoro: () => setPomodoroToggle(prev => !prev),
-    onToggleSound: () => {
-      const currentlyEnabled = isSoundEnabled()
-      setSoundEnabled(!currentlyEnabled)
-      success(currentlyEnabled ? '已关闭声音' : '已开启声音')
-    },
-    onToggleDailyReview: () => setShowDailyReview(prev => !prev),
-    onToggleWeeklyReport: () => setShowWeeklyReport(prev => !prev),
-    onMoveStatusForward: async () => {
-      if (selectedIds.size === 0) return
-      try {
-        const { moveTask } = useTaskStore.getState()
-        const promises: Promise<void>[] = []
-        for (const id of selectedIds) {
-          const task = taskById.get(id)
-          if (task) promises.push(moveTask(task.id, STATUS_CYCLE[task.status]))
-        }
-        await Promise.all(promises)
-        success(`已推进 ${selectedIds.size} 个任务`)
-      } catch (err) { console.error('推进任务失败:', err); showError('推进任务失败') }
-    },
-    onMoveStatusBackward: async () => {
-      if (selectedIds.size === 0) return
-      try {
-        const { moveTask } = useTaskStore.getState()
-        const promises: Promise<void>[] = []
-        for (const id of selectedIds) {
-          const task = taskById.get(id)
-          if (task) promises.push(moveTask(task.id, REVERSE_CYCLE[task.status]))
-        }
-        await Promise.all(promises)
-        success(`已回退 ${selectedIds.size} 个任务`)
-      } catch (err) { console.error('回退任务失败:', err); showError('回退任务失败') }
-    },
   })
 
   const handleCelebrationComplete = useCallback(() => setShowCelebration(false), [])

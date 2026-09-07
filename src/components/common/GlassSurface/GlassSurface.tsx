@@ -113,7 +113,7 @@ export default function GlassSurface<T extends ElementType = 'div'>({
   const redGradId = `red-grad-${id.replace(/:/g, '')}`
   const blueGradId = `blue-grad-${id.replace(/:/g, '')}`
 
-  const [svgSupported, setSvgSupported] = useState(canUseSvgBackdropFilter)
+  const [svgSupported] = useState(canUseSvgBackdropFilter)
 
   const containerRef = useRef<HTMLDivElement>(null)
   const feImageRef = useRef<SVGFEImageElement>(null)
@@ -205,10 +205,6 @@ export default function GlassSurface<T extends ElementType = 'div'>({
   useEffect(() => {
     window.requestAnimationFrame(updateDisplacementMap)
   }, [width, height, updateDisplacementMap])
-
-  useEffect(() => {
-    setSvgSupported(canUseSvgBackdropFilter())
-  }, [])
 
   const containerStyle: CSSProperties = {
     ...style,

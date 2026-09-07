@@ -11,7 +11,7 @@ import { HABIT_COLORS, HABIT_ICONS, HABIT_TEMPLATES } from './habitConstants'
 import { HabitCard } from './HabitCard'
 import { HabitForm } from './HabitForm'
 import { HabitStats } from './HabitStats'
-import { createDefaultSchedule } from './HabitScheduleSelector'
+import { createDefaultSchedule } from './habitSchedule'
 import { getHabitProgress } from './habitSchedule'
 import {
   getHabitComputedStats,

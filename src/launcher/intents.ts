@@ -36,7 +36,6 @@ export const LAUNCHER_COMMANDS: LauncherCommandDef[] = [
   { id: 'stealth-reader', label: '摸鱼阅读', description: '打开透明悬浮窗继续阅读或进入书架', keywords: ['reader', 'novel', 'moyu', '摸鱼', '阅读', '小说', '看书'] },
   { id: 'stealth-reader-library', label: '摸鱼书架', description: '直接打开摸鱼阅读书架', keywords: ['library', 'bookshelf', '书架', '书库', 'moyu'] },
   { id: 'open-mini', label: '迷你窗', description: '打开悬浮迷你工作窗，快速看任务与提醒', keywords: ['mini', 'miniw', '悬浮', '迷你', '小窗'] },
-  { id: 'quick-capture', label: '快速捕获', description: '快速记下任务、笔记或提醒', keywords: ['capture', 'kuaisu', '快速捕获', '捕获', 'inbox', '速记'] },
 ]
 
 // --- Prefix handling ---

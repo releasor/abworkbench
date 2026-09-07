@@ -59,8 +59,11 @@ export default function MineradioPage() {
   const webviewRef = useRef<MineradioWebview | null>(null)
   const webviewReadyRef = useRef(false)
   const embedThemeRef = useRef(embedTheme)
-  embedThemeRef.current = embedTheme
   const useNative = Boolean(status?.preloadPath && status.embedEngine === 'webview-native')
+
+  useEffect(() => {
+    embedThemeRef.current = embedTheme
+  }, [embedTheme])
 
   const start = useCallback(async () => {
     setLoading(true)
@@ -86,7 +89,8 @@ export default function MineradioPage() {
   }, [])
 
   useEffect(() => {
-    void start()
+    // Bootstrap embed host once on mount.
+    void Promise.resolve().then(() => start())
   }, [start])
 
   useEffect(() => {
@@ -149,7 +153,6 @@ export default function MineradioPage() {
       iframeRef.current = null
     }
     // Intentionally omit embedTheme: live theme sync uses postMessage / executeJavaScript.
-    // eslint-disable-next-line react-hooks/exhaustive-deps -- mount once per status/engine
   }, [status, loading, error, useNative])
 
   useEffect(() => {

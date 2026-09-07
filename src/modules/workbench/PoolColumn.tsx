@@ -1,4 +1,3 @@
-import { useMemo } from 'react'
 import { showToast } from '../taskflow/utils/toastEvent'
 import TaskRow from './TaskRow'
 import WbPanel from './WbPanel'
@@ -10,19 +9,12 @@ interface PoolColumnProps {
 }
 
 export default function PoolColumn({ projectId, onOpenTask }: PoolColumnProps) {
-  const connection = useWorkbenchStore((s) => s.connection)
-  const remotePool = useWorkbenchStore((s) => s.remotePool)
   const remoteMembers = useWorkbenchStore((s) => s.remoteMembers)
-  const visiblePool = useWorkbenchStore((s) => s.visiblePool)
+  const pool = useWorkbenchStore((s) => s.visiblePool(projectId))
   const promoteRemote = useWorkbenchStore((s) => s.promoteRemote)
   const isOnMainline = useWorkbenchStore((s) => s.isOnMainline)
   const isLive = useWorkbenchStore((s) => s.isLiveForProject(projectId))
   const lead = useWorkbenchStore((s) => s.isLead())
-
-  const pool = useMemo(
-    () => visiblePool(projectId),
-    [visiblePool, projectId, connection.mode, connection.projectId, remotePool],
-  )
 
   const memberName = (authorId: string) =>
     remoteMembers.find((m) => m.id === authorId)?.displayName || authorId
