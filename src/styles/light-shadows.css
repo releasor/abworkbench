@@ -206,16 +206,7 @@ html[data-theme='light'] .header-glass {
   background: rgba(255, 255, 255, 0.72) !important;
 }
 
-/* Hotlist boards — tile shadow (no ring), fades inside grid gutter */
-html[data-theme='light'] .hotlist-card {
- box-shadow: var(--shadow-card-tile) !important;
- background: rgba(255, 255, 255, 0.82) !important;
- border: 0 !important;
- backdrop-filter: blur(12px) saturate(1.06) !important;
- -webkit-backdrop-filter: blur(12px) saturate(1.06) !important;
-}
-
-/* Scrollable card grids: horizontal gutter so tile shadows are not clipped */
+/* Hotlist boards — GlassCard owns material; only keep grid gutter for tile room */
 html[data-theme='light'] .hotlist-grid,
 html[data-theme='light'] .dashboard-stat-grid {
   padding-inline: 16px;
