@@ -3,6 +3,7 @@ import { BookOpen, Keyboard } from 'lucide-react'
 import { SHORTCUT_BY_ID, useShortcutStore } from '../../shortcuts'
 import { useTranslation } from '../../i18n'
 import ShortcutRecorder from './ShortcutRecorder'
+import SettingsGlassCard from './SettingsGlassCard'
 
 interface ReaderSettingsProps {
   onToast: (message: string, type?: 'success' | 'error' | 'info') => void
@@ -79,8 +80,8 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
   const conflictLabel = conflictIds[0] ? SHORTCUT_BY_ID[conflictIds[0]]?.label : undefined
 
   return (
-    <div className="space-y-6 animate-fade-in">
-      <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+    <div className="settings-panel-stack animate-fade-in">
+      <SettingsGlassCard className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <BookOpen size={20} className="text-primary" />
           <h2 className="text-lg font-semibold text-text">{t('settings.reader.title')}</h2>
@@ -140,9 +141,9 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
             />
           </label>
         </div>
-      </div>
+      </SettingsGlassCard>
 
-      <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+      <SettingsGlassCard className="p-6">
         <div className="flex items-center gap-2 mb-4">
           <Keyboard size={20} className="text-primary" />
           <h2 className="text-lg font-semibold text-text">{t('settings.reader.bossKey')}</h2>
@@ -189,7 +190,7 @@ export default function ReaderSettings({ onToast }: ReaderSettingsProps) {
         {settings.novelDir && (
           <p className="mt-3 text-[11px] text-text-muted">{t('settings.reader.novelDir')}：{settings.novelDir}</p>
         )}
-      </div>
+      </SettingsGlassCard>
     </div>
   )
 }

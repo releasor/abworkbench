@@ -1,0 +1,204 @@
+/* Settings page — GlassSurface cards (ShortcutDock style) + frosted controls */
+
+.settings-glass-surface.glass-card {
+  width: 100%;
+  position: relative;
+  z-index: 0;
+  isolation: isolate;
+  transform: translateZ(0);
+  backface-visibility: hidden;
+  -webkit-backface-visibility: hidden;
+  box-shadow: var(--shadow-elevation-1, var(--glass-shadow));
+}
+
+.settings-glass-surface.glass-card:hover {
+  box-shadow: var(--shadow-elevation-1-hover, var(--glass-shadow-hover));
+}
+
+html[data-theme='light'] .settings-glass-surface.glass-card,
+html[data-theme='light'] .settings-glass-surface.glass-card:hover {
+  box-shadow: var(--shadow-elevation-1);
+}
+
+html[data-theme='dark'] .settings-glass-surface.glass-card,
+html[data-theme='dark'] .settings-glass-surface.glass-card:hover {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 4px 14px rgba(0, 0, 0, 0.22),
+    0 10px 28px rgba(0, 0, 0, 0.16);
+}
+
+.settings-glass-surface.glass-card.settings-glass-tablist,
+html[data-theme='light'] .settings-glass-surface.glass-card.settings-glass-tablist,
+html[data-theme='dark'] .settings-glass-surface.glass-card.settings-glass-tablist {
+  box-shadow: var(--shadow-elevation-1, var(--glass-shadow)) !important;
+}
+
+html[data-theme='dark'] .settings-glass-surface.glass-card.settings-glass-tablist {
+  box-shadow:
+    0 0 0 1px rgba(255, 255, 255, 0.06),
+    0 4px 14px rgba(0, 0, 0, 0.22),
+    0 10px 28px rgba(0, 0, 0, 0.16) !important;
+}
+
+/* Room for soft outer shadow between stacked cards */
+.settings-panel-stack {
+  display: flex;
+  flex-direction: column;
+  gap: 2rem;
+}
+
+.settings-glass-tablist {
+  gap: 0.35rem;
+  flex-direction: row !important;
+  align-items: stretch;
+}
+
+.settings-glass-tablist.glass-card > :not(.glass-surface__filter),
+.settings-glass-surface.settings-glass-tablist > :not(.glass-surface__filter) {
+  width: auto !important;
+  max-width: none !important;
+  flex: 1 1 0;
+}
+
+/* Each tab = frosted glass chip (sidebar nav style) */
+.settings-glass-tab.liquid-glass-chip {
+  border-radius: 0.75rem !important;
+  border: 1px solid color-mix(in srgb, #fff 22%, var(--glass-border-soft, var(--color-border))) !important;
+  background: color-mix(in srgb, var(--color-surface-light) 32%, transparent) !important;
+  backdrop-filter: blur(14px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(14px) saturate(1.2) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent),
+    0 2px 10px color-mix(in srgb, #000 6%, transparent) !important;
+  color: var(--color-text-muted) !important;
+  transition:
+    background 180ms ease,
+    color 180ms ease,
+    border-color 180ms ease,
+    box-shadow 220ms cubic-bezier(0.32, 0.72, 0, 1),
+    transform 180ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.settings-glass-tab.liquid-glass-chip:hover:not(.settings-glass-tab--active) {
+  background: color-mix(in srgb, var(--color-surface-light) 48%, transparent) !important;
+  color: var(--color-text) !important;
+  border-color: color-mix(in srgb, #fff 32%, var(--glass-border-soft, var(--color-border))) !important;
+}
+
+.settings-glass-tab--active.liquid-glass-chip {
+  background: color-mix(in srgb, var(--color-primary) 28%, rgba(255, 255, 255, 0.08)) !important;
+  color: #fff !important;
+  border-color: color-mix(in srgb, var(--color-primary) 42%, rgba(255, 255, 255, 0.2)) !important;
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 40%, transparent),
+    0 8px 22px color-mix(in srgb, var(--color-primary) 24%, transparent) !important;
+  backdrop-filter: blur(16px) saturate(1.28) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.28) !important;
+}
+
+.settings-glass-row {
+  border-radius: 1rem;
+}
+
+.settings-glass-input {
+  border-radius: 1rem;
+  border: 1px solid color-mix(in srgb, #fff 16%, var(--glass-border-soft, var(--color-border)));
+  background: color-mix(in srgb, var(--color-surface-light) 34%, transparent);
+  backdrop-filter: blur(10px) saturate(1.12);
+  -webkit-backdrop-filter: blur(10px) saturate(1.12);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 24%, transparent);
+}
+
+.settings-glass-input:focus {
+  border-color: color-mix(in srgb, var(--color-primary) 45%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent),
+    0 0 0 4px color-mix(in srgb, var(--color-primary) 12%, transparent);
+}
+
+.liquid-glass-toggle {
+  position: relative;
+  height: 2rem;
+  width: 3.5rem;
+  border-radius: 9999px;
+  border: 1px solid color-mix(in srgb, #fff 18%, var(--glass-border-soft, var(--color-border)));
+  background: color-mix(in srgb, var(--color-surface-light) 42%, transparent);
+  backdrop-filter: blur(12px) saturate(1.18);
+  -webkit-backdrop-filter: blur(12px) saturate(1.18);
+  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent);
+  transition:
+    background 220ms ease,
+    border-color 220ms ease,
+    box-shadow 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.liquid-glass-toggle[aria-checked='true'] {
+  background: color-mix(in srgb, var(--color-primary) 78%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 42%, transparent);
+  box-shadow:
+    inset 0 1px 0 color-mix(in srgb, #fff 38%, transparent),
+    0 6px 18px color-mix(in srgb, var(--color-primary) 30%, transparent);
+}
+
+.liquid-glass-toggle__thumb {
+  position: absolute;
+  top: 0.25rem;
+  left: 0.25rem;
+  height: 1.5rem;
+  width: 1.5rem;
+  border-radius: 9999px;
+  background: linear-gradient(180deg, #fff 0%, #f1f5f9 100%);
+  box-shadow:
+    0 2px 8px rgba(15, 23, 42, 0.18),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95);
+  transition: transform 220ms cubic-bezier(0.32, 0.72, 0, 1);
+}
+
+.liquid-glass-toggle[aria-checked='true'] .liquid-glass-toggle__thumb {
+  transform: translateX(1.875rem);
+}
+
+/* Light: inactive tab = subtle frosted chip */
+html[data-theme='light'] .settings-glass-tab.liquid-glass-chip {
+  background: color-mix(in srgb, #fff 58%, transparent) !important;
+  border-color: color-mix(in srgb, #fff 82%, #e2e8f0) !important;
+  color: #64748b !important;
+  box-shadow:
+    0 0 0 1px rgba(15, 23, 42, 0.03),
+    0 2px 6px rgba(15, 23, 42, 0.04),
+    inset 0 1px 0 rgba(255, 255, 255, 0.95) !important;
+}
+
+html[data-theme='light'] .settings-glass-tab.liquid-glass-chip:hover:not(.settings-glass-tab--active) {
+  background: color-mix(in srgb, #fff 72%, transparent) !important;
+  color: #334155 !important;
+}
+
+/* Light: active tab = translucent blue glass (not solid pill) */
+html[data-theme='light'] .settings-glass-tab--active.liquid-glass-chip {
+  background: color-mix(in srgb, #3b82f6 16%, rgba(255, 255, 255, 0.78)) !important;
+  color: #1e40af !important;
+  border-color: color-mix(in srgb, #93c5fd 50%, rgba(255, 255, 255, 0.85)) !important;
+  box-shadow:
+    0 0 0 1px rgba(37, 99, 235, 0.12),
+    0 2px 8px rgba(37, 99, 235, 0.1),
+    0 8px 20px rgba(37, 99, 235, 0.08),
+    inset 0 1px 0 rgba(255, 255, 255, 0.98) !important;
+}
+
+html[data-theme='light'] .settings-glass-row.liquid-glass-chip,
+html[data-theme='light'] .settings-glass-input {
+  background: color-mix(in srgb, #fff 62%, transparent);
+  border-color: color-mix(in srgb, #fff 80%, #e2e8f0);
+}
+
+html[data-theme='light'] .liquid-glass-toggle {
+  background: color-mix(in srgb, #e2e8f0 65%, transparent);
+  border-color: color-mix(in srgb, #fff 75%, #cbd5e1);
+}
+
+html[data-theme='light'] .liquid-glass-toggle[aria-checked='true'] {
+  background: color-mix(in srgb, var(--color-primary) 82%, transparent);
+  border-color: color-mix(in srgb, var(--color-primary) 35%, transparent);
+}
