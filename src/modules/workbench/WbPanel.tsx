@@ -1,41 +1,40 @@
-import type { ComponentPropsWithoutRef, ElementType } from 'react'
+import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 import clsx from 'clsx'
-import BorderGlow from '../../components/common/BorderGlow/BorderGlow'
-import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../../components/common/BorderGlow/borderGlowTheme'
+import GlassCard, { type GlassCardProps } from '../../components/common/GlassSurface/GlassCard'
 
 type WbPanelProps<T extends ElementType = 'section'> = {
   as?: T
   hero?: boolean
   borderRadius?: number
-} & ComponentPropsWithoutRef<T>
+  className?: string
+  contentClassName?: string
+  children?: ReactNode
+} & Omit<ComponentPropsWithoutRef<T>, 'as' | 'className' | 'children'>
 
 export default function WbPanel<T extends ElementType = 'section'>({
   as,
   className,
+  contentClassName = '',
   children,
   hero = false,
   borderRadius,
   ...props
 }: WbPanelProps<T>) {
-  const Component = (as ?? 'section') as ElementType
-  const glow = useBorderGlowTheme()
-  const surface = useBorderGlowSurfaceColor()
-  const radius = borderRadius ?? (hero ? 22 : 16)
+  const radius = borderRadius ?? (hero ? 28 : 22)
 
-  return (
-    <BorderGlow
-      {...glow}
-      borderRadius={radius}
-      backgroundColor={surface}
-      className={clsx('wb-panel-glow h-full min-h-0 w-full min-w-0', hero && 'wb-panel-glow--hero')}
-      innerClassName="h-full min-h-0"
-    >
-      <Component
-        className={clsx('wb-panel', hero && 'wb-panel--hero', className)}
-        {...props}
-      >
-        {children}
-      </Component>
-    </BorderGlow>
-  )
+  // GlassCard's default `as: 'div'` generic rejects polymorphic tags; cast like SettingsGlassCard.
+  const cardProps = {
+    as: as ?? 'section',
+    borderRadius: radius,
+    className: clsx(
+      'dashboard-panel wb-panel',
+      hero && 'wb-panel--hero',
+      className,
+    ),
+    contentClassName,
+    children,
+    ...props,
+  } as GlassCardProps
+
+  return <GlassCard {...cardProps} />
 }
