@@ -1,5 +1,8 @@
-import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { useCallback, useEffect, useMemo, useRef, useState, type ReactNode } from 'react'
 import { Flame, RefreshCw } from 'lucide-react'
+import BorderGlow from '../../components/common/BorderGlow/BorderGlow'
+import { GlassCard } from '../../components/common/GlassSurface'
+import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../../components/common/BorderGlow/borderGlowTheme'
 import { useTranslation } from '../../i18n'
 import HotlistBoardCard from './HotlistBoardCard'
 import { fetchHotlistBatch, fetchHotlistPlatforms, openHotlistUrl, sortHotlistBoards } from './hotlistApi'
@@ -22,6 +25,8 @@ function placeholderBoard(platform: HotlistPlatform): HotlistBoard {
 
 export default function HotlistPage() {
   const { t } = useTranslation()
+  const glowTheme = useBorderGlowTheme()
+  const surfaceColor = useBorderGlowSurfaceColor()
   const [boards, setBoards] = useState<HotlistBoard[]>([])
   const [platformOrder, setPlatformOrder] = useState<string[]>([])
   const [loading, setLoading] = useState(true)
@@ -117,58 +122,83 @@ export default function HotlistPage() {
     [boards, platformOrder],
   )
 
+  const refreshButton = (
+    <button
+      type="button"
+      className="interactive-glass dashboard-chip inline-flex items-center gap-1.5 rounded-xl px-3 py-1.5 text-xs font-semibold text-primary disabled:opacity-50"
+      disabled={refreshing || (loading && boards.length === 0)}
+      onClick={() => void load(true)}
+    >
+      <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
+      {refreshing ? t('hotlist.refreshing') : error && boards.length === 0 ? t('hotlist.retry') : t('hotlist.refresh')}
+    </button>
+  )
+
+  let body: ReactNode
   if (loading && boards.length === 0) {
-    return (
-      <div className="hotlist-page hotlist-page--state">
-        <div className="hotlist-state">
-          <Flame className="h-8 w-8 animate-pulse text-[var(--accent,#00f5d4)]" />
-          <p>{t('hotlist.loading')}</p>
-        </div>
+    body = (
+      <div className="hotlist-state">
+        <Flame className="h-8 w-8 animate-pulse text-primary" />
+        <p className="text-sm text-text-muted">{t('hotlist.loading')}</p>
       </div>
     )
-  }
-
-  if (error && boards.length === 0) {
-    return (
-      <div className="hotlist-page hotlist-page--state">
-        <div className="hotlist-state hotlist-state--error">
-          <p>{error}</p>
-          <button type="button" className="hotlist-btn" onClick={() => void load(true)}>
-            <RefreshCw className="h-3.5 w-3.5" />
-            {t('hotlist.retry')}
-          </button>
-        </div>
+  } else if (error && boards.length === 0) {
+    body = (
+      <div className="hotlist-state hotlist-state--error">
+        <p className="text-sm">{error}</p>
+        {refreshButton}
       </div>
+    )
+  } else {
+    body = (
+      <>
+        {error ? (
+          <GlassCard className="dashboard-panel px-4 py-3 text-sm text-red-300">
+            {error}
+          </GlassCard>
+        ) : null}
+        <div className="hotlist-grid">
+          {visibleBoards.map((board) => (
+            <HotlistBoardCard key={board.id} board={board} onOpen={handleOpen} />
+          ))}
+        </div>
+      </>
     )
   }
 
   return (
-    <div className="hotlist-page page-enter-key">
-      <div className="hotlist-toolbar">
-        <div className="hotlist-toolbar__copy">
-          <h1 className="hotlist-toolbar__title">{t('page.hotlist')}</h1>
-          <p className="hotlist-toolbar__sub">{t('hotlist.subtitle')}</p>
-        </div>
-        <div className="hotlist-toolbar__actions">
-          <button
-            type="button"
-            className="hotlist-btn"
-            disabled={refreshing}
-            onClick={() => void load(true)}
-          >
-            <RefreshCw className={`h-3.5 w-3.5 ${refreshing ? 'animate-spin' : ''}`} />
-            {refreshing ? t('hotlist.refreshing') : t('hotlist.refresh')}
-          </button>
-        </div>
-      </div>
+    <BorderGlow
+      {...glowTheme}
+      borderRadius={22}
+      backgroundColor={surfaceColor}
+      glowMaskColor={surfaceColor}
+      className="hotlist-stage-frame border-glow-card--glass h-full min-h-0 w-full"
+      innerClassName="hotlist-stage flex h-full min-h-0 flex-col page-enter-key"
+    >
+      <div className="hotlist-content-scroll flex min-h-0 flex-1 flex-col gap-4 p-4 md:p-5">
+        <BorderGlow
+          {...glowTheme}
+          borderRadius={28}
+          backgroundColor={surfaceColor}
+          glowMaskColor={surfaceColor}
+          className="w-full shrink-0 border-glow-card--glass"
+          innerClassName="dashboard-hero relative overflow-hidden p-6 md:p-8"
+        >
+          <div className="relative z-[2] flex flex-wrap items-end justify-between gap-4">
+            <div className="min-w-0 max-w-2xl">
+              <div className="home-kicker mb-3 inline-flex items-center gap-2">
+                <Flame size={12} />
+                <span>{t('page.hotlist')}</span>
+              </div>
+              <h1 className="text-3xl font-black tracking-tight text-text md:text-4xl">{t('page.hotlist')}</h1>
+              <p className="mt-2 text-sm text-text-muted">{t('hotlist.subtitle')}</p>
+            </div>
+            <div className="shrink-0">{refreshButton}</div>
+          </div>
+        </BorderGlow>
 
-      {error ? <p className="hotlist-banner hotlist-banner--error">{error}</p> : null}
-
-      <div className="hotlist-grid">
-        {visibleBoards.map((board) => (
-          <HotlistBoardCard key={board.id} board={board} onOpen={handleOpen} />
-        ))}
+        {body}
       </div>
-    </div>
+    </BorderGlow>
   )
 }

@@ -1,6 +1,5 @@
+import { GlassCard } from '../../components/common/GlassSurface'
 import { useTranslation } from '../../i18n'
-import BorderGlow from '../../components/common/BorderGlow/BorderGlow'
-import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../../components/common/BorderGlow/borderGlowTheme'
 import type { HotlistBoard } from './types'
 import { formatHotlistUpdateLabel } from '../../utils/hotlistFormat'
 
@@ -18,18 +17,9 @@ function rankClass(rank: number): string {
 
 export default function HotlistBoardCard({ board, onOpen }: Props) {
   const { t } = useTranslation()
-  const glow = useBorderGlowTheme()
-  const surface = useBorderGlowSurfaceColor()
 
   return (
-    <BorderGlow
-      {...glow}
-      borderRadius={20}
-      backgroundColor={surface}
-      className="hotlist-card-glow h-full min-w-0 w-full"
-      innerClassName="h-full min-h-0"
-    >
-    <article className="hotlist-card">
+    <GlassCard borderRadius={22} className="dashboard-panel hotlist-card h-full min-w-0 w-full">
       <header className="hotlist-card__head">
         <div className="hotlist-card__title-wrap">
           <h2 className="hotlist-card__title">{board.title}</h2>
@@ -59,7 +49,7 @@ export default function HotlistBoardCard({ board, onOpen }: Props) {
               <li key={`${board.id}-${item.rank}-${item.url}`} className="hotlist-card__item">
                 <button
                   type="button"
-                  className="hotlist-card__link"
+                  className="hotlist-card__link interactive-glass"
                   onClick={() => onOpen(item.url)}
                   title={item.title}
                 >
@@ -74,7 +64,6 @@ export default function HotlistBoardCard({ board, onOpen }: Props) {
           </ol>
         </div>
       )}
-    </article>
-    </BorderGlow>
+    </GlassCard>
   )
 }
