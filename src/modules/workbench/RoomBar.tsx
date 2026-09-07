@@ -146,7 +146,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
         </div>
       </div>
 
-      <p className="wb-subtitle text-[11px]">
+      <p className="text-[11px] text-text-muted">
         {isLive
           ? '协作仅限本项目：所有人池与团队主线只同步此项目'
           : boundElsewhere

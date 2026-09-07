@@ -53,7 +53,7 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
     <div className="wb-drawer-veil fixed inset-0 z-40 flex justify-end" onClick={onClose}>
       <aside className="wb-drawer-panel flex h-full w-full max-w-md flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="wb-panel-header flex items-center justify-between px-4 py-3">
-          <h2 className="wb-title text-sm font-semibold text-text">任务详情</h2>
+          <h2 className="text-sm font-semibold text-text">任务详情</h2>
           <button
             type="button"
             onClick={onClose}

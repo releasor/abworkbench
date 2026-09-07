@@ -107,7 +107,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
             type="button"
             onClick={startRename}
             title="点击修改项目名称"
-            className="wb-title truncate text-left text-lg font-semibold text-text hover:text-primary"
+            className="truncate text-left text-lg font-semibold text-text hover:text-primary"
           >
             {project.name}
           </button>

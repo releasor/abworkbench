@@ -1,5 +1,5 @@
-/* Workbench cinematic skin — Mineradio-inspired glass + glow.
-   Priority: readable text first; effects decorate panels, not wash content. */
+/* Workbench domain UI — lanes, tasks, room chrome, drawer.
+   Panel shells / buttons come from GlassCard + mineradio-skin; do not reintroduce a second glass material. */
 
 .wb-stage {
   position: relative;
@@ -20,7 +20,7 @@
     radial-gradient(ellipse 40% 45% at 92% 12%, color-mix(in srgb, #22d3ee 14%, transparent), transparent 68%),
     radial-gradient(ellipse 35% 40% at 55% 40%, color-mix(in srgb, var(--color-secondary) 10%, transparent), transparent 72%);
   animation: ambient-breathe 9s ease-in-out infinite;
-  opacity: 0.9;
+  opacity: 0.32;
 }
 
 html[data-theme="light"] .wb-stage {
@@ -36,41 +36,9 @@ html[data-theme="light"] .wb-stage::before {
   display: none;
 }
 
-html[data-theme="light"] .wb-panel {
-  background: var(--wb-surface) !important;
-  border: none !important;
-  backdrop-filter: blur(16px) saturate(1.05) !important;
-  -webkit-backdrop-filter: blur(16px) saturate(1.05) !important;
-  box-shadow: var(--wb-ambient) !important;
-  overflow: hidden;
-}
-
-html[data-theme="light"] .wb-panel::after {
-  display: none;
-}
-
-html[data-theme="light"] .wb-panel--hero {
-  background: var(--wb-surface-raised) !important;
-  border: none !important;
-  box-shadow: var(--wb-ambient) !important;
-}
-
-html[data-theme="light"] .wb-panel--hero::before {
-  display: none;
-}
-
-html[data-theme="light"] .wb-panel-header {
-  background: transparent;
-  border-bottom: none;
-}
-
 html[data-theme="light"] .wb-section-divider {
   border: none !important;
   background: color-mix(in srgb, var(--color-primary) 2.5%, transparent);
-}
-
-html[data-theme="light"] .wb-title {
-  text-shadow: none;
 }
 
 html[data-theme="light"] .wb-lane {
@@ -128,30 +96,6 @@ html[data-theme="light"] .wb-project-card:hover {
   transform: none;
 }
 
-html[data-theme="light"] .wb-btn {
-  background: color-mix(in srgb, #ffffff 45%, transparent);
-  border: none;
-  box-shadow: none;
-}
-
-html[data-theme="light"] .wb-btn:hover:not(:disabled) {
-  background: color-mix(in srgb, #ffffff 68%, transparent);
-  box-shadow: var(--wb-lift);
-  transform: none;
-}
-
-html[data-theme="light"] .wb-input {
-  background: color-mix(in srgb, #ffffff 50%, transparent);
-  border: none;
-  box-shadow: inset 0 1px 2px color-mix(in srgb, #0f172a 2%, transparent);
-}
-
-html[data-theme="light"] .wb-input:focus {
-  box-shadow:
-    0 0 0 2px color-mix(in srgb, var(--color-primary) 12%, transparent),
-    inset 0 1px 2px color-mix(in srgb, #0f172a 2%, transparent);
-}
-
 html[data-theme="light"] .wb-badge-on-mainline {
   box-shadow: none;
 }
@@ -184,80 +128,9 @@ html[data-theme="light"] .wb-board-grid {
   padding: 10px;
 }
 
-.wb-panel {
-  position: relative;
-  overflow: hidden;
-  background: var(--glass-bg);
-  backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  -webkit-backdrop-filter: blur(var(--glass-blur)) saturate(var(--glass-sat));
-  border: 1px solid var(--glass-border);
-  border-radius: var(--radius-frame, 22px);
-  box-shadow: var(--glass-shadow);
-  transition:
-    box-shadow var(--motion-med) var(--ease-spring),
-    border-color var(--motion-med) var(--ease-spring),
-    transform var(--motion-med) var(--ease-spring);
-}
-
-.wb-panel::after {
-  content: '';
-  pointer-events: none;
-  position: absolute;
-  inset: 0;
-  border-radius: inherit;
-  background: linear-gradient(
-    125deg,
-    color-mix(in srgb, #fff 10%, transparent),
-    transparent 28%,
-    transparent 72%,
-    color-mix(in srgb, var(--color-primary) 8%, transparent)
-  );
-  opacity: 0.55;
-}
-
-.wb-panel > * {
-  position: relative;
-  z-index: 1;
-}
-
-.wb-panel--hero {
-  box-shadow:
-    var(--glass-shadow),
-    0 0 48px color-mix(in srgb, var(--color-primary) 14%, transparent);
-  border-color: color-mix(in srgb, var(--color-primary) 36%, var(--color-border));
-}
-
-.wb-panel--hero::before {
-  content: '';
-  pointer-events: none;
-  position: absolute;
-  inset: -20% auto auto -10%;
-  width: 55%;
-  height: 70%;
-  background: radial-gradient(
-    circle,
-    color-mix(in srgb, var(--color-primary) 22%, transparent),
-    transparent 68%
-  );
-  animation: wb-aurora 7s ease-in-out infinite;
-}
-
+/* Layout-only header strip — GlassCard owns the panel material */
 .wb-panel-header {
   border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
-  background: linear-gradient(
-    180deg,
-    color-mix(in srgb, var(--color-surface-lighter) 35%, transparent),
-    transparent
-  );
-}
-
-.wb-title {
-  letter-spacing: 0.02em;
-  text-shadow: 0 0 24px color-mix(in srgb, var(--color-primary) 18%, transparent);
-}
-
-.wb-subtitle {
-  color: color-mix(in srgb, var(--color-text-muted) 92%, var(--color-text));
 }
 
 .wb-lane {
@@ -364,95 +237,6 @@ html[data-theme="light"] .wb-chip--done {
   color: #047857;
 }
 
-.wb-btn {
-  border-radius: var(--radius-md, 18px);
-  border: 1px solid color-mix(in srgb, var(--color-border) 80%, transparent);
-  background: color-mix(in srgb, var(--color-surface-lighter) 55%, transparent);
-  color: var(--color-text-muted);
-  transition:
-    transform var(--motion-fast) var(--ease-spring),
-    box-shadow var(--motion-med) var(--ease-spring),
-    border-color var(--motion-fast) ease,
-    color var(--motion-fast) ease,
-    background var(--motion-fast) ease;
-}
-
-.wb-btn:hover:not(:disabled) {
-  transform: none;
-  color: var(--color-text);
-  border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
-  background: color-mix(in srgb, var(--color-surface-lighter) 78%, transparent);
-  box-shadow: 0 8px 18px color-mix(in srgb, #000 16%, transparent);
-}
-
-.wb-btn-primary {
-  border: 1px solid color-mix(in srgb, var(--color-primary) 45%, transparent);
-  background: linear-gradient(
-    135deg,
-    color-mix(in srgb, var(--color-primary-light) 88%, #fff),
-    var(--color-primary) 45%,
-    var(--color-primary-dark)
-  );
-  color: #fff;
-  font-weight: 600;
-  text-shadow: 0 1px 0 color-mix(in srgb, #000 25%, transparent);
-  box-shadow:
-    0 8px 22px color-mix(in srgb, var(--color-primary) 32%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 28%, transparent);
-  transition:
-    transform var(--motion-fast) var(--ease-spring),
-    box-shadow var(--motion-med) var(--ease-spring),
-    filter var(--motion-fast) ease;
-}
-
-.wb-btn-primary:hover:not(:disabled) {
-  transform: none;
-  filter: brightness(1.05);
-  box-shadow:
-    0 12px 28px color-mix(in srgb, var(--color-primary) 42%, transparent),
-    0 0 18px color-mix(in srgb, var(--color-primary) 22%, transparent),
-    inset 0 1px 0 color-mix(in srgb, #fff 34%, transparent);
-}
-
-.wb-btn-primary:disabled,
-.wb-btn:disabled {
-  opacity: 0.5;
-  transform: none;
-  filter: none;
-}
-
-.wb-btn-danger {
-  border: 1px solid color-mix(in srgb, var(--color-danger) 40%, transparent);
-  color: color-mix(in srgb, #fca5a5 60%, #fff);
-  background: color-mix(in srgb, var(--color-danger) 10%, transparent);
-}
-
-.wb-btn-danger:hover:not(:disabled) {
-  background: color-mix(in srgb, var(--color-danger) 18%, transparent);
-  color: #fecaca;
-  border-color: color-mix(in srgb, var(--color-danger) 55%, transparent);
-}
-
-.wb-input {
-  border-radius: var(--radius-card, 22px);
-  border: 1px solid color-mix(in srgb, var(--color-border) 85%, transparent);
-  background: color-mix(in srgb, var(--color-surface-lighter) 72%, transparent);
-  color: var(--color-text);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 6%, transparent);
-  transition:
-    border-color var(--motion-fast) ease,
-    box-shadow var(--motion-med) var(--ease-spring),
-    background var(--motion-fast) ease;
-}
-
-.wb-input:focus {
-  outline: none;
-  border-color: color-mix(in srgb, var(--color-primary) 55%, var(--color-border));
-  box-shadow:
-    0 0 0 3px color-mix(in srgb, var(--color-primary) 18%, transparent),
-    0 0 18px color-mix(in srgb, var(--color-primary) 12%, transparent);
-}
-
 .wb-room {
   position: relative;
   overflow: hidden;
@@ -539,13 +323,15 @@ html[data-theme="light"] .wb-chip--done {
 }
 
 .wb-drawer-panel {
-  background: var(--glass-bg);
-  backdrop-filter: blur(22px) saturate(1.25);
-  -webkit-backdrop-filter: blur(22px) saturate(1.25);
-  border-left: 1px solid var(--glass-border);
-  box-shadow:
+  background: var(--modal-glass-bg, var(--glass-bg));
+  backdrop-filter: var(--modal-glass-blur, blur(var(--glass-blur, 12px)) saturate(var(--glass-sat, 1.25)));
+  -webkit-backdrop-filter: var(--modal-glass-blur, blur(var(--glass-blur, 12px)) saturate(var(--glass-sat, 1.25)));
+  border-left: 1px solid var(--modal-glass-border, var(--glass-border));
+  box-shadow: var(
+    --modal-glass-shadow,
     -18px 0 48px color-mix(in srgb, #000 35%, transparent),
-    0 0 40px color-mix(in srgb, var(--color-primary) 10%, transparent);
+    0 0 40px color-mix(in srgb, var(--color-primary) 10%, transparent)
+  );
   animation: wb-drawer-in 320ms var(--ease-spring) both;
 }
 
@@ -576,11 +362,6 @@ html[data-theme="light"] .wb-badge-on-mainline {
   box-shadow: 0 0 24px color-mix(in srgb, var(--color-warning) 10%, transparent);
 }
 
-@keyframes wb-aurora {
-  0%, 100% { opacity: 0.45; transform: translate3d(0, 0, 0) scale(1); }
-  50% { opacity: 0.85; transform: translate3d(8%, 4%, 0) scale(1.08); }
-}
-
 @keyframes wb-pulse-soft {
   0%, 100% { box-shadow: 0 0 0 0 transparent; }
   50% { box-shadow: 0 0 16px color-mix(in srgb, currentColor 28%, transparent); }
@@ -598,13 +379,10 @@ html[data-theme="light"] .wb-badge-on-mainline {
 }
 
 html[data-workspace-mode="minimal"] .wb-stage::before,
-html[data-workspace-mode="minimal"] .wb-panel::after,
-html[data-workspace-mode="minimal"] .wb-panel--hero::before,
 html[data-workspace-mode="minimal"] .wb-room::before {
   display: none;
 }
 
-html[data-workspace-mode="minimal"] .wb-panel,
 html[data-workspace-mode="minimal"] .wb-task,
 html[data-workspace-mode="minimal"] .wb-drawer-panel {
   backdrop-filter: none;
@@ -614,15 +392,12 @@ html[data-workspace-mode="minimal"] .wb-drawer-panel {
 
 @media (prefers-reduced-motion: reduce) {
   .wb-stage::before,
-  .wb-panel--hero::before,
   .wb-mode-pill[data-mode="hosting"],
   .wb-mode-pill[data-mode="joined"],
   .wb-drawer-veil,
   .wb-drawer-panel,
   .wb-task:hover,
-  .wb-project-card:hover,
-  .wb-btn-primary:hover:not(:disabled),
-  .wb-btn:hover:not(:disabled) {
+  .wb-project-card:hover {
     animation: none !important;
     transition: none !important;
     transform: none !important;
