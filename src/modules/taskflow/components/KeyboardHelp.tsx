@@ -2,6 +2,7 @@ import { Keyboard, Search, X } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { acceleratorToKeys, useShortcutStore } from '../../../shortcuts';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface KeyboardHelpProps {
   onClose: () => void;
@@ -59,8 +60,8 @@ export function KeyboardHelp({ onClose }: KeyboardHelpProps) {
       aria-modal="true"
       aria-labelledby="keyboard-help-title"
     >
-      <button className="absolute inset-0 modal-veil liquid-glass-veil animate-fade-in" onClick={onClose} aria-label="关闭快捷键帮助" />
-      <div className="liquid-glass-panel modal-panel-cinematic relative max-h-[86vh] w-full max-w-3xl overflow-hidden shadow-2xl animate-bounce-in">
+      <button className="absolute inset-0 modal-veil animate-fade-in" onClick={onClose} aria-label="关闭快捷键帮助" />
+      <GlowPanel className="modal-panel-cinematic relative max-h-[86vh] w-full max-w-3xl overflow-hidden shadow-2xl animate-bounce-in">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-blue-400/70 to-transparent" />
         <div className="flex items-center justify-between border-b border-white/10 px-6 py-5">
           <div className="flex items-center gap-3">
@@ -116,9 +117,8 @@ export function KeyboardHelp({ onClose }: KeyboardHelpProps) {
                 </div>
               ))}
             </div>
-          </div>
-        </div>
-      </div>
+          </div></div>
+      </GlowPanel>
     </div>
   );
 }

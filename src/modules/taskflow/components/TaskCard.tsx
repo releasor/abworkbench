@@ -286,7 +286,7 @@ export const TaskCard = memo(function TaskCard({ task, onEdit, isDragging, onFoc
             handleEdit();
           }
         }}
-        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-border glass-card p-3.5 transition-all hover:-translate-y-0.5 hover:border-blue-300/70 active:scale-[0.98] ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
+        className={`group relative cursor-pointer overflow-hidden rounded-3xl border border-border glass-card p-3.5 transition-all  hover:border-blue-300/70 active:scale-[0.98] ${task.pinned ? 'ring-1 ring-amber-300/70 dark:ring-amber-500/60' : ''} ${isOverdue ? 'ring-1 ring-red-400/70' : ''} ${isDueSoon ? 'ring-1 ring-amber-400/70' : ''} ${isDragging ? 'opacity-50 shadow-lg' : ''}`}
       >
         {/* Priority & Category */}
         <div className="relative mb-2 flex items-start gap-2">

@@ -4,6 +4,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { playClickSound } from '../utils/sound';
 import { Icon } from './Icon';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface TagManagerProps {
   onClose: () => void;
@@ -45,11 +46,11 @@ export function TagManager({ onClose }: TagManagerProps) {
   return (
     <div ref={trapRef} className="fixed inset-0 z-50 flex items-center justify-center p-4" role="dialog" aria-modal="true" aria-label="标签管理">
       <div
-        className="absolute inset-0 modal-veil liquid-glass-veil animate-fade-in"
+        className="absolute inset-0 modal-veil animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-md p-6 animate-bounce-in max-h-[80vh] overflow-y-auto">
+      <GlowPanel className="modal-panel-cinematic relative w-full max-w-md p-6 animate-bounce-in max-h-[80vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <h2 className="text-lg font-semibold" id="tag-manager-title">标签管理</h2>
           <button onClick={onClose} className="btn btn-ghost p-1.5" aria-label="关闭标签管理">
@@ -98,7 +99,7 @@ export function TagManager({ onClose }: TagManagerProps) {
             </button>
           </div>
         )}
-      </div>
+      </GlowPanel>
     </div>
   );
 }

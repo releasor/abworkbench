@@ -5,6 +5,7 @@ import { useStore } from '../../../store';
 import type { Status, Priority } from '../types'
 import { STATUS_CONFIG, PRIORITY_CONFIG, PRIORITY_HEX_COLORS, STATUS_HEX_COLORS } from '../types'
 import { dayOfWeek, prevDateStrN, todayStr } from '../dateUtils';
+import Card from '../../../components/common/BorderGlow/Card';
 
 const HEATMAP_LIGHT = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
 const HEATMAP_DARK = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
@@ -212,19 +213,13 @@ export function StatsChart() {
     return (
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4">
         {Array.from({ length: 4 }).map((_, i) => (
-          <div key={i} className="card p-4 animate-pulse">
+          <Card key={i} className="p-4 animate-pulse">
             <div className="h-4 bg-surface-lighter rounded w-24 mb-4" />
             <div className="h-[200px] bg-surface-lighter rounded" />
-          </div>
-        ))}
-      </div>
-    );
-  }
-
-  return (
+          </Card>
     <div className="grid grid-cols-1 md:grid-cols-2 gap-6 mt-4" role="region" aria-label="任务统计图表">
       {/* Status Pie Chart */}
-      <div className="card p-4" role="img" aria-label={`状态分布: ${statusData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
+      <Card className="p-4" role="img" aria-label={`状态分布: ${statusData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
         <h4 className="text-sm font-medium text-text-muted mb-4">状态分布</h4>
         <ResponsiveContainer width="100%" height={200}>
           <PieChart>
@@ -245,10 +240,10 @@ export function StatsChart() {
             <Legend />
           </PieChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       {/* Priority Bar Chart */}
-      <div className="card p-4" role="img" aria-label={`优先级分布: ${priorityData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
+      <Card className="p-4" role="img" aria-label={`优先级分布: ${priorityData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
         <h4 className="text-sm font-medium text-text-muted mb-4">优先级分布</h4>
         <ResponsiveContainer width="100%" height={200}>
           <BarChart data={priorityData}>
@@ -262,10 +257,10 @@ export function StatsChart() {
             </Bar>
           </BarChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       {/* Completion Trend */}
-      <div className="card p-4" role="img" aria-label={`近7天完成趋势: ${last7Days.map(d => `${d.date} ${d.completed}个`).join(', ')}`}>
+      <Card className="p-4" role="img" aria-label={`近7天完成趋势: ${last7Days.map(d => `${d.date} ${d.completed}个`).join(', ')}`}>
         <h4 className="text-sm font-medium text-text-muted mb-4">近7天完成趋势</h4>
         <ResponsiveContainer width="100%" height={200}>
           <LineChart data={last7Days}>
@@ -281,11 +276,11 @@ export function StatsChart() {
             />
           </LineChart>
         </ResponsiveContainer>
-      </div>
+      </Card>
 
       {/* Category Distribution */}
       {categoryData.length > 0 && (
-        <div className="card p-4" role="img" aria-label={`分类分布: ${categoryData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
+        <Card className="p-4" role="img" aria-label={`分类分布: ${categoryData.map(d => `${d.name} ${d.value}个`).join(', ')}`}>
           <h4 className="text-sm font-medium text-text-muted mb-4">分类分布</h4>
           <ResponsiveContainer width="100%" height={200}>
             <PieChart>
@@ -305,12 +300,12 @@ export function StatsChart() {
               <Legend />
             </PieChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
 
       {/* Day of Week Completions */}
       {hasDayOfWeekData && (
-        <div className="card p-4" role="img" aria-label={`按星期统计: ${dayOfWeekData.map(d => `周${d.name} ${d.completed}个`).join(', ')}`}>
+        <Card className="p-4" role="img" aria-label={`按星期统计: ${dayOfWeekData.map(d => `周${d.name} ${d.completed}个`).join(', ')}`}>
           <h4 className="text-sm font-medium text-text-muted mb-4">按星期完成统计</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dayOfWeekData}>
@@ -320,12 +315,12 @@ export function StatsChart() {
               <Bar dataKey="completed" fill="#f59e0b" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
 
       {/* Time Tracking */}
       {timeData.length > 0 && (
-        <div className="card p-4 md:col-span-2" role="img" aria-label={`时间统计: ${timeData.map(d => `${d.name} ${d.minutes}分钟`).join(', ')}`}>
+        <Card className="p-4 md:col-span-2" role="img" aria-label={`时间统计: ${timeData.map(d => `${d.name} ${d.minutes}分钟`).join(', ')}`}>
           <h4 className="text-sm font-medium text-text-muted mb-4">时间统计 (分钟)</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={timeData}>
@@ -335,12 +330,12 @@ export function StatsChart() {
               <Bar dataKey="minutes" fill="#8b5cf6" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
 
       {/* Daily Time Tracking */}
       {hasDailyTimeData && (
-        <div className="card p-4 md:col-span-2" role="img" aria-label={`每日专注时间: ${dailyTimeData.map(d => `${d.date} ${d.minutes}分钟`).join(', ')}`}>
+        <Card className="p-4 md:col-span-2" role="img" aria-label={`每日专注时间: ${dailyTimeData.map(d => `${d.date} ${d.minutes}分钟`).join(', ')}`}>
           <h4 className="text-sm font-medium text-text-muted mb-4">每日专注时间 (分钟)</h4>
           <ResponsiveContainer width="100%" height={200}>
             <BarChart data={dailyTimeData}>
@@ -350,12 +345,12 @@ export function StatsChart() {
               <Bar dataKey="minutes" fill="#06b6d4" radius={[4, 4, 0, 0]} />
             </BarChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
 
       {/* Weekly Completion Trend */}
       {hasWeeklyTrend && (
-        <div className="card p-4 md:col-span-2" role="img" aria-label={`周完成趋势: ${weeklyTrend.map(w => `${w.week}周 ${w.completed}个`).join(', ')}`}>
+        <Card className="p-4 md:col-span-2" role="img" aria-label={`周完成趋势: ${weeklyTrend.map(w => `${w.week}周 ${w.completed}个`).join(', ')}`}>
           <h4 className="text-sm font-medium text-text-muted mb-4">近8周完成趋势</h4>
           <ResponsiveContainer width="100%" height={200}>
             <LineChart data={weeklyTrend}>
@@ -371,11 +366,11 @@ export function StatsChart() {
               />
             </LineChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
 
       {/* Productivity Heatmap */}
-      <div className="card p-4 md:col-span-2" role="region" aria-label="完成热力图 (近16周)">
+      <Card className="p-4 md:col-span-2" role="region" aria-label="完成热力图 (近16周)">
         <h4 className="text-sm font-medium text-text-muted mb-4">完成热力图 (近16周)</h4>
         <div className="flex gap-0.5 overflow-x-auto">
           {/* Day labels */}
@@ -416,11 +411,11 @@ export function StatsChart() {
           ))}
           <span className="text-[10px] text-text-muted ml-1">多</span>
         </div>
-      </div>
+      </Card>
 
       {/* Burndown Chart */}
       {hasBurndownData && (
-        <div className="card p-4 md:col-span-2" role="img" aria-label={`任务燃尽图: ${burndownData.map(d => `${d.date} 剩余${d.remaining}个`).join(', ')}`}>
+        <Card className="p-4 md:col-span-2" role="img" aria-label={`任务燃尽图: ${burndownData.map(d => `${d.date} 剩余${d.remaining}个`).join(', ')}`}>
           <h4 className="text-sm font-medium text-text-muted mb-4">任务燃尽图 (近30天)</h4>
           <ResponsiveContainer width="100%" height={200}>
             <AreaChart data={burndownData}>
@@ -437,7 +432,7 @@ export function StatsChart() {
               />
             </AreaChart>
           </ResponsiveContainer>
-        </div>
+        </Card>
       )}
     </div>
   );

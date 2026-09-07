@@ -5,6 +5,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { showToast } from '../utils/toastEvent';
 import { Icon } from './Icon';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface WeeklyReportData {
   weekStart: string;
@@ -55,7 +56,7 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
   if (loading) {
     return (
       <div className="fixed inset-0 z-50 flex items-center justify-center p-4">
-        <div className="absolute inset-0 modal-veil liquid-glass-veil" />
+        <div className="absolute inset-0 modal-veil" />
         <div className="liquid-glass-panel modal-panel-cinematic relative max-w-lg w-full p-8 animate-pulse">
           <div className="h-8 bg-surface-lighter rounded w-3/4 mb-6" />
           <div className="space-y-4">
@@ -83,7 +84,7 @@ export function WeeklyReport({ onClose }: WeeklyReportProps) {
       aria-modal="true"
       aria-label="周报"
     >
-      <div className="absolute inset-0 modal-veil liquid-glass-veil" />
+      <div className="absolute inset-0 modal-veil" />
       <div className="liquid-glass-panel modal-panel-cinematic relative max-w-lg w-full max-h-[90vh] overflow-y-auto p-6">
         {/* Header */}
         <div className="flex items-center justify-between mb-6">

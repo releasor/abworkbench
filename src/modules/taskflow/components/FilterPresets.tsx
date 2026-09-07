@@ -7,6 +7,7 @@ import { playClickSound } from '../utils/sound';
 import { hasActiveFilters as checkActiveFilters } from '../utils/searchMatch';
 import { Icon } from './Icon';
 import { safeGet, safeSet } from '../../../utils/safeLocalStorage';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface FilterPreset {
   id: string;
@@ -98,8 +99,8 @@ export function FilterPresets() {
           aria-modal="true"
           aria-label="保存筛选预设"
         >
-          <div className="absolute inset-0 modal-veil liquid-glass-veil" onClick={() => setShowSaveDialog(false)} aria-hidden="true" />
-          <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-sm p-5 shadow-2xl animate-bounce-in">
+          <div className="absolute inset-0 modal-veil" onClick={() => setShowSaveDialog(false)} aria-hidden="true" />
+          <GlowPanel className="modal-panel-cinematic relative w-full max-w-sm p-5 shadow-2xl animate-bounce-in">
             <div className="mb-4 flex items-center gap-3">
               <span className="grid h-10 w-10 place-items-center rounded-2xl bg-blue-500/10 text-blue-500">
                 <Icon name="filter" className="h-4 w-4" />
@@ -131,7 +132,7 @@ export function FilterPresets() {
                 保存
               </button>
             </div>
-          </div>
+          </GlowPanel>
         </div>
       )}
     </div>

@@ -5,6 +5,7 @@ import { api } from '../utils/api';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { playClickSound } from '../utils/sound';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface BulkTextImportProps {
   onClose: () => void;
@@ -67,8 +68,8 @@ export function BulkTextImport({ onClose, onSuccess }: BulkTextImportProps) {
       aria-modal="true"
       aria-label="批量文本导入"
     >
-      <div className="absolute inset-0 modal-veil liquid-glass-veil" />
-      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-lg p-6 animate-slide-in">
+      <div className="absolute inset-0 modal-veil" />
+      <GlowPanel className="modal-panel-cinematic relative w-full max-w-lg p-6 animate-slide-in">
         <h2 className="text-lg font-semibold text-text mb-4">
           批量文本导入
         </h2>
@@ -105,9 +106,8 @@ export function BulkTextImport({ onClose, onSuccess }: BulkTextImportProps) {
             >
               {isCreating ? '创建中...' : `创建 ${count} 个任务`}
             </button>
-          </div>
-        </div>
-      </div>
+          </div></div>
+      </GlowPanel>
     </div>
   );
 }

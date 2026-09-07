@@ -20,6 +20,7 @@ import { formatRelativeTime } from '../utils/relativeTime';
 import { buildSmartTaskPlan, mergeSmartPlanIntoTask } from '../utils/smartPlanner';
 import { errorMessage } from '../../../utils/errors';
 import { findRelatedNotesForTask } from '../../../components/notes/noteTaskLinks';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface TaskModalProps {
   task: Task | null;
@@ -285,13 +286,13 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
     >
       {/* Backdrop */}
       <div
-        className="absolute inset-0 modal-veil liquid-glass-veil animate-fade-in"
+        className="absolute inset-0 modal-veil animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
 
       {/* Modal — wider + shorter footprint */}
-      <div className="liquid-glass-panel modal-panel-cinematic relative z-10 flex w-full max-w-3xl max-h-[min(68vh,640px)] flex-col overflow-hidden p-0 shadow-2xl animate-bounce-in">
+      <GlowPanel className="modal-panel-cinematic relative z-10 flex w-full max-w-3xl max-h-[min(68vh,640px)] flex-col overflow-hidden p-0 shadow-2xl animate-bounce-in">
         <div className="flex shrink-0 items-center justify-between border-b border-border px-5 py-3">
           <h2 className="text-lg font-semibold" id="modal-title">
             {isEditing ? '编辑任务' : '新建任务'}
@@ -758,7 +759,8 @@ export function TaskModal({ task, onClose, onSuccess, prefillDate }: TaskModalPr
             )}
           </div>
         )}
-      </div>
-    </div>
-  );
+      </GlowPanel>
+  </div>
+
+      );
 }

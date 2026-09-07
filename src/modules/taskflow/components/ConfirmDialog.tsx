@@ -1,6 +1,7 @@
 import { AlertTriangle, CheckCircle2, X } from 'lucide-react';
 import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useEscapeKey } from '../hooks/useEscapeKey';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 interface ConfirmDialogProps {
   title: string;
@@ -36,8 +37,8 @@ export function ConfirmDialog({
       aria-labelledby="confirm-title"
       aria-describedby="confirm-message"
     >
-      <button className="absolute inset-0 modal-veil liquid-glass-veil" onClick={onCancel} aria-label="关闭确认弹窗" />
-      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-md overflow-hidden p-6 animate-bounce-in">
+      <button className="absolute inset-0 modal-veil" onClick={onCancel} aria-label="关闭确认弹窗" />
+      <GlowPanel className="modal-panel-cinematic relative w-full max-w-md overflow-hidden p-6 animate-bounce-in">
         <div className="absolute inset-x-0 top-0 h-px bg-gradient-to-r from-transparent via-white/30 to-transparent" />
         <div className="flex items-start gap-4">
           <div className={`rounded-2xl p-3 ${isDanger ? 'bg-danger/15 text-danger' : 'bg-primary/15 text-primary'}`}>
@@ -67,8 +68,8 @@ export function ConfirmDialog({
           >
             {confirmText}
           </button>
-        </div>
-      </div>
-    </div>
-  );
+        </div>    </GlowPanel>
+  </div>
+
+      );
 }

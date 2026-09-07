@@ -100,7 +100,7 @@ export function TaskFlowToolbar({
 
       <button
         onClick={onCreateTask}
-        className="flex h-12 items-center gap-2 rounded-2xl bg-primary px-5 text-sm font-bold text-white shadow-xl shadow-primary/25 transition-all hover:-translate-y-0.5 hover:bg-primary-dark"
+        className="flex h-12 items-center gap-2 rounded-2xl bg-primary px-5 text-sm font-bold text-white shadow-xl shadow-primary/25 transition-all hover:bg-primary-dark"
       >
         <Plus size={18} />
         {t('taskflow.newTask')}

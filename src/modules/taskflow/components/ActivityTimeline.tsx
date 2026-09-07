@@ -5,6 +5,7 @@ import { useFocusTrap } from '../hooks/useFocusTrap';
 import { useEscapeKey } from '../hooks/useEscapeKey';
 import { dayOfWeek, WEEKDAYS } from '../dateUtils';
 import { Icon } from './Icon';
+import GlowPanel from '../../../components/common/BorderGlow/GlowPanel';
 
 const ACTION_ICONS: Record<string, string> = {
   created: '➕',
@@ -114,11 +115,11 @@ export function ActivityTimeline({ onClose, onEditTask }: ActivityTimelineProps)
       aria-label="活动时间线"
     >
       <div
-        className="absolute inset-0 modal-veil liquid-glass-veil animate-fade-in"
+        className="absolute inset-0 modal-veil animate-fade-in"
         onClick={onClose}
         aria-hidden="true"
       />
-      <div className="liquid-glass-panel modal-panel-cinematic relative w-full max-w-2xl p-6 animate-bounce-in max-h-[80vh] overflow-y-auto">
+      <GlowPanel className="modal-panel-cinematic relative w-full max-w-2xl p-6 animate-bounce-in max-h-[80vh] overflow-y-auto">
         <div className="flex items-center justify-between mb-4">
           <div>
             <h2 className="text-lg font-semibold">活动时间线</h2>
@@ -190,7 +191,8 @@ export function ActivityTimeline({ onClose, onEditTask }: ActivityTimelineProps)
             ))}
           </div>
         )}
-      </div>
-    </div>
-  );
+      </GlowPanel>
+  </div>
+
+      );
 }

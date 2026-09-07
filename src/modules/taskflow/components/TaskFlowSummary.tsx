@@ -1,6 +1,7 @@
 import { Calendar, Flame } from 'lucide-react'
 import type { TaskFlowSummaryStats } from '../utils/summaryStats'
 import { useTranslation } from '../../../i18n'
+import { GlassCard } from '../../../components/common/GlassSurface'
 
 interface TaskFlowSummaryProps {
   stats: TaskFlowSummaryStats
@@ -36,7 +37,7 @@ export function TaskFlowSummary({ stats }: TaskFlowSummaryProps) {
     <>
       <div className="grid grid-cols-3 gap-3">
         {summaryCards.map((card) => (
-          <div key={card.label} className="group relative overflow-hidden rounded-3xl border border-border bg-white/70 p-4 text-left shadow-xl shadow-black/5 transition hover:-translate-y-0.5 hover:shadow-2xl dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/25">
+          <div key={card.label} className="group relative overflow-hidden rounded-3xl border border-border bg-white/70 p-4 text-left shadow-xl shadow-black/5 transition hover:shadow-2xl dark:border-white/10 dark:bg-white/[0.03] dark:shadow-black/25">
             <div className={`absolute inset-x-0 top-0 h-0.5 bg-gradient-to-r ${card.accent}`} />
             <div className="mb-3 flex items-center justify-between">
               <div className="text-xs font-semibold uppercase tracking-[0.18em] text-text-muted">{card.label}</div>
@@ -92,7 +93,7 @@ export function TaskFlowSummary({ stats }: TaskFlowSummaryProps) {
       )}
 
       {stats.overdue > 0 && (
-        <div className="glass-card p-3 flex items-center gap-3 border-danger/30">
+        <GlassCard className="p-3 flex items-center gap-3 border-danger/30">
           <div className="w-8 h-8 rounded-lg bg-danger/15 flex items-center justify-center">
             <Calendar size={16} className="text-danger" />
           </div>
@@ -100,7 +101,7 @@ export function TaskFlowSummary({ stats }: TaskFlowSummaryProps) {
             <div className="text-sm text-danger font-medium">{tWith('taskflow.summary.overdueTasks', stats.overdue)}</div>
             <div className="text-xs text-text-muted">{t('taskflow.summary.overdueHint')}</div>
           </div>
-        </div>
+        </GlassCard>
       )}
     </>
   )

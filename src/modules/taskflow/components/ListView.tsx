@@ -14,6 +14,7 @@ import { playClickSound, playCompletionSound } from '../utils/sound';
 import { nextDateStrN, todayStr } from '../dateUtils';
 import { countCompleted } from '../utils/subtaskUtils';
 import { safeGetString, safeSetString, getBool, setBool } from '../../../utils/safeLocalStorage';
+import Card from '../../../components/common/BorderGlow/Card';
 
 const TaskContextMenu = lazy(() => import('./TaskContextMenu').then(m => ({ default: m.TaskContextMenu })));
 
@@ -471,7 +472,7 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
   };
 
   return (
-    <div className="card overflow-hidden mt-4" role="region" aria-label="任务列表视图">
+    <Card className="overflow-hidden mt-4" role="region" aria-label="任务列表视图">
       <div className="flex items-center justify-between px-4 py-2 border-b border-border">
         <div className="flex items-center gap-3">
           <span className="text-xs text-text-muted">
@@ -710,6 +711,6 @@ export function ListView({ onEditTask, onFocusTask }: ListViewProps) {
           />
         </Suspense>
       )}
-    </div>
+    </Card>
   );
 }
