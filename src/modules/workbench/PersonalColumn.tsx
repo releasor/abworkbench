@@ -58,8 +58,8 @@ export default function PersonalColumn({ projectId, onOpenTask }: PersonalColumn
   return (
     <WbPanel className="flex min-h-0 min-w-0 flex-1 flex-col">
       <header className="wb-panel-header px-3 py-2.5">
-        <h2 className="wb-title text-sm font-semibold text-text">个人任务</h2>
-        <p className="wb-subtitle text-[11px]">在这里添加任务，不是改项目名</p>
+        <h2 className="text-sm font-semibold text-text">个人任务</h2>
+        <p className="mt-0.5 text-[11px] text-text-muted">在这里添加任务，不是改项目名</p>
       </header>
 
       <div className="wb-section-divider flex gap-2 p-3">
@@ -71,9 +71,13 @@ export default function PersonalColumn({ projectId, onOpenTask }: PersonalColumn
           }}
           placeholder="输入任务标题…"
           aria-label="任务标题"
-          className="wb-input min-w-0 flex-1 px-3 py-2 text-sm"
+          className="interactive-glass min-w-0 flex-1 rounded-xl px-3 py-2 text-sm text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
         />
-        <button type="button" onClick={submit} className="wb-btn-primary shrink-0 px-3 py-2 text-sm">
+        <button
+          type="button"
+          onClick={submit}
+          className="interactive-glass dashboard-chip shrink-0 rounded-xl px-3 py-2 text-sm font-semibold text-primary"
+        >
           添加任务
         </button>
       </div>
@@ -95,7 +99,7 @@ export default function PersonalColumn({ projectId, onOpenTask }: PersonalColumn
                       <button
                         type="button"
                         onClick={() => void submitToPool(task.id)}
-                        className="wb-btn px-2 py-1 text-xs"
+                        className="interactive-glass dashboard-chip rounded-xl px-2 py-1 text-xs font-semibold text-text-muted"
                       >
                         {task.pendingPoolRetry ? '重试提交' : '提交到所有人'}
                       </button>
@@ -103,7 +107,11 @@ export default function PersonalColumn({ projectId, onOpenTask }: PersonalColumn
                     {onMainline ? (
                       <span className="wb-badge-on-mainline text-center">已在主线</span>
                     ) : !connected || lead ? (
-                      <button type="button" onClick={() => onPromote(task.id)} className="wb-btn px-2 py-1 text-xs">
+                      <button
+                        type="button"
+                        onClick={() => onPromote(task.id)}
+                        className="interactive-glass dashboard-chip rounded-xl px-2 py-1 text-xs font-semibold text-text-muted"
+                      >
                         拉入主线
                       </button>
                     ) : null}

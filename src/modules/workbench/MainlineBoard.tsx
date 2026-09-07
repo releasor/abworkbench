@@ -55,8 +55,8 @@ export default function MainlineBoard({ projectId, onOpenTask }: MainlineBoardPr
   return (
     <WbPanel hero className="flex min-h-[12rem] w-full shrink-0 flex-col motion-pop">
       <header className="wb-panel-header px-3 py-2.5">
-        <h2 className="wb-title text-sm font-semibold text-text">主线</h2>
-        <p className="wb-subtitle text-[11px]">团队真正在做的事（每个来源任务只能拉入一次）</p>
+        <h2 className="text-sm font-semibold text-text">主线</h2>
+        <p className="mt-0.5 text-[11px] text-text-muted">团队真正在做的事（每个来源任务只能拉入一次）</p>
       </header>
 
       <div className="wb-board-grid grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-auto md:grid-cols-3">
@@ -83,7 +83,7 @@ export default function MainlineBoard({ projectId, onOpenTask }: MainlineBoardPr
                             aria-label="更改状态"
                             value={task.status}
                             onChange={(e) => onStatusChange(task.id, e.target.value as TaskStatus)}
-                            className="wb-input max-w-[5.5rem] px-1 py-0.5 text-[10px] text-text-muted"
+                            className="interactive-glass max-w-[5.5rem] rounded-xl px-1 py-0.5 text-[10px] text-text-muted bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
                           >
                             {COLUMNS.map((opt) => (
                               <option key={opt.status} value={opt.status}>
@@ -95,7 +95,7 @@ export default function MainlineBoard({ projectId, onOpenTask }: MainlineBoardPr
                             <button
                               type="button"
                               onClick={() => onDelete(task.id)}
-                              className="wb-btn wb-btn-danger px-2 py-0.5 text-[10px]"
+                              className="interactive-glass dashboard-chip rounded-xl px-2 py-0.5 text-[10px] font-semibold text-red-300"
                             >
                               删除
                             </button>

@@ -24,8 +24,8 @@ export default function PoolColumn({ projectId, onOpenTask }: PoolColumnProps) {
   return (
     <WbPanel className="flex min-h-0 min-w-0 flex-1 flex-col">
       <header className="wb-panel-header px-3 py-2.5">
-        <h2 className="wb-title text-sm font-semibold text-text">所有人</h2>
-        <p className="wb-subtitle text-[11px]">公开池 · 可被负责人拉入主线</p>
+        <h2 className="text-sm font-semibold text-text">所有人</h2>
+        <p className="mt-0.5 text-[11px] text-text-muted">公开池 · 可被负责人拉入主线</p>
       </header>
 
       <div className="motion-stagger flex flex-1 flex-col gap-2 overflow-auto p-3">
@@ -56,7 +56,7 @@ export default function PoolColumn({ projectId, onOpenTask }: PoolColumnProps) {
                           }
                           void promoteRemote(task)
                         }}
-                        className="wb-btn px-2 py-1 text-xs"
+                        className="interactive-glass dashboard-chip rounded-xl px-2 py-1 text-xs font-semibold text-text-muted"
                       >
                         拉入主线
                       </button>
