@@ -113,14 +113,14 @@ export default function RoomBar({ projectId }: RoomBarProps) {
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
                 placeholder="开房口令（可选）"
-                className="wb-input w-32 px-2 py-1 text-xs"
+                className="interactive-glass w-32 rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
               />
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => void onHost()}
                 title="仅为当前项目开房"
-                className="wb-btn-primary px-3 py-1 text-xs"
+                className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50"
               >
                 开房
               </button>
@@ -128,7 +128,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
                 type="button"
                 disabled={busy}
                 onClick={() => setShowJoin((v) => !v)}
-                className="wb-btn px-3 py-1 text-xs"
+                className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-text-muted"
               >
                 加入
               </button>
@@ -138,7 +138,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
               type="button"
               disabled={busy}
               onClick={() => void onDisconnect()}
-              className="wb-btn px-3 py-1 text-xs"
+              className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-text-muted"
             >
               断开
             </button>
@@ -173,7 +173,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
               value={joinUrl}
               onChange={(e) => setJoinUrl(e.target.value)}
               placeholder="http://192.168.x.x:端口"
-              className="wb-input px-2 py-1 text-xs"
+              className="interactive-glass rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
           <label className="flex w-28 flex-col gap-1">
@@ -182,7 +182,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
               value={joinPassphrase}
               onChange={(e) => setJoinPassphrase(e.target.value)}
               placeholder="可选"
-              className="wb-input px-2 py-1 text-xs"
+              className="interactive-glass rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
           <label className="flex w-28 flex-col gap-1">
@@ -191,14 +191,14 @@ export default function RoomBar({ projectId }: RoomBarProps) {
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="可选"
-              className="wb-input px-2 py-1 text-xs"
+              className="interactive-glass rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
           <button
             type="button"
             disabled={busy || !joinUrl.trim()}
             onClick={() => void onJoin()}
-            className="wb-btn-primary px-3 py-1 text-xs"
+            className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50"
           >
             确认加入
           </button>

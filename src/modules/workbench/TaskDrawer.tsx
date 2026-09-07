@@ -54,7 +54,11 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
       <aside className="wb-drawer-panel flex h-full w-full max-w-md flex-col" onClick={(e) => e.stopPropagation()}>
         <div className="wb-panel-header flex items-center justify-between px-4 py-3">
           <h2 className="wb-title text-sm font-semibold text-text">任务详情</h2>
-          <button type="button" onClick={onClose} className="wb-btn px-2 py-1 text-sm">
+          <button
+            type="button"
+            onClick={onClose}
+            className="interactive-glass dashboard-chip rounded-xl px-2 py-1 text-xs font-semibold text-text-muted"
+          >
             关闭
           </button>
         </div>
@@ -70,7 +74,7 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
                 if (next && next !== task.title) save({ title: next })
                 else setTitle(task.title)
               }}
-              className="wb-input w-full px-3 py-2 text-sm"
+              className="interactive-glass w-full rounded-xl px-3 py-2 text-sm text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
 
@@ -83,7 +87,7 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
                 setStatus(next)
                 save({ status: next })
               }}
-              className="wb-input w-full px-3 py-2 text-sm"
+              className="interactive-glass w-full rounded-xl px-3 py-2 text-sm text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             >
               {STATUS_OPTIONS.map((opt) => (
                 <option key={opt.value} value={opt.value}>
@@ -103,7 +107,7 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
                 setDueDate(next)
                 save({ dueDate: next || null })
               }}
-              className="wb-input w-full px-3 py-2 text-sm"
+              className="interactive-glass w-full rounded-xl px-3 py-2 text-sm text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
 
@@ -118,7 +122,7 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
                 }
               }}
               rows={6}
-              className="wb-input w-full resize-none px-3 py-2 text-sm"
+              className="interactive-glass w-full resize-none rounded-xl px-3 py-2 text-sm text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
               placeholder="可选描述"
             />
           </label>

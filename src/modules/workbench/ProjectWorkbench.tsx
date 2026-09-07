@@ -82,7 +82,11 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
       <RoomBar projectId={projectId} />
 
       <header className="flex items-center gap-3">
-        <button type="button" onClick={onBack} className="wb-btn px-2.5 py-1 text-sm">
+        <button
+          type="button"
+          onClick={onBack}
+          className="interactive-glass dashboard-chip rounded-xl px-2.5 py-1 text-xs font-semibold text-text-muted"
+        >
           ← 项目列表
         </button>
         {editingName ? (
@@ -96,7 +100,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
             }}
             autoFocus
             aria-label="项目名称"
-            className="wb-input min-w-0 flex-1 px-2 py-1 text-lg font-semibold"
+            className="interactive-glass min-w-0 flex-1 rounded-xl px-2 py-1 text-lg font-semibold text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
           />
         ) : (
           <button
@@ -111,12 +115,16 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
       </header>
 
       {disconnectBanner ? (
-        <div className="wb-banner flex flex-wrap items-center gap-2 px-3 py-2 text-sm text-text">
+        <WbPanel as="div" className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm text-text">
           <span className="flex-1">{disconnectBanner}</span>
-          <button type="button" onClick={() => clearDisconnectBanner()} className="wb-btn px-2 py-1 text-xs">
+          <button
+            type="button"
+            onClick={() => clearDisconnectBanner()}
+            className="interactive-glass dashboard-chip rounded-xl px-2 py-1 text-xs font-semibold text-text-muted"
+          >
             知道了
           </button>
-        </div>
+        </WbPanel>
       ) : null}
 
       {isLive && unsyncedCount > 0 ? (
@@ -127,7 +135,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
           <button
             type="button"
             onClick={() => void submitLocalMainlineToPool(projectId)}
-            className="wb-btn-primary px-3 py-1 text-xs"
+            className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50"
           >
             提交到所有人
           </button>
