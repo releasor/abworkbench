@@ -1,5 +1,6 @@
 import { useMemo, useState } from 'react'
 import MainlineBoard from './MainlineBoard'
+import WbPanel from './WbPanel'
 import PersonalColumn from './PersonalColumn'
 import PoolColumn from './PoolColumn'
 import RoomBar from './RoomBar'
@@ -119,7 +120,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
       ) : null}
 
       {isLive && unsyncedCount > 0 ? (
-        <div className="wb-panel flex flex-wrap items-center gap-2 px-3 py-2 text-sm text-text">
+        <WbPanel as="div" className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm text-text">
           <span className="flex-1 text-text-muted">
             本机主线有 {unsyncedCount} 条未同步到团队（不自动合并）
           </span>
@@ -130,7 +131,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
           >
             提交到所有人
           </button>
-        </div>
+        </WbPanel>
       ) : null}
 
       <div className="flex min-h-0 flex-1 flex-col gap-3">

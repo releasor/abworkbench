@@ -1,4 +1,6 @@
 import { useTranslation } from '../../i18n'
+import BorderGlow from '../../components/common/BorderGlow/BorderGlow'
+import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../../components/common/BorderGlow/borderGlowTheme'
 import type { HotlistBoard } from './types'
 import { formatHotlistUpdateLabel } from '../../utils/hotlistFormat'
 
@@ -16,7 +18,17 @@ function rankClass(rank: number): string {
 
 export default function HotlistBoardCard({ board, onOpen }: Props) {
   const { t } = useTranslation()
+  const glow = useBorderGlowTheme()
+  const surface = useBorderGlowSurfaceColor()
+
   return (
+    <BorderGlow
+      {...glow}
+      borderRadius={20}
+      backgroundColor={surface}
+      className="hotlist-card-glow h-full min-w-0 w-full"
+      innerClassName="h-full min-h-0"
+    >
     <article className="hotlist-card">
       <header className="hotlist-card__head">
         <div className="hotlist-card__title-wrap">
@@ -63,5 +75,6 @@ export default function HotlistBoardCard({ board, onOpen }: Props) {
         </div>
       )}
     </article>
+    </BorderGlow>
   )
 }

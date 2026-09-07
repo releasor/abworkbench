@@ -1,6 +1,7 @@
 import { useMemo, useState } from 'react'
 import { showToast } from '../taskflow/utils/toastEvent'
 import TaskRow from './TaskRow'
+import WbPanel from './WbPanel'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
 
 interface PersonalColumnProps {
@@ -55,13 +56,13 @@ export default function PersonalColumn({ projectId, onOpenTask }: PersonalColumn
   }
 
   return (
-    <section className="wb-panel flex min-h-0 min-w-0 flex-1 flex-col">
+    <WbPanel className="flex min-h-0 min-w-0 flex-1 flex-col">
       <header className="wb-panel-header px-3 py-2.5">
         <h2 className="wb-title text-sm font-semibold text-text">个人任务</h2>
         <p className="wb-subtitle text-[11px]">在这里添加任务，不是改项目名</p>
       </header>
 
-      <div className="flex gap-2 border-b border-border/60 p-3">
+      <div className="wb-section-divider flex gap-2 p-3">
         <input
           value={draft}
           onChange={(e) => setDraft(e.target.value)}
@@ -113,6 +114,6 @@ export default function PersonalColumn({ projectId, onOpenTask }: PersonalColumn
           })
         )}
       </div>
-    </section>
+    </WbPanel>
   )
 }

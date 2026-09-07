@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { showToast } from '../taskflow/utils/toastEvent'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
+import WbPanel from './WbPanel'
 
 interface RoomBarProps {
   projectId: string
@@ -78,7 +79,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
   }
 
   return (
-    <div className="wb-panel wb-room flex flex-col gap-2 px-3 py-2.5">
+    <WbPanel as="div" className="wb-room flex flex-col gap-2 px-3 py-2.5">
       <div className="flex flex-wrap items-center gap-2">
         <span className="text-xs font-semibold tracking-wide text-text">局域网 · 本项目</span>
         {isLive ? (
@@ -165,7 +166,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
       ) : null}
 
       {offline && showJoin ? (
-        <div className="flex flex-wrap items-end gap-2 border-t border-border/60 pt-2">
+        <div className="wb-section-divider flex flex-wrap items-end gap-2 pt-2">
           <label className="flex min-w-[12rem] flex-1 flex-col gap-1">
             <span className="text-[10px] text-text-muted">主机地址</span>
             <input
@@ -203,6 +204,6 @@ export default function RoomBar({ projectId }: RoomBarProps) {
           </button>
         </div>
       ) : null}
-    </div>
+    </WbPanel>
   )
 }

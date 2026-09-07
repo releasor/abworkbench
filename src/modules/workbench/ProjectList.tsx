@@ -1,6 +1,7 @@
 import { useState } from 'react'
 import { showToast } from '../taskflow/utils/toastEvent'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
+import WbPanel from './WbPanel'
 
 interface ProjectListProps {
   onOpenProject: (projectId: string) => void
@@ -67,7 +68,7 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
       </div>
 
       {connection.mode !== 'offline' && connection.projectId ? (
-        <div className="wb-panel flex flex-wrap items-center gap-2 px-3 py-2.5 text-sm">
+        <WbPanel as="div" className="flex flex-wrap items-center gap-2 px-3 py-2.5 text-sm">
           <span className="wb-mode-pill" data-mode={connection.mode}>
             {connection.mode === 'hosting' ? '已开房' : '已加入'}
           </span>
@@ -91,9 +92,9 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
               断开
             </button>
           </div>
-        </div>
+        </WbPanel>
       ) : (
-        <section className="wb-panel p-4">
+        <WbPanel className="p-4">
           <h2 className="text-sm font-semibold text-text">加入他人房间</h2>
           <p className="wb-subtitle mt-1 text-xs">加入后会进入对方当前开房的那一个项目。</p>
           <div className="mt-3 flex flex-wrap items-end gap-2">
@@ -133,10 +134,10 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
               加入
             </button>
           </div>
-        </section>
+        </WbPanel>
       )}
 
-      <section className="wb-panel wb-panel--hero p-4">
+      <WbPanel hero className="p-4">
         <h2 className="text-sm font-semibold text-text">第一步：命名并创建项目</h2>
         <p className="wb-subtitle mt-1 text-xs">这里填的是项目名称，不是任务。开房请进入项目后再点。</p>
         <div className="mt-3 flex gap-2">
@@ -155,30 +156,31 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
             创建项目
           </button>
         </div>
-      </section>
+      </WbPanel>
 
       <section>
         <h2 className="mb-2 text-sm font-semibold text-text">已有项目</h2>
         {projects.length === 0 ? (
-          <p className="wb-panel rounded-xl border-dashed px-4 py-8 text-center text-sm text-text-muted">
+          <WbPanel as="div" className="rounded-xl border-dashed px-4 py-8 text-center text-sm text-text-muted">
             还没有项目。请在上方输入名称后点「创建项目」。
-          </p>
+          </WbPanel>
         ) : (
           <ul className="motion-stagger flex flex-col gap-2">
             {projects.map((p) => {
               const isBound = connection.projectId === p.id && connection.mode !== 'offline'
               return (
                 <li key={p.id}>
-                  <button
+                  <WbPanel
+                    as="button"
                     type="button"
                     onClick={() => onOpenProject(p.id)}
-                    className="wb-panel wb-project-card flex w-full items-center justify-between px-4 py-3"
+                    className="wb-project-card flex w-full items-center justify-between px-4 py-3 text-left"
                   >
                     <span className="truncate text-sm font-medium text-text">{p.name}</span>
                     <span className="ml-3 shrink-0 text-xs text-primary">
                       {isBound ? '协作中 →' : '进入 →'}
                     </span>
-                  </button>
+                  </WbPanel>
                 </li>
               )
             })}

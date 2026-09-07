@@ -1,5 +1,6 @@
 import { useMemo } from 'react'
 import TaskRow from './TaskRow'
+import WbPanel from './WbPanel'
 import type { TaskStatus } from './types'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
 
@@ -52,18 +53,18 @@ export default function MainlineBoard({ projectId, onOpenTask }: MainlineBoardPr
   }
 
   return (
-    <section className="wb-panel wb-panel--hero flex min-h-[12rem] w-full shrink-0 flex-col motion-pop">
+    <WbPanel hero className="flex min-h-[12rem] w-full shrink-0 flex-col motion-pop">
       <header className="wb-panel-header px-3 py-2.5">
         <h2 className="wb-title text-sm font-semibold text-text">主线</h2>
         <p className="wb-subtitle text-[11px]">团队真正在做的事（每个来源任务只能拉入一次）</p>
       </header>
 
-      <div className="grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-auto p-3 md:grid-cols-3">
+      <div className="wb-board-grid grid min-h-0 flex-1 grid-cols-1 gap-3 overflow-auto md:grid-cols-3">
         {COLUMNS.map((col) => {
           const items = mainline.filter((t) => t.status === col.status)
           return (
             <div key={col.status} className="wb-lane flex min-h-0 flex-col" data-status={col.status}>
-              <div className="wb-lane-label border-b border-border/50 px-2.5 py-1.5 text-xs text-text">
+              <div className="wb-lane-label wb-section-divider px-2.5 py-1.5 text-xs text-text">
                 {col.label}
                 <span className="ml-1 text-text-muted">({items.length})</span>
               </div>
@@ -109,6 +110,6 @@ export default function MainlineBoard({ projectId, onOpenTask }: MainlineBoardPr
           )
         })}
       </div>
-    </section>
+    </WbPanel>
   )
 }

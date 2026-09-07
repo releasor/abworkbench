@@ -23,46 +23,50 @@
   opacity: 0.9;
 }
 
+html[data-theme="light"] .wb-stage {
+  --wb-canvas: #f1f5f9;
+  --wb-surface: color-mix(in srgb, #ffffff 58%, var(--wb-canvas));
+  --wb-surface-raised: color-mix(in srgb, #ffffff 78%, var(--wb-canvas));
+  --wb-ambient: var(--shadow-card-tile, var(--shadow-soft-sm), var(--shadow-soft-md));
+  --wb-lift: var(--shadow-soft-sm-hover), var(--shadow-soft-md-hover);
+  overflow: visible;
+}
+
 html[data-theme="light"] .wb-stage::before {
-  opacity: 0.2;
-  background:
-    radial-gradient(ellipse 50% 55% at 18% 0%, color-mix(in srgb, var(--color-primary) 10%, transparent), transparent 72%),
-    radial-gradient(ellipse 40% 45% at 92% 12%, color-mix(in srgb, #93c5fd 8%, transparent), transparent 70%);
+  display: none;
 }
 
 html[data-theme="light"] .wb-panel {
-  background: var(--color-surface-light);
-  border-color: color-mix(in srgb, var(--color-border) 58%, #cbd5e1);
-  box-shadow:
-    0 1px 2px color-mix(in srgb, #0f172a 4%, transparent),
-    0 6px 18px color-mix(in srgb, #0f172a 5%, transparent);
+  background: var(--wb-surface) !important;
+  border: none !important;
+  backdrop-filter: blur(16px) saturate(1.05) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(1.05) !important;
+  box-shadow: var(--wb-ambient) !important;
+  overflow: hidden;
 }
 
 html[data-theme="light"] .wb-panel::after {
-  opacity: 0.28;
-  background: linear-gradient(
-    125deg,
-    color-mix(in srgb, #fff 70%, transparent),
-    transparent 34%,
-    transparent 76%,
-    color-mix(in srgb, var(--color-primary) 4%, transparent)
-  );
+  display: none;
 }
 
 html[data-theme="light"] .wb-panel--hero {
-  border-color: color-mix(in srgb, var(--color-primary) 22%, var(--color-border));
-  box-shadow:
-    0 1px 2px color-mix(in srgb, #0f172a 5%, transparent),
-    0 8px 24px color-mix(in srgb, #0f172a 6%, transparent);
+  background: var(--wb-surface-raised) !important;
+  border: none !important;
+  box-shadow: var(--wb-ambient) !important;
 }
 
 html[data-theme="light"] .wb-panel--hero::before {
-  opacity: 0.28;
+  display: none;
 }
 
 html[data-theme="light"] .wb-panel-header {
-  background: color-mix(in srgb, var(--color-surface-lighter) 42%, transparent);
-  border-bottom-color: color-mix(in srgb, var(--color-border) 48%, transparent);
+  background: transparent;
+  border-bottom: none;
+}
+
+html[data-theme="light"] .wb-section-divider {
+  border: none !important;
+  background: color-mix(in srgb, var(--color-primary) 2.5%, transparent);
 }
 
 html[data-theme="light"] .wb-title {
@@ -70,35 +74,44 @@ html[data-theme="light"] .wb-title {
 }
 
 html[data-theme="light"] .wb-lane {
-  background: color-mix(in srgb, var(--color-surface-light) 94%, var(--color-surface-lighter));
-  border-color: color-mix(in srgb, var(--color-border) 52%, #cbd5e1);
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 88%, transparent);
+  background: color-mix(in srgb, #ffffff 22%, transparent) !important;
+  border: none !important;
+  backdrop-filter: blur(8px) !important;
+  -webkit-backdrop-filter: blur(8px) !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="light"] .wb-lane[data-status="todo"] {
-  border-color: color-mix(in srgb, var(--color-border) 55%, #cbd5e1);
+  background: color-mix(in srgb, #ffffff 18%, transparent) !important;
 }
 
 html[data-theme="light"] .wb-lane[data-status="doing"] {
-  border-color: color-mix(in srgb, var(--color-primary) 26%, var(--color-border));
-  box-shadow: inset 0 1px 0 color-mix(in srgb, #fff 88%, transparent);
+  background: color-mix(in srgb, var(--color-primary) 4%, transparent) !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="light"] .wb-lane[data-status="done"] {
-  border-color: color-mix(in srgb, var(--color-success) 24%, var(--color-border));
+  background: color-mix(in srgb, var(--color-success) 3.5%, transparent) !important;
+}
+
+html[data-theme="light"] .wb-lane-label {
+  border: none !important;
+  background: transparent;
+  color: var(--color-text-muted);
 }
 
 html[data-theme="light"] .wb-task {
-  background: var(--color-surface-light);
-  border-color: color-mix(in srgb, var(--color-border) 58%, #cbd5e1);
-  box-shadow: 0 1px 3px color-mix(in srgb, #0f172a 5%, transparent);
+  background: color-mix(in srgb, #ffffff 52%, transparent) !important;
+  border: none !important;
+  backdrop-filter: blur(6px) !important;
+  -webkit-backdrop-filter: blur(6px) !important;
+  box-shadow: none !important;
 }
 
 html[data-theme="light"] .wb-task:hover {
-  border-color: color-mix(in srgb, var(--color-primary) 28%, var(--color-border));
-  box-shadow:
-    0 4px 14px color-mix(in srgb, #0f172a 7%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  background: color-mix(in srgb, #ffffff 72%, transparent) !important;
+  box-shadow: var(--wb-lift) !important;
+  transform: scale(1.01);
 }
 
 html[data-theme="light"] .wb-chip--doing {
@@ -110,25 +123,33 @@ html[data-theme="light"] .wb-room::before {
 }
 
 html[data-theme="light"] .wb-project-card:hover {
-  box-shadow:
-    0 8px 22px color-mix(in srgb, #0f172a 7%, transparent),
-    0 0 0 1px color-mix(in srgb, var(--color-primary) 10%, transparent);
+  background: var(--wb-surface-raised) !important;
+  box-shadow: var(--wb-lift) !important;
+  transform: none;
 }
 
 html[data-theme="light"] .wb-btn {
-  background: var(--color-surface-light);
-  border-color: color-mix(in srgb, var(--color-border) 58%, #cbd5e1);
+  background: color-mix(in srgb, #ffffff 45%, transparent);
+  border: none;
+  box-shadow: none;
 }
 
 html[data-theme="light"] .wb-btn:hover:not(:disabled) {
-  background: var(--color-surface-lighter);
-  box-shadow: 0 2px 8px color-mix(in srgb, #0f172a 5%, transparent);
+  background: color-mix(in srgb, #ffffff 68%, transparent);
+  box-shadow: var(--wb-lift);
+  transform: none;
 }
 
 html[data-theme="light"] .wb-input {
-  background: var(--color-surface-light);
-  border-color: color-mix(in srgb, var(--color-border) 60%, #cbd5e1);
-  box-shadow: inset 0 1px 2px color-mix(in srgb, #0f172a 4%, transparent);
+  background: color-mix(in srgb, #ffffff 50%, transparent);
+  border: none;
+  box-shadow: inset 0 1px 2px color-mix(in srgb, #0f172a 2%, transparent);
+}
+
+html[data-theme="light"] .wb-input:focus {
+  box-shadow:
+    0 0 0 2px color-mix(in srgb, var(--color-primary) 12%, transparent),
+    inset 0 1px 2px color-mix(in srgb, #0f172a 2%, transparent);
 }
 
 html[data-theme="light"] .wb-badge-on-mainline {
@@ -136,13 +157,31 @@ html[data-theme="light"] .wb-badge-on-mainline {
 }
 
 html[data-theme="light"] .wb-banner {
-  background: color-mix(in srgb, var(--color-warning) 8%, var(--color-surface-light));
+  background: color-mix(in srgb, var(--color-warning) 5%, var(--wb-surface));
+  border: none;
   box-shadow: none;
 }
 
 .wb-stage > * {
   position: relative;
   z-index: 1;
+}
+
+/* Scrollport for workbench pages — padding gives tile shadows room in light mode */
+.wb-content-scroll {
+  min-height: 0;
+  flex: 1 1 auto;
+  overflow-y: auto;
+  overflow-x: hidden;
+}
+
+html[data-theme="light"] .wb-content-scroll {
+  padding-inline: 14px;
+  padding-block: 8px;
+}
+
+html[data-theme="light"] .wb-board-grid {
+  padding: 10px;
 }
 
 .wb-panel {
@@ -277,7 +316,7 @@ html[data-theme="light"] .wb-banner {
 }
 
 .wb-task:hover {
-  transform: translateY(-2px);
+  transform: none;
   border-color: color-mix(in srgb, var(--color-primary) 34%, var(--color-border));
   box-shadow:
     0 14px 32px color-mix(in srgb, #000 22%, transparent),
@@ -339,7 +378,7 @@ html[data-theme="light"] .wb-chip--done {
 }
 
 .wb-btn:hover:not(:disabled) {
-  transform: translateY(-1px);
+  transform: none;
   color: var(--color-text);
   border-color: color-mix(in srgb, var(--color-primary) 30%, var(--color-border));
   background: color-mix(in srgb, var(--color-surface-lighter) 78%, transparent);
@@ -367,7 +406,7 @@ html[data-theme="light"] .wb-chip--done {
 }
 
 .wb-btn-primary:hover:not(:disabled) {
-  transform: translateY(-2px);
+  transform: none;
   filter: brightness(1.05);
   box-shadow:
     0 12px 28px color-mix(in srgb, var(--color-primary) 42%, transparent),
@@ -485,7 +524,7 @@ html[data-theme="light"] .wb-chip--done {
 }
 
 .wb-project-card:hover {
-  transform: translateY(-3px) scale(1.01);
+  transform: scale(1.01);
   border-color: color-mix(in srgb, var(--color-primary) 38%, var(--color-border));
   box-shadow:
     0 18px 40px color-mix(in srgb, #000 24%, transparent),

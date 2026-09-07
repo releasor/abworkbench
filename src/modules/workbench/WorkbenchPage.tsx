@@ -21,8 +21,8 @@ export default function WorkbenchPage() {
   }
 
   return (
-    <div className="wb-stage flex h-full min-h-0 flex-col gap-3 p-1 page-enter-key">
-      <div className="min-h-0 flex-1 overflow-y-auto overflow-x-hidden">
+    <div className="wb-stage flex h-full min-h-0 flex-col gap-3 page-enter-key">
+      <div className="wb-content-scroll">
         {projectId ? (
           <ProjectWorkbench projectId={projectId} onBack={() => setProjectId(null)} />
         ) : (

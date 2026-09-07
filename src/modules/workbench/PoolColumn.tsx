@@ -1,6 +1,7 @@
 import { useMemo } from 'react'
 import { showToast } from '../taskflow/utils/toastEvent'
 import TaskRow from './TaskRow'
+import WbPanel from './WbPanel'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
 
 interface PoolColumnProps {
@@ -29,7 +30,7 @@ export default function PoolColumn({ projectId, onOpenTask }: PoolColumnProps) {
   if (!isLive) return null
 
   return (
-    <section className="wb-panel flex min-h-0 min-w-0 flex-1 flex-col">
+    <WbPanel className="flex min-h-0 min-w-0 flex-1 flex-col">
       <header className="wb-panel-header px-3 py-2.5">
         <h2 className="wb-title text-sm font-semibold text-text">所有人</h2>
         <p className="wb-subtitle text-[11px]">公开池 · 可被负责人拉入主线</p>
@@ -75,6 +76,6 @@ export default function PoolColumn({ projectId, onOpenTask }: PoolColumnProps) {
           })
         )}
       </div>
-    </section>
+    </WbPanel>
   )
 }
