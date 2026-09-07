@@ -60,12 +60,15 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
 
   return (
     <div className="mx-auto flex w-full max-w-2xl flex-col gap-6 p-4 motion-enter">
-      <div>
-        <h1 className="wb-title text-xl font-semibold text-text">工作台</h1>
-        <p className="wb-subtitle mt-1 text-sm">
+      <WbPanel hero className="p-6 md:p-8">
+        <div className="home-kicker mb-3 inline-flex items-center gap-2">
+          <span>工作台</span>
+        </div>
+        <h1 className="text-3xl font-black tracking-tight text-text md:text-4xl">项目协作</h1>
+        <p className="mt-2 text-sm text-text-muted">
           先创建并命名项目；开房在项目内进行，且只绑定那一个项目。
         </p>
-      </div>
+      </WbPanel>
 
       {connection.mode !== 'offline' && connection.projectId ? (
         <WbPanel as="div" className="flex flex-wrap items-center gap-2 px-3 py-2.5 text-sm">
@@ -79,7 +82,7 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
             <button
               type="button"
               onClick={() => onOpenProject(connection.projectId!)}
-              className="wb-btn-primary px-3 py-1 text-xs"
+              className="interactive-glass dashboard-chip rounded-xl px-3 py-1.5 text-xs font-semibold text-primary disabled:opacity-50"
             >
               进入该项目
             </button>
@@ -87,7 +90,7 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
               type="button"
               disabled={busy}
               onClick={() => void disconnect()}
-              className="wb-btn px-3 py-1 text-xs"
+              className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-text-muted"
             >
               断开
             </button>
@@ -96,7 +99,7 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
       ) : (
         <WbPanel className="p-4">
           <h2 className="text-sm font-semibold text-text">加入他人房间</h2>
-          <p className="wb-subtitle mt-1 text-xs">加入后会进入对方当前开房的那一个项目。</p>
+          <p className="mt-1 text-xs text-text-muted">加入后会进入对方当前开房的那一个项目。</p>
           <div className="mt-3 flex flex-wrap items-end gap-2">
             <label className="flex min-w-[12rem] flex-1 flex-col gap-1">
               <span className="text-[10px] text-text-muted">主机地址</span>
@@ -104,7 +107,7 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
                 value={joinUrl}
                 onChange={(e) => setJoinUrl(e.target.value)}
                 placeholder="http://192.168.x.x:端口"
-                className="wb-input px-2 py-1.5 text-xs"
+                className="interactive-glass rounded-xl px-2 py-1.5 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
               />
             </label>
             <label className="flex w-24 flex-col gap-1">
@@ -113,7 +116,7 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
                 value={joinPassphrase}
                 onChange={(e) => setJoinPassphrase(e.target.value)}
                 placeholder="可选"
-                className="wb-input px-2 py-1.5 text-xs"
+                className="interactive-glass rounded-xl px-2 py-1.5 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
               />
             </label>
             <label className="flex w-24 flex-col gap-1">
@@ -122,14 +125,14 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
                 value={displayName}
                 onChange={(e) => setDisplayName(e.target.value)}
                 placeholder="可选"
-                className="wb-input px-2 py-1.5 text-xs"
+                className="interactive-glass rounded-xl px-2 py-1.5 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
               />
             </label>
             <button
               type="button"
               disabled={busy || !joinUrl.trim()}
               onClick={() => void onJoin()}
-              className="wb-btn-primary px-3 py-1.5 text-xs"
+              className="interactive-glass dashboard-chip rounded-xl px-3 py-1.5 text-xs font-semibold text-primary disabled:opacity-50"
             >
               加入
             </button>
@@ -139,7 +142,7 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
 
       <WbPanel hero className="p-4">
         <h2 className="text-sm font-semibold text-text">第一步：命名并创建项目</h2>
-        <p className="wb-subtitle mt-1 text-xs">这里填的是项目名称，不是任务。开房请进入项目后再点。</p>
+        <p className="mt-1 text-xs text-text-muted">这里填的是项目名称，不是任务。开房请进入项目后再点。</p>
         <div className="mt-3 flex gap-2">
           <input
             value={name}
@@ -150,9 +153,13 @@ export default function ProjectList({ onOpenProject }: ProjectListProps) {
             placeholder="例如：产品迭代 / 毕业设计"
             autoFocus
             aria-label="项目名称"
-            className="wb-input min-w-0 flex-1 px-3 py-2 text-sm"
+            className="interactive-glass min-w-0 flex-1 rounded-xl px-3 py-2 text-sm text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
           />
-          <button type="button" onClick={submit} className="wb-btn-primary shrink-0 px-4 py-2 text-sm">
+          <button
+            type="button"
+            onClick={submit}
+            className="interactive-glass dashboard-chip shrink-0 rounded-xl px-4 py-2 text-sm font-semibold text-primary disabled:opacity-50"
+          >
             创建项目
           </button>
         </div>
