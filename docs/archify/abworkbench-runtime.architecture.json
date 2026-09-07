@@ -1,0 +1,109 @@
+{
+  "schema_version": 1,
+  "diagram_type": "architecture",
+  "meta": {
+    "title": "Abworkbench 桌面工作台",
+    "subtitle": "Electron 分层 · Zustand 状态 · 本地优先",
+    "locale": "zh-CN",
+    "visual_preset": "signal-flow",
+    "animation": "trace",
+    "output": "abworkbench-runtime.architecture.html",
+    "views": [
+      {
+        "id": "morning-flow",
+        "label": "早晨主路径",
+        "focus": ["user", "react-shell", "dashboard-store", "taskflow-store", "electron-main"],
+        "note": "打开应用 → 仪表盘 → 快速捕获任务 → 本地持久化。"
+      },
+      {
+        "id": "workbench-sync",
+        "label": "协作工作台",
+        "focus": ["react-shell", "preload", "electron-main", "workbench", "local-files"],
+        "note": "工作台经 IPC 写入 userData，可选 LAN 同步。"
+      },
+      {
+        "id": "integrations",
+        "label": "外部集成",
+        "focus": ["launcher", "hotlist-svc", "mineradio-host", "external-services", "os"],
+        "note": "Everything、RSS 热榜、Mineradio 与系统托盘/热键。"
+      }
+    ]
+  },
+  "components": [
+    { "id": "user", "type": "external", "label": "用户", "sublabel": "桌面操作者", "pos": [40, 300], "size": [120, 60] },
+    { "id": "os", "type": "external", "label": "Windows OS", "sublabel": "托盘 · 热键", "pos": [580, 110], "size": [130, 60] },
+    { "id": "launcher", "type": "frontend", "label": "快搜", "sublabel": "Alt+Space", "pos": [390, 110], "size": [130, 60] },
+    { "id": "hotlist-svc", "type": "backend", "label": "热榜服务", "sublabel": "RSS 缓存", "pos": [770, 110], "size": [130, 60] },
+    { "id": "external-services", "type": "cloud", "label": "外部服务", "sublabel": "RSS · 音乐", "pos": [960, 110], "size": [130, 60] },
+    { "id": "react-shell", "type": "frontend", "label": "React 应用壳", "sublabel": "Vite 渲染层", "pos": [200, 300], "size": [140, 60], "tag": "App.tsx" },
+    { "id": "preload", "type": "frontend", "label": "Preload 桥", "sublabel": "contextBridge", "pos": [390, 300], "size": [130, 60] },
+    { "id": "electron-main", "type": "backend", "label": "Electron 主进程", "sublabel": "窗口 · IPC", "pos": [580, 300], "size": [140, 60] },
+    { "id": "workbench", "type": "backend", "label": "协作工作台", "sublabel": "项目 · LAN", "pos": [580, 460], "size": [140, 60] },
+    { "id": "mineradio-host", "type": "backend", "label": "Mineradio 宿主", "sublabel": "vendor 子进程", "pos": [960, 300], "size": [140, 60] },
+    { "id": "dashboard-store", "type": "database", "label": "仪表盘 Store", "sublabel": "dashboard-storage", "pos": [200, 460], "size": [140, 60] },
+    { "id": "taskflow-store", "type": "database", "label": "任务流 Store", "sublabel": "taskflow-offline", "pos": [390, 460], "size": [140, 60] },
+    { "id": "local-files", "type": "database", "label": "本地文件", "sublabel": "userData JSON", "pos": [770, 460], "size": [140, 60] }
+  ],
+  "boundaries": [
+    {
+      "kind": "region",
+      "label": "Abworkbench Electron 应用",
+      "wraps": [
+        "react-shell",
+        "preload",
+        "electron-main",
+        "dashboard-store",
+        "taskflow-store",
+        "launcher",
+        "hotlist-svc",
+        "workbench",
+        "mineradio-host",
+        "local-files"
+      ]
+    }
+  ],
+  "connections": [
+    { "id": "user-ui", "from": "user", "to": "react-shell", "variant": "emphasis" },
+    { "id": "ui-preload", "from": "react-shell", "to": "preload", "variant": "emphasis" },
+    { "id": "preload-ipc", "from": "preload", "to": "electron-main", "label": "IPC", "variant": "emphasis" },
+    { "id": "main-workbench", "from": "electron-main", "to": "workbench", "variant": "emphasis", "fromSide": "bottom", "toSide": "top" },
+    { "id": "main-mineradio", "from": "electron-main", "to": "mineradio-host", "variant": "emphasis" },
+    { "id": "ui-dashboard", "from": "react-shell", "to": "dashboard-store", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "ui-taskflow", "from": "react-shell", "to": "taskflow-store", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "workbench-files", "from": "workbench", "to": "local-files", "label": "JSON", "variant": "dashed", "fromSide": "right", "toSide": "left", "labelDy": -18 },
+    { "id": "launcher-main", "from": "launcher", "to": "electron-main", "variant": "dashed", "fromSide": "bottom", "toSide": "top" },
+    { "id": "main-hotlist", "from": "electron-main", "to": "hotlist-svc", "variant": "dashed", "fromSide": "top", "toSide": "bottom" },
+    { "id": "hotlist-external", "from": "hotlist-svc", "to": "external-services", "variant": "dashed" },
+    { "id": "mineradio-external", "from": "mineradio-host", "to": "external-services", "label": "音乐", "variant": "dashed", "fromSide": "top", "toSide": "bottom", "labelDy": -58 },
+    { "id": "main-os", "from": "electron-main", "to": "os", "label": "系统集成", "variant": "security", "fromSide": "top", "toSide": "bottom", "labelDy": -58 }
+  ],
+  "cards": [
+    {
+      "dot": "cyan",
+      "title": "渲染与路由",
+      "items": [
+        "src/App.tsx 懒加载仪表盘、工作台、热榜、设置等页面",
+        "多入口：主窗口、迷你窗、快搜、阅读器",
+        "BroadcastChannel 跨窗口同步笔记"
+      ]
+    },
+    {
+      "dot": "emerald",
+      "title": "本地数据",
+      "items": [
+        "useStore → dashboard-storage",
+        "useTaskStore → taskflow-offline-*（8 份自动快照）",
+        "useWorkbenchStore → workbench-local.json + LAN SSE"
+      ]
+    },
+    {
+      "dot": "rose",
+      "title": "系统集成",
+      "items": [
+        "快捷键同步到主进程 globalShortcut",
+        "热榜主进程抓取 RSS（5 分钟缓存）",
+        "Mineradio vendor 子进程 + userData Cookie"
+      ]
+    }
+  ]
+}
