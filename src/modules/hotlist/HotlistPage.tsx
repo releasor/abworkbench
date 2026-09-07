@@ -178,20 +178,16 @@ export default function HotlistPage() {
       <div className="hotlist-content-scroll flex min-h-0 flex-1 flex-col gap-4 p-4 md:p-5">
         <BorderGlow
           {...glowTheme}
-          borderRadius={28}
+          borderRadius={22}
           backgroundColor={surfaceColor}
           glowMaskColor={surfaceColor}
           className="w-full shrink-0 border-glow-card--glass"
-          innerClassName="dashboard-hero relative overflow-hidden p-6 md:p-8"
+          innerClassName="hotlist-hero relative overflow-hidden px-4 py-3 md:px-5 md:py-3.5"
         >
-          <div className="relative z-[2] flex flex-wrap items-end justify-between gap-4">
-            <div className="min-w-0 max-w-2xl">
-              <div className="home-kicker mb-3 inline-flex items-center gap-2">
-                <Flame size={12} />
-                <span>{t('page.hotlist')}</span>
-              </div>
-              <h1 className="text-3xl font-black tracking-tight text-text md:text-4xl">{t('page.hotlist')}</h1>
-              <p className="mt-2 text-sm text-text-muted">{t('hotlist.subtitle')}</p>
+          <div className="relative z-[2] flex flex-wrap items-center justify-between gap-3">
+            <div className="min-w-0 max-w-3xl">
+              <h1 className="text-lg font-semibold tracking-tight text-text md:text-xl">{t('page.hotlist')}</h1>
+              <p className="mt-0.5 text-xs text-text-muted md:text-sm">{t('hotlist.subtitle')}</p>
             </div>
             <div className="shrink-0">{refreshButton}</div>
           </div>

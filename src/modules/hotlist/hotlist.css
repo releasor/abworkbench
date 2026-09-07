@@ -33,6 +33,11 @@
   overflow-x: hidden;
 }
 
+.hotlist-hero {
+  /* Compact title strip — height follows content, no dashboard-hero min padding */
+  min-height: 0;
+}
+
 .hotlist-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
