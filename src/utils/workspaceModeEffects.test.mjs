@@ -38,7 +38,7 @@ test('planWorkspaceModeEffects is no-op when staying in deep', () => {
 test('filterCommandsForWorkspaceMode locks stealth reader in deep mode', () => {
   const commands = [
     { id: 'nav-pomodoro', label: '番茄', description: '', keywords: [] },
-    { id: 'stealth-reader', label: '摸鱼', description: '', keywords: [] },
+    { id: 'stealth-reader', label: '阅读', description: '', keywords: [] },
     { id: 'stealth-reader-library', label: '书架', description: '', keywords: [] },
   ]
   const filtered = filterCommandsForWorkspaceMode(commands, 'deep')

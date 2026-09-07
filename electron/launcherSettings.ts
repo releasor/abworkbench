@@ -14,8 +14,6 @@ export interface LauncherSettings {
   hotkey: string
   /** Electron accelerator for main window, e.g. "Ctrl+Alt+Space" */
   mainWindowHotkey: string
-  /** Electron accelerator for quick capture, e.g. "Ctrl+Shift+Space" */
-  quickCaptureHotkey: string
   /** Absolute path to Everything's es.exe; empty string means auto-detect */
   esPath: string
   /** Everything HTTP server base URL used when es.exe is unavailable */
@@ -28,7 +26,6 @@ export const DEFAULT_HOTKEY = 'Alt+Space'
 export const DEFAULT_MAIN_WINDOW_HOTKEY = 'Ctrl+Alt+Space'
 /** Previous mistaken factory default when launcher was briefly set to Ctrl+Alt+Space */
 export const MISASSIGNED_LAUNCHER_HOTKEY = 'Ctrl+Alt+Space'
-export const DEFAULT_QUICK_CAPTURE_HOTKEY = 'Ctrl+Shift+Space'
 export const DEFAULT_EVERYTHING_HTTP_URL = 'http://127.0.0.1:23581'
 
 export const DEFAULT_PROVIDERS: TranslateProvider[] = [
@@ -43,7 +40,6 @@ export function defaultLauncherSettings(): LauncherSettings {
   return {
     hotkey: DEFAULT_HOTKEY,
     mainWindowHotkey: DEFAULT_MAIN_WINDOW_HOTKEY,
-    quickCaptureHotkey: DEFAULT_QUICK_CAPTURE_HOTKEY,
     esPath: '',
     everythingHttpUrl: DEFAULT_EVERYTHING_HTTP_URL,
     defaultProviderId: 'sogou',
@@ -81,9 +77,6 @@ export function normalizeLauncherSettings(input: unknown): LauncherSettings {
   if (typeof raw.mainWindowHotkey === 'string' && raw.mainWindowHotkey.trim()) {
     base.mainWindowHotkey = normalizeAcceleratorLabel(raw.mainWindowHotkey)
   }
-  if (typeof raw.quickCaptureHotkey === 'string' && raw.quickCaptureHotkey.trim()) {
-    base.quickCaptureHotkey = normalizeAcceleratorLabel(raw.quickCaptureHotkey)
-  }
   if (typeof raw.esPath === 'string') base.esPath = raw.esPath.trim()
   if (typeof raw.everythingHttpUrl === 'string' && /^https?:\/\//i.test(raw.everythingHttpUrl.trim())) {
     base.everythingHttpUrl = raw.everythingHttpUrl.trim().replace(/\/+$/, '')
@@ -113,7 +106,6 @@ export function loadLauncherSettings(userDataDir: string): LauncherSettings {
       const rawHotkey = typeof raw.hotkey === 'string' ? normalizeAcceleratorLabel(raw.hotkey) : ''
       const needsPersist =
         rawHotkey === MISASSIGNED_LAUNCHER_HOTKEY
-        || typeof raw.quickCaptureHotkey !== 'string'
         || typeof raw.mainWindowHotkey !== 'string'
       if (needsPersist) {
         return saveLauncherSettings(userDataDir, normalized)

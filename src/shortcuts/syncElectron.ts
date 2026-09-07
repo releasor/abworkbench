@@ -8,33 +8,26 @@ function fromElectronAccelerator(value: string): string {
 }
 
 /**
- * Keep Electron global shortcuts (launcher / main window / quick capture / reader boss key)
+ * Keep Electron global shortcuts (launcher / main window / reader boss key)
  * in sync with the renderer shortcut store.
  */
 export function useSyncElectronShortcuts() {
   const launcher = useShortcutStore((s) => s.getAccelerator('launcher'))
   const mainWindow = useShortcutStore((s) => s.getAccelerator('mainWindow'))
-  const quickCapture = useShortcutStore((s) => s.getAccelerator('quickCapture'))
   const readerBossKey = useShortcutStore((s) => s.getAccelerator('readerBossKey'))
   const ready = useRef(false)
 
-  const pushLauncher = useCallback(async (hotkey: string, mainWindowHotkey: string, quickCaptureHotkey: string) => {
+  const pushLauncher = useCallback(async (hotkey: string, mainWindowHotkey: string) => {
     if (!window.electronAPI?.getLauncherSettings || !window.electronAPI?.setLauncherSettings) return
     const current = await window.electronAPI.getLauncherSettings()
     if (!current) return
     const nextHotkey = toElectronAccelerator(hotkey)
     const nextMain = toElectronAccelerator(mainWindowHotkey)
-    const nextQuick = toElectronAccelerator(quickCaptureHotkey)
-    if (
-      current.hotkey === nextHotkey
-      && current.mainWindowHotkey === nextMain
-      && current.quickCaptureHotkey === nextQuick
-    ) return
+    if (current.hotkey === nextHotkey && current.mainWindowHotkey === nextMain) return
     await window.electronAPI.setLauncherSettings({
       ...current,
       hotkey: nextHotkey,
       mainWindowHotkey: nextMain,
-      quickCaptureHotkey: nextQuick,
     })
   }, [])
 
@@ -65,12 +58,6 @@ export function useSyncElectronShortcuts() {
           useShortcutStore.getState().setAccelerator('mainWindow', normalized)
         }
       }
-      if (loaded?.quickCaptureHotkey) {
-        const normalized = fromElectronAccelerator(loaded.quickCaptureHotkey)
-        if (normalized !== useShortcutStore.getState().getAccelerator('quickCapture')) {
-          useShortcutStore.getState().setAccelerator('quickCapture', normalized)
-        }
-      }
       const reader = await window.electronAPI?.getReaderSettings?.()
       if (reader?.bossKey) {
         const normalized = fromElectronAccelerator(reader.bossKey)
@@ -88,7 +75,6 @@ export function useSyncElectronShortcuts() {
       await pushLauncher(
         useShortcutStore.getState().getAccelerator('launcher'),
         useShortcutStore.getState().getAccelerator('mainWindow'),
-        useShortcutStore.getState().getAccelerator('quickCapture'),
       )
       await pushBossKey(useShortcutStore.getState().getAccelerator('readerBossKey'))
     })()
@@ -96,9 +82,9 @@ export function useSyncElectronShortcuts() {
 
   useEffect(() => {
     if (!ready.current) return
-    if (!SHORTCUT_BY_ID.launcher || !SHORTCUT_BY_ID.mainWindow || !SHORTCUT_BY_ID.quickCapture) return
-    void pushLauncher(launcher, mainWindow, quickCapture)
-  }, [launcher, mainWindow, pushLauncher, quickCapture])
+    if (!SHORTCUT_BY_ID.launcher || !SHORTCUT_BY_ID.mainWindow) return
+    void pushLauncher(launcher, mainWindow)
+  }, [launcher, mainWindow, pushLauncher])
 
   useEffect(() => {
     if (!ready.current) return
