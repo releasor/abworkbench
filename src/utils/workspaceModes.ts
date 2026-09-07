@@ -11,7 +11,7 @@ export const WORKSPACE_MODE_OPTIONS: WorkspaceModeOption[] = [
   {
     mode: 'deep',
     label: '深度工作',
-    description: '进入时自动开免打扰、跳转番茄并开始计时；启动器锁定摸鱼阅读。',
+    description: '进入时自动开免打扰、跳转番茄并开始计时；启动器锁定阅读。',
   },
   { mode: 'night', label: '夜间主题', description: '更低亮度和更柔和对比，适合晚间复盘。' },
   { mode: 'minimal', label: '极简工作台', description: '压缩装饰和阴影，保留核心信息密度。' },

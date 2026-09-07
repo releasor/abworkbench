@@ -1,8 +1,7 @@
-import { useState, useRef, useMemo, useEffect, Fragment, useDeferredValue } from 'react'
+import { useState, useRef, useMemo, Fragment, useDeferredValue } from 'react'
 import { Plus, Trash2, Check, Flag, Edit3, X, CheckCircle2, Archive, ArrowUpDown, ArrowDownAZ, Search, ListEnd, Calendar, Copy, Flame } from 'lucide-react'
 import { useStore } from '../../store'
 import type { Priority } from '../../store'
-import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { playCompleteSound } from '../../utils/audio'
 import { useToday } from '../../hooks/useToday'
 import clsx from 'clsx'
@@ -69,7 +68,6 @@ export default function TodoList() {
   const [editPriority, setEditPriority] = useState<Priority>('medium')
   const [editDueDate, setEditDueDate] = useState('')
   const [filter, setFilter] = useState<'all' | 'active' | 'completed' | 'overdue'>('all')
-  const shortcutOverrides = useShortcutStore((s) => s.overrides)
   const [sortBy, setSortBy] = useState<'date' | 'priority' | 'dueDate'>('date')
   const [completedAtBottom, setCompletedAtBottom] = useState(true)
   const [searchQuery, setSearchQuery] = useState('')
@@ -255,29 +253,6 @@ export default function TodoList() {
       : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))'
     return { pct, milestone, dailyAvg, estDays, barGradient }
   }, [stats, dayOfWeek])
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
-      if (eventMatchesShortcut('taskListQuickAdd', e)) {
-        e.preventDefault()
-        inputRef.current?.focus()
-      } else if (eventMatchesShortcut('taskListFilter', e)) {
-        e.preventDefault()
-        setFilter((prev) => prev === 'all' ? 'active' : prev === 'active' ? 'completed' : prev === 'completed' ? 'overdue' : 'all')
-      } else if (eventMatchesShortcut('taskListSort', e)) {
-        e.preventDefault()
-        setSortBy((prev) => prev === 'date' ? 'priority' : prev === 'priority' ? 'dueDate' : 'date')
-      } else if (eventMatchesShortcut('taskListCompletedBottom', e)) {
-        e.preventDefault()
-        setCompletedAtBottom((prev) => !prev)
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [shortcutOverrides])
 
   const handleAdd = () => {
     if (!newText.trim()) return

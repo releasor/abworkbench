@@ -243,7 +243,7 @@ export default function LibraryPanel({
       >
         <div className="flex items-center gap-2 font-medium">
           <BookOpen size={16} />
-          摸鱼书架
+          书架
         </div>
         <button
           type="button"

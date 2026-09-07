@@ -824,7 +824,7 @@ export default function LauncherApp({
                 setQuery(event.target.value)
               }}
               onKeyDown={handleKeyDown}
-              placeholder="搜索网页 / 软件 / 摸鱼阅读 / 翻译 / 找文件"
+              placeholder="搜索网页 / 软件 / 阅读 / 翻译 / 找文件"
               autoFocus
               className="flex-1 bg-transparent text-text text-[15px] outline-none placeholder:text-text-muted/70"
             />
@@ -878,7 +878,7 @@ export default function LauncherApp({
                 </div>
               )}
 
-              <div className="launcher-section-label">摸鱼阅读</div>
+              <div className="launcher-section-label">阅读</div>
               <button
                 type="button"
                 onClick={() => runCommand('stealth-reader')}
@@ -893,7 +893,7 @@ export default function LauncherApp({
                   <BookOpen size={18} />
                 </div>
                 <div className="min-w-0 flex-1">
-                  <div className="text-sm font-medium text-text">摸鱼阅读</div>
+                  <div className="text-sm font-medium text-text">阅读</div>
                   <div className="truncate text-[11px] text-text-muted">左键续读 · 右键进书架 · 透明悬浮窗</div>
                 </div>
               </button>

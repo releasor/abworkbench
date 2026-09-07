@@ -52,7 +52,7 @@ export default function StealthReaderApp() {
     html.style.background = 'transparent'
     body.style.background = 'transparent'
     if (root) root.style.background = 'transparent'
-    document.title = '摸鱼阅读'
+    document.title = '阅读'
   }, [])
 
   useEffect(() => {

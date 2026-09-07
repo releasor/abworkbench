@@ -248,12 +248,12 @@ export default function ReadingPanel({
     const selection = window.getSelection()?.toString().trim() || ''
     const excerpt = (selection || body).slice(0, 50000)
     const noteTitle = selection
-      ? `${(title || '摸鱼摘录').slice(0, 36)} · 选段`
-      : (title || '摸鱼摘录').slice(0, 80)
+      ? `${(title || '阅读摘录').slice(0, 36)} · 选段`
+      : (title || '阅读摘录').slice(0, 80)
     const note = {
       id: `note-${Date.now().toString(36)}-${Math.random().toString(36).slice(2, 8)}`,
       title: noteTitle,
-      content: `# ${noteTitle}\n\n${excerpt}\n\n---\n来自摸鱼阅读 · 第${chapterIndex + 1}章${selection ? ' · 选中文本' : ''}`,
+      content: `# ${noteTitle}\n\n${excerpt}\n\n---\n来自阅读 · 第${chapterIndex + 1}章${selection ? ' · 选中文本' : ''}`,
       createdAt: Date.now(),
       updatedAt: Date.now(),
       color: '#fbbf24',

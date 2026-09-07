@@ -352,8 +352,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'stealth-reader-library',
-      label: '??????',
-      description: '????????????',
+      label: '打开书架',
+      description: '直接打开阅读书架',
       icon: BookOpen,
       action: () => {
         void window.electronAPI?.openReader?.({ mode: 'library' })
@@ -684,7 +684,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
         {activeQuote && (
           <div className="px-4 py-3 border-b border-border bg-primary/5">
             <p className="text-sm text-text italic leading-relaxed">"{activeQuote.text}"</p>
-            <p className="text-xs text-text-muted mt-1.5 text-right">� {activeQuote.author}</p>
+            <p className="text-xs text-text-muted mt-1.5 text-right">� {activeQuote.author}</p>
           </div>
         )}
 
