@@ -2238,6 +2238,7 @@ function reportWindowCreationFailure(context, error) {
 }
 
 function bindStartupFailureHandlers() {
+  if (process.env.MINERADIO_ABWB_HOST === '1') return;
   process.on('uncaughtException', (error) => {
     if (startupCompleted) {
       console.error('[UncaughtException]', error);

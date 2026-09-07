@@ -6,12 +6,7 @@ import { contextBridge, ipcRenderer } from 'electron'
 
 contextBridge.exposeInMainWorld('electronAPI', {
   platform: process.platform,
-  onOpenQuickCapture: (callback: () => void) => {
-    ipcRenderer.on('open-quick-capture', callback)
-    return () => ipcRenderer.removeListener('open-quick-capture', callback)
-  },
   openMiniWindow: () => ipcRenderer.invoke('desktop:open-mini-window'),
-  openQuickCapture: () => ipcRenderer.invoke('desktop:open-quick-capture'),
   showMainWindow: () => ipcRenderer.invoke('desktop:show-main-window'),
   openTarget: (target: string) => ipcRenderer.invoke('desktop:open-target', target),
   readClipboard: () => ipcRenderer.invoke('desktop:read-clipboard'),
@@ -66,6 +61,7 @@ contextBridge.exposeInMainWorld('electronAPI', {
   pinRecentApp: (appPath: string) => ipcRenderer.invoke('desktop:pin-recent-app', appPath),
   unpinRecentApp: (appPath: string) => ipcRenderer.invoke('desktop:unpin-recent-app', appPath),
   hideRecentApp: (appPath: string) => ipcRenderer.invoke('desktop:hide-recent-app', appPath),
+  hideRecentPath: (targetPath: string) => ipcRenderer.invoke('desktop:hide-recent-path', targetPath),
 
   // Stealth reader
   openReader: (req?: { mode?: 'auto' | 'library' | 'reading'; bookId?: string }) =>

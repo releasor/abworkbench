@@ -412,8 +412,7 @@ async function startFullServer(root: string, port: number): Promise<void> {
     output += text
     if (output.length > 80_000) output = output.slice(-60_000)
     appendServerLog(logPath, text)
-    const trimmed = text.trim()
-    if (trimmed) console.warn('[Mineradio server]', trimmed)
+    // Server output is persisted to server.log — avoid console.warn here (EPIPE when no TTY).
   }
   child.stdout?.on('data', onChunk)
   child.stderr?.on('data', onChunk)

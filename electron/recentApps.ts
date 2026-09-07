@@ -385,11 +385,17 @@ async function withPathIcon(entry: RecentPathEntry): Promise<RecentPathEntry> {
   return entry
 }
 
-export async function listRecentFilesAndFolders(fileLimit = 8, folderLimit = 6): Promise<{
+export async function listRecentFilesAndFolders(
+  userDataPath: string,
+  fileLimit = 8,
+  folderLimit = 6,
+): Promise<{
   files: RecentPathEntry[]
   folders: RecentPathEntry[]
 }> {
   if (process.platform !== 'win32') return { files: [], folders: [] }
+  ensurePrefs(userDataPath)
+  const hidden = new Set(prefsStore.hidden.map(normalizeKey))
 
   const files: RecentPathEntry[] = []
   const folders: RecentPathEntry[] = []
@@ -405,7 +411,7 @@ export async function listRecentFilesAndFolders(fileLimit = 8, folderLimit = 6):
     if (!exists(target)) continue
 
     const key = normalizeKey(target)
-    if (seen.has(key)) continue
+    if (seen.has(key) || hidden.has(key)) continue
     seen.add(key)
 
     let isDir: boolean
@@ -443,7 +449,7 @@ export async function listRecentFilesAndFolders(fileLimit = 8, folderLimit = 6):
 export async function listLauncherRecentHome(userDataPath: string): Promise<LauncherRecentHome> {
   const [apps, paths] = await Promise.all([
     listRecentApps(userDataPath, 12),
-    listRecentFilesAndFolders(8, 6),
+    listRecentFilesAndFolders(userDataPath, 8, 6),
   ])
   return { apps, files: paths.files, folders: paths.folders }
 }
@@ -598,6 +604,18 @@ export async function hideRecentApp(userDataPath: string, appPathOrTarget: strin
   }
   savePrefs()
   return listRecentApps(userDataPath)
+}
+
+/** Remove a file or folder from the launcher recent lists. */
+export async function hideRecentPath(userDataPath: string, targetPath: string): Promise<LauncherRecentHome> {
+  ensurePrefs(userDataPath)
+  const key = normalizeKey(targetPath)
+  if (!key) return listLauncherRecentHome(userDataPath)
+  if (!prefsStore.hidden.some((item) => normalizeKey(item) === key)) {
+    prefsStore.hidden = [...prefsStore.hidden, key]
+  }
+  savePrefs()
+  return listLauncherRecentHome(userDataPath)
 }
 
 export async function searchInstalledApps(userDataPath: string, query: string, limit = 10): Promise<DesktopAppEntry[]> {

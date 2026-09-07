@@ -1019,25 +1019,17 @@ html.abwb-embedded[data-theme="light"] .stage-lyric-line {
   filter: none !important;
 }
 
-/* ---- Splash / startup (light) ---- */
+/* ---- Splash / startup (light) — flat canvas, matches workbench shell ---- */
 html.abwb-embedded[data-theme="light"] #splash {
-  background: #f1f5f9;
-  box-shadow: inset 0 0 160px rgba(148, 163, 184, 0.22);
+  background: #f1f5f9 !important;
+  box-shadow: none !important;
 }
 
-html.abwb-embedded[data-theme="light"] #splash::before {
-  background:
-    linear-gradient(115deg, transparent 0%, rgba(30, 64, 175, 0.06) 24%, transparent 42%, rgba(180, 83, 9, 0.05) 62%, transparent 82%),
-    repeating-linear-gradient(90deg, rgba(15, 23, 42, 0.035) 0 1px, transparent 1px 54px),
-    repeating-linear-gradient(0deg, rgba(15, 23, 42, 0.025) 0 1px, transparent 1px 46px),
-    linear-gradient(180deg, #f8fafc 0%, #f1f5f9 42%, #e2e8f0 100%);
-  opacity: 0.95;
-}
-
+html.abwb-embedded[data-theme="light"] #splash::before,
 html.abwb-embedded[data-theme="light"] #splash::after {
-  background:
-    linear-gradient(90deg, rgba(241, 245, 249, 0.9), transparent 21%, transparent 79%, rgba(241, 245, 249, 0.9)),
-    linear-gradient(180deg, rgba(241, 245, 249, 0.72), transparent 32%, transparent 64%, rgba(226, 232, 240, 0.8));
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
 }
 
 html.abwb-embedded[data-theme="light"] .splash-bg-noise {
@@ -1103,7 +1095,7 @@ html.abwb-embedded[data-theme="light"] .splash-enter {
 }
 
 html.abwb-embedded[data-theme="light"] #splash-canvas {
-  opacity: 0.22;
+  opacity: 0.08;
   mix-blend-mode: multiply;
 }
 
@@ -1948,3 +1940,33 @@ html.abwb-embedded[data-theme="light"] #drop-overlay .drop-text {
   }
 }
 
+/* ---- Final: seamless light canvas (wins over gradient/card rules above) ---- */
+html.abwb-embedded[data-theme="light"] #splash,
+html.abwb-embedded[data-theme="light"] #splash.ready,
+html.abwb-embedded[data-theme="light"] body.splash-active #splash {
+  background: #f1f5f9 !important;
+  box-shadow: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home,
+html.abwb-embedded[data-theme="light"] #empty-home .empty-home-shell,
+html.abwb-embedded[data-theme="light"] #empty-home .home-hero,
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card {
+  background: transparent !important;
+  border: 0 !important;
+  box-shadow: none !important;
+  filter: none !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-hero::before,
+html.abwb-embedded[data-theme="light"] #empty-home .home-hero::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+}
+
+html.abwb-embedded[data-theme="light"] .splash-bg-noise {
+  opacity: 0.02 !important;
+  mix-blend-mode: multiply !important;
+}

@@ -1,10 +1,11 @@
+import { patchConsoleForBrokenPipe } from './safeConsole'
 import { app, BrowserWindow, Menu, Tray, dialog, globalShortcut, ipcMain, nativeImage, shell, session, screen, desktopCapturer, clipboard, Notification } from 'electron'
 import path from 'node:path'
 import fs from 'node:fs'
 import { fileURLToPath } from 'node:url'
 import { shouldQuitForExistingInstance } from './appLifecycle'
 import { getIsolatedCachePaths } from './desktopReliability'
-import { buildTranslateUrl, DEFAULT_HOTKEY, DEFAULT_MAIN_WINDOW_HOTKEY, DEFAULT_QUICK_CAPTURE_HOTKEY, loadLauncherSettings, saveLauncherSettings, type LauncherSettings } from './launcherSettings'
+import { buildTranslateUrl, DEFAULT_HOTKEY, DEFAULT_MAIN_WINDOW_HOTKEY, loadLauncherSettings, saveLauncherSettings, type LauncherSettings } from './launcherSettings'
 import { loadWorkbenchLocal, saveWorkbenchLocal } from './workbenchLocal'
 import {
   getWorkbenchHostStatus,
@@ -13,7 +14,7 @@ import {
   stopWorkbenchHost,
 } from './workbenchHost'
 import { everythingStatus, searchEverything } from './everythingSearch'
-import { initRecentApps, listLauncherRecentHome, openDesktopApp, searchInstalledApps, pinRecentApp, unpinRecentApp, hideRecentApp } from './recentApps'
+import { initRecentApps, listLauncherRecentHome, openDesktopApp, searchInstalledApps, pinRecentApp, unpinRecentApp, hideRecentApp, hideRecentPath } from './recentApps'
 import { loadReaderSettings, saveReaderSettings } from './readerSettings'
 import type { ReaderSettings } from './reader/types'
 import { resolveOpenMode, sanitizeProgress } from './reader/resolveOpenMode'
@@ -70,7 +71,6 @@ let tray: Tray | null = null
 let isQuitting = false
 let launcherHotkey = ''
 let mainWindowHotkey = ''
-let quickCaptureHotkey = ''
 let launcherSettings: LauncherSettings = loadLauncherSettings(app.getPath('userData'))
 let readerSettings: ReaderSettings = loadReaderSettings(app.getPath('userData'))
 let lastBossKeyError: string | undefined
@@ -89,6 +89,7 @@ function configureDiskCacheIsolation() {
 }
 
 configureDiskCacheIsolation()
+patchConsoleForBrokenPipe()
 prepareMineradioDesktopEnv()
 loadMineradioDesktopRuntime()
 
@@ -113,11 +114,6 @@ function toggleMainWindow() {
     return
   }
   showMainWindow()
-}
-
-function openQuickCapture() {
-  showMainWindow()
-  win?.webContents.send('open-quick-capture')
 }
 
 function createMiniWindow() {
@@ -340,22 +336,6 @@ function registerMainWindowHotkey(accelerator: string) {
   return ok
 }
 
-function registerQuickCaptureHotkey(accelerator: string) {
-  if (quickCaptureHotkey) {
-    try { globalShortcut.unregister(quickCaptureHotkey) } catch { /* ignore */ }
-  }
-  if (!accelerator) {
-    quickCaptureHotkey = ''
-    return false
-  }
-  const ok = globalShortcut.register(accelerator, openQuickCapture)
-  quickCaptureHotkey = ok ? accelerator : ''
-  if (!ok && accelerator !== DEFAULT_QUICK_CAPTURE_HOTKEY) {
-    return registerQuickCaptureHotkey(DEFAULT_QUICK_CAPTURE_HOTKEY)
-  }
-  return ok
-}
-
 // --- Translate window (external provider page, isolated session so our CSP does not break it) ---
 function openTranslateWindow(text: string, providerId?: string) {
   const query = text.trim()
@@ -469,8 +449,7 @@ function refreshTrayMenu() {
   if (!tray) return
   tray.setContextMenu(Menu.buildFromTemplate([
     { label: '打开 Abworkbench', accelerator: mainWindowHotkey || DEFAULT_MAIN_WINDOW_HOTKEY, click: showMainWindow },
-    { label: '启动器', accelerator: launcherHotkey || DEFAULT_HOTKEY, click: toggleLauncher },
-    { label: '快速捕获', accelerator: quickCaptureHotkey || DEFAULT_QUICK_CAPTURE_HOTKEY, click: openQuickCapture },
+    { label: '快搜', accelerator: launcherHotkey || DEFAULT_HOTKEY, click: toggleLauncher },
     { label: '迷你窗', click: () => createMiniWindow() },
     { type: 'separator' },
     {
@@ -534,6 +513,11 @@ interface WindowState {
   isMaximized: boolean
 }
 
+const DEFAULT_MAIN_WINDOW_WIDTH = 980
+const DEFAULT_MAIN_WINDOW_HEIGHT = 620
+const MAIN_WINDOW_MIN_WIDTH = 860
+const MAIN_WINDOW_MIN_HEIGHT = 560
+
 const stateFile = path.join(app.getPath('userData'), 'window-state.json')
 
 /** Transparent frameless windows on Windows often break native maximize/unmaximize. */
@@ -590,7 +574,7 @@ function restoreMainWindow() {
     })
   } else {
     withProgrammaticBounds(() => {
-      win!.setSize(1280, 800)
+      win!.setSize(DEFAULT_MAIN_WINDOW_WIDTH, DEFAULT_MAIN_WINDOW_HEIGHT)
       win!.center()
     })
   }
@@ -608,7 +592,7 @@ function loadWindowState(): WindowState {
       return JSON.parse(fs.readFileSync(stateFile, 'utf-8'))
     }
   } catch { /* ignore corrupt file */ }
-  return { width: 1280, height: 800, isMaximized: false }
+  return { width: DEFAULT_MAIN_WINDOW_WIDTH, height: DEFAULT_MAIN_WINDOW_HEIGHT, isMaximized: false }
 }
 
 function saveWindowState() {
@@ -633,8 +617,8 @@ function createWindow() {
     y: state.y,
     width: state.width,
     height: state.height,
-    minWidth: 900,
-    minHeight: 600,
+    minWidth: MAIN_WINDOW_MIN_WIDTH,
+    minHeight: MAIN_WINDOW_MIN_HEIGHT,
     title: 'Abworkbench',
     icon: path.join(process.env.VITE_PUBLIC!, 'favicon.ico'),
     backgroundColor: '#00000000',
@@ -749,10 +733,6 @@ app.whenReady().then(async () => {
   })
 
   ipcMain.handle('desktop:open-mini-window', () => createMiniWindow())
-  ipcMain.handle('desktop:open-quick-capture', () => {
-    openQuickCapture()
-    return true
-  })
   ipcMain.handle('desktop:show-main-window', () => {
     showMainWindow()
     return true
@@ -900,16 +880,12 @@ app.whenReady().then(async () => {
   ipcMain.handle('desktop:set-launcher-settings', (_event, next: LauncherSettings) => {
     const previousHotkey = launcherSettings.hotkey
     const previousMainWindow = launcherSettings.mainWindowHotkey
-    const previousQuickCapture = launcherSettings.quickCaptureHotkey
     launcherSettings = saveLauncherSettings(app.getPath('userData'), next)
     if (launcherSettings.hotkey !== previousHotkey) {
       registerLauncherHotkey(launcherSettings.hotkey)
     }
     if (launcherSettings.mainWindowHotkey !== previousMainWindow) {
       registerMainWindowHotkey(launcherSettings.mainWindowHotkey)
-    }
-    if (launcherSettings.quickCaptureHotkey !== previousQuickCapture) {
-      registerQuickCaptureHotkey(launcherSettings.quickCaptureHotkey)
     }
     refreshTrayMenu()
     return launcherSettings
@@ -933,6 +909,9 @@ app.whenReady().then(async () => {
   })
   ipcMain.handle('desktop:hide-recent-app', async (_event, appPath: string) => {
     return hideRecentApp(app.getPath('userData'), String(appPath || ''))
+  })
+  ipcMain.handle('desktop:hide-recent-path', async (_event, targetPath: string) => {
+    return hideRecentPath(app.getPath('userData'), String(targetPath || ''))
   })
 
   // --- Stealth reader IPC ---
@@ -1157,7 +1136,6 @@ app.whenReady().then(async () => {
   initRecentApps(app.getPath('userData'))
   createWindow()
   createTray()
-  registerQuickCaptureHotkey(launcherSettings.quickCaptureHotkey)
   registerMainWindowHotkey(launcherSettings.mainWindowHotkey)
   registerLauncherHotkey(launcherSettings.hotkey)
   applyBossKeyRegistration()
