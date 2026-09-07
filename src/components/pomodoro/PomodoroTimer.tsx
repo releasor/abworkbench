@@ -2,7 +2,6 @@ import type { ReactNode } from 'react'
 import { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
 import { Play, Pause, RotateCcw, Coffee, Moon, Zap, Bell, BellOff, Volume2, History, Clock, SkipForward, FastForward, ChevronDown, Target, Flame, Gauge, CalendarDays, ListTodo } from 'lucide-react'
 import { useStore } from '../../store'
-import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useToday } from '../../hooks/useToday'
 import { getRelativeTimeShort, durationMinutes, fmtMin, dayNumToDateStr, fmtHHmm, dayNumToShortLabel, dayNumToYMD } from '../../utils/format'
@@ -61,7 +60,6 @@ export default function PomodoroTimer() {
   const pomodoroAutoStartWork = useStore((s) => s.pomodoroAutoStartWork)
   const setPomodoroAutoStartWork = useStore((s) => s.setPomodoroAutoStartWork)
   const [mode, setMode] = useState<Mode>('work')
-  const shortcutOverrides = useShortcutStore((s) => s.overrides)
   const [timeLeft, setTimeLeft] = useState(pomodoroWorkDuration * 60)
   const [isRunning, setIsRunning] = useState(false)
   const [completedPomodoros, setCompletedPomodoros] = useState(0)
@@ -558,29 +556,6 @@ export default function PomodoroTimer() {
   const toggleSound = useCallback(() => setSoundEnabled(!soundEnabled), [setSoundEnabled, soundEnabled])
   const toggleAutoStartBreaks = useCallback(() => setAutoStartBreaks(!autoStartBreaks), [setAutoStartBreaks, autoStartBreaks])
   const toggleAutoStartWork = useCallback(() => setAutoStartWork(!autoStartWork), [setAutoStartWork, autoStartWork])
-
-  // Keyboard shortcuts
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
-      if (eventMatchesShortcut('pomodoroToggle', e)) {
-        e.preventDefault()
-        toggleTimer()
-      } else if (eventMatchesShortcut('pomodoroReset', e)) {
-        e.preventDefault()
-        resetTimer()
-      } else if (eventMatchesShortcut('pomodoroSkipBreak', e) && modeRef.current !== 'work') {
-        e.preventDefault()
-        switchMode('work')
-      } else if (eventMatchesShortcut('pomodoroAmbient', e)) {
-        e.preventDefault()
-        setAmbientExpanded((prev) => !prev)
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [toggleTimer, resetTimer, switchMode, shortcutOverrides])
 
   useEffect(() => {
     const start = () => {

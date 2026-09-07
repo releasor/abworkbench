@@ -2,7 +2,6 @@ import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } fro
 import { Plus, Sparkles, Target, BarChart3 } from 'lucide-react'
 import type { Habit, HabitSchedule } from '../../store'
 import { useStore } from '../../store'
-import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { playHabitSound } from '../../utils/audio'
 import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import { useToday } from '../../hooks/useToday'
@@ -34,7 +33,6 @@ export default function HabitTracker() {
   const lastDeletedHabitRef = useRef<Habit | null>(null)
   const [showAnalytics, setShowAnalytics] = useState(false)
   const [showAddForm, setShowAddForm] = useState(false)
-  const shortcutOverrides = useShortcutStore((s) => s.overrides)
   const [editingId, setEditingId] = useState<string | null>(null)
   const [deletingId, setDeletingId] = useState<string | null>(null)
   const [expandedMonthId, setExpandedMonthId] = useState<string | null>(null)
@@ -47,20 +45,6 @@ export default function HabitTracker() {
   const { todayStr, todayMidnightMs } = useToday()
   const todayDayNum = Math.floor(todayMidnightMs / 86400000)
   const hour = useCurrentHour()
-
-  useEffect(() => {
-    const handler = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
-      if (eventMatchesShortcut('habitsAdd', event)) {
-        event.preventDefault()
-        setShowAddForm(true)
-        setTimeout(() => nameInputRef.current?.focus(), 50)
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [shortcutOverrides])
 
   const weekDayNums = useMemo(() => getWeekDayNums(todayDayNum), [todayDayNum])
   const weekGridDays = useMemo(() => getWeekGridDays(weekDayNums, todayDayNum), [weekDayNums, todayDayNum])

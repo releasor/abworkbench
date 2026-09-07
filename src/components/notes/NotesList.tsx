@@ -3,12 +3,10 @@ import { useState, useEffect, useMemo, useRef, useCallback, useDeferredValue } f
 import { Plus, Edit3, FileText, Palette, Search, X, Sparkles, CheckCircle2, CheckSquare, History } from 'lucide-react'
 import { useStore } from '../../store'
 import { showToast } from '../../modules/taskflow/utils/toastEvent'
-import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useToday } from '../../hooks/useToday'
 import { getRelativeTime, dayNumToYMD } from '../../utils/format'
 import { findRelatedTasksForNote } from './noteTaskLinks'
-import { Kbd } from '../common/Kbd'
 import { NoteListItem } from './NoteListItem'
 import clsx from 'clsx'
 
@@ -35,8 +33,8 @@ const WORD_MILESTONES = [
 ]
 
 const MD_TOOLBAR = [
-  { label: 'B', title: 'Bold (Ctrl+B)' },
-  { label: 'I', title: 'Italic (Ctrl+I)' },
+  { label: 'B', title: 'Bold' },
+  { label: 'I', title: 'Italic' },
   { label: '~', title: 'Strikethrough' },
   { label: '`', title: 'Code block' },
   { label: '-', title: 'Bullet list' },
@@ -416,39 +414,11 @@ export default function NotesList() {
     return map
   }, [filteredNotes, searchRegex, deferredSearch])
 
-  // Keyboard shortcuts
+  // Keep undo delete; page shortcuts removed from settings catalog
   const searchInputRef = useRef<HTMLInputElement>(null)
   const visualEditorRef = useRef<HTMLDivElement>(null)
-  const shortcutOverrides = useShortcutStore((s) => s.overrides)
   useEffect(() => {
     const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
-      if (eventMatchesShortcut('notesSave', e)) {
-        e.preventDefault()
-        flushPendingContent()
-        if (pendingSaveRef.current === null) setSaveStatus('saved')
-        return
-      }
-      if (eventMatchesShortcut('notesClose', e)) {
-        if (activeNoteId && target !== searchInputRef.current) {
-          e.preventDefault()
-          setActiveNote(null)
-          return
-        }
-      }
-      if (target.tagName === 'TEXTAREA' || target.isContentEditable) {
-        if (eventMatchesShortcut('notesBold', e)) {
-          e.preventDefault()
-          document.execCommand('bold')
-          return
-        }
-        if (eventMatchesShortcut('notesItalic', e)) {
-          e.preventDefault()
-          document.execCommand('italic')
-          return
-        }
-        return
-      }
       if ((e.ctrlKey || e.metaKey) && e.key.toLowerCase() === 'z' && !e.shiftKey && lastDeletedNoteRef.current) {
         e.preventDefault()
         const restored = lastDeletedNoteRef.current
@@ -458,26 +428,11 @@ export default function NotesList() {
           activeNoteId: restored.id,
         }))
         showToast('已恢复笔记', 'success')
-        return
-      }
-      if (eventMatchesShortcut('notesNewGlobal', e) || eventMatchesShortcut('notesNew', e)) {
-        e.preventDefault()
-        addNote()
-        return
-      }
-      if (eventMatchesShortcut('notesPreview', e)) {
-        e.preventDefault()
-        setShowPreview((prev) => !prev)
-        return
-      }
-      if (target.tagName !== 'INPUT' && eventMatchesShortcut('notesSearch', e)) {
-        e.preventDefault()
-        searchInputRef.current?.focus()
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [addNote, activeNoteId, flushPendingContent, setActiveNote, shortcutOverrides])
+  }, [])
 
   const exportNote = (note: typeof notes[0]) => {
     flushPendingContent()
@@ -671,7 +626,7 @@ export default function NotesList() {
               <p className="text-sm text-text-muted">{searchQuery ? '没有找到匹配的笔记' : '还没有笔记'}</p>
               {!searchQuery && (
                 <p className="mt-3 text-xs text-text-muted">
-                  按 <Kbd>Ctrl</Kbd> + <Kbd>N</Kbd> 新建第一篇
+                  点击右上角新建第一篇
                 </p>
               )}
             </div>
@@ -917,7 +872,7 @@ export default function NotesList() {
                   'ml-auto rounded-xl border px-3 py-1.5 text-[11px] font-semibold transition-all',
                   showPreview ? 'border-primary/35 bg-primary/15 text-primary' : 'border-border bg-surface/70 text-text-muted hover:text-text',
                 )}
-                title={showPreview ? '编辑模式 (Ctrl+P)' : '预览模式 (Ctrl+P)'}
+                title={showPreview ? '编辑模式' : '预览模式'}
               >
                 {showPreview ? '编辑模式' : '预览模式'}
               </button>
@@ -971,10 +926,6 @@ export default function NotesList() {
                     </>
                   )}
                 </div>
-                <div className="flex items-center gap-2">
-                  <Kbd>Ctrl</Kbd><span>+</span><Kbd>P</Kbd><span>切换预览</span>
-                  <Kbd>N</Kbd><span>新建</span>
-                </div>
               </div>
             </footer>
           </div>
@@ -985,7 +936,7 @@ export default function NotesList() {
                 <Edit3 size={42} />
               </div>
               <h2 className="text-2xl font-semibold text-text">选择一篇笔记开始编辑</h2>
-              <p className="mt-2 text-sm text-text-muted">也可以按 <Kbd>Ctrl</Kbd> + <Kbd>N</Kbd> 创建一篇新的灵感记录。</p>
+              <p className="mt-2 text-sm text-text-muted">也可以点击左侧「新建」创建一篇新的灵感记录。</p>
               <div className="mt-6 rounded-[28px] border border-border bg-background/45 p-5 text-left">
                 <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-text">
                   <Sparkles size={16} className="text-primary" />

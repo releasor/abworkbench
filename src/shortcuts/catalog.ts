@@ -25,28 +25,6 @@ export const SHORTCUT_CATALOG: ShortcutDefinition[] = [
   { id: 'pageMineradio', group: '全局', label: '切换到 Mineradio', defaultAccelerator: 'Ctrl+4', scope: 'global' },
   { id: 'pageSettings', group: '全局', label: '切换到设置', defaultAccelerator: 'Ctrl+5', scope: 'global' },
   { id: 'escapeClose', group: '全局', label: '关闭启动器 / 弹窗', defaultAccelerator: 'Escape', scope: 'global' },
-
-  // Dashboard
-  { id: 'dashboardQuickAdd', group: '仪表盘', label: '快速添加任务', defaultAccelerator: 'N', scope: 'page' },
-
-  // Pomodoro
-  { id: 'pomodoroToggle', group: '番茄钟', label: '开始 / 暂停', defaultAccelerator: 'Space', scope: 'page' },
-  { id: 'pomodoroReset', group: '番茄钟', label: '重置计时器', defaultAccelerator: 'R', scope: 'page' },
-  { id: 'pomodoroSkipBreak', group: '番茄钟', label: '跳过休息', defaultAccelerator: 'S', scope: 'page' },
-  { id: 'pomodoroAmbient', group: '番茄钟', label: '环境音面板', defaultAccelerator: 'A', scope: 'page' },
-
-  // Habits
-  { id: 'habitsAdd', group: '每日打卡', label: '添加新的打卡项', defaultAccelerator: 'N', scope: 'page' },
-
-  // Notes
-  { id: 'notesNew', group: '笔记', label: '新建笔记', defaultAccelerator: 'N', scope: 'page' },
-  { id: 'notesSearch', group: '笔记', label: '搜索笔记', defaultAccelerator: 'F', scope: 'page' },
-  { id: 'notesClose', group: '笔记', label: '关闭当前笔记', defaultAccelerator: 'Escape', scope: 'page' },
-  { id: 'notesNewGlobal', group: '笔记', label: '新建笔记 (全局)', defaultAccelerator: 'Ctrl+N', scope: 'page' },
-  { id: 'notesPreview', group: '笔记', label: '预览 / 编辑切换', defaultAccelerator: 'Ctrl+P', scope: 'page' },
-  { id: 'notesBold', group: '笔记', label: '粗体 (编辑中)', defaultAccelerator: 'Ctrl+B', scope: 'page' },
-  { id: 'notesItalic', group: '笔记', label: '斜体 (编辑中)', defaultAccelerator: 'Ctrl+I', scope: 'page' },
-  { id: 'notesSave', group: '笔记', label: '立即保存', defaultAccelerator: 'Ctrl+S', scope: 'page' },
 ]
 
 export const SHORTCUT_BY_ID = Object.fromEntries(SHORTCUT_CATALOG.map((item) => [item.id, item])) as Record<
