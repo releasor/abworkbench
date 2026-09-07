@@ -36,6 +36,7 @@ import { getRandomQuote } from '../../utils/quotes'
 import { dayNumToDateStr } from '../../utils/format'
 import { generateId } from '../../utils/id'
 import { createDesktopBackup, downloadJsonBackup, getLegacyOrCurrentData, restoreTaskFlowBackup } from '../../utils/desktopBackup'
+import { GlassCard } from './GlassSurface'
 import { buildCommandCenterSuggestions, type CommandCenterSuggestion } from './commandCenter'
 import { buildCommandMacroSuggestions, type CommandMacroSuggestion } from './commandMacros'
 import { runLocalMacro } from './commandMacroRunner'
@@ -447,6 +448,10 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
           userName: state.userName,
           accentColor: state.accentColor,
           themeMode: state.themeMode,
+          glassOpacity: state.glassOpacity,
+          glowCursor: state.glowCursor,
+          visualNoise: state.visualNoise,
+          visualParticles: state.visualParticles,
           dailyPomodoroGoal: state.dailyPomodoroGoal,
           pomodoroWorkDuration: state.pomodoroWorkDuration,
           pomodoroShortBreakDuration: state.pomodoroShortBreakDuration,
@@ -667,8 +672,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     <div className="fixed inset-0 z-50 flex items-start justify-center pt-[20vh]" onClick={onClose}>
       <div className="absolute inset-0 modal-veil" />
 
-      <div
-        className="relative w-full max-w-lg liquid-glass-panel glass-card overflow-hidden modal-panel-cinematic"
+      <GlassCard
+        className="relative w-full max-w-lg surface-panel overflow-hidden modal-panel-cinematic"
         onClick={(event) => event.stopPropagation()}
         role="dialog"
         aria-modal="true"
@@ -769,7 +774,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
           </div>
           <span>{tWith('command.results', filtered.length)}</span>
         </div>
-      </div>
+      </GlassCard>
     </div>
   )
 }

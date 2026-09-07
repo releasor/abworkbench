@@ -57,7 +57,7 @@ export const ColorSelector = memo(function ColorSelector({
             title={color}
             aria-label={`选择颜色 ${color}`}
             className={clsx(
-              'relative h-9 w-12 rounded-2xl border transition-all duration-200 hover:-translate-y-0.5',
+              'relative h-9 w-12 rounded-2xl border transition-all duration-200 ',
               selected === color ? 'border-white/80 shadow-lg scale-105' : 'border-white/10',
             )}
             style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 55%, #000))` }}

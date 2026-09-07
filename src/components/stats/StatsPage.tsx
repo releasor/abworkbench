@@ -5,6 +5,7 @@ import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { WEEKDAY_NAMES, durationMinutes, fmtMin, dayNumToDateStr, dayNumToShortLabel, getMonthLabel, fmtHHmm, fmtHHmmss, dayNumToYMD } from '../../utils/format'
 import { buildCompletedByDateMap, buildHabitsByDateMap } from '../../utils/stats'
 import { useToday } from '../../hooks/useToday'
+import { GlassCard } from '../common/GlassSurface'
 
 const HEATMAP_PERCENTILES = [15, 35, 55, 80, 100]
 
@@ -42,9 +43,7 @@ const BarChart = memo(function BarChart({
 
   if (!hasData) {
     return (
-      <div className="flex items-center justify-center h-32 text-sm text-text-muted">
-        暂无数据
-      </div>
+      <p className="py-1 text-xs text-text-muted text-left">暂无数据</p>
     )
   }
 
@@ -159,10 +158,8 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
   const habitsCountByDate = useMemo(() => buildHabitsByDateMap(habits), [habits])
 
   // Todo completion per day (last 7 days)
-  const { todosByDay, maxTodos } = useMemo(() => {
-    let maxT = 0
-    const byDay = last7Days.map((day) => { const c = todosCompletedByDate.get(day.full) || 0; if (c > maxT) maxT = c; return { ...day, completed: c } })
-    return { todosByDay: byDay, maxTodos: Math.max(maxT, 1) }
+  const todosByDay = useMemo(() => {
+    return last7Days.map((day) => ({ ...day, completed: todosCompletedByDate.get(day.full) || 0 }))
   }, [last7Days, todosCompletedByDate])
 
   // Habit completion rate per day (last 7 days)
@@ -638,21 +635,14 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
   ], [totalPomodoro, todayPomodoro, weeklySummary, focusDisplay, avgSessionDuration, longestSession, todayFocusMin, totalCompletedTodos, todayCompletedTodos, weekCompletedTodos, todos.length, totalHabitDays, habits.length, todayHabits, monthRate, todayHabitRate])
 
   return (
-    <section className={embedded ? 'space-y-6' : 'space-y-6 animate-fade-in'}>
+    <section className={embedded ? 'space-y-4' : 'space-y-6 animate-fade-in'}>
       {embedded && (
-        <div className="relative overflow-hidden rounded-[34px] border border-border bg-surface/85 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl">
-          <div className="pointer-events-none absolute -right-16 -top-20 h-56 w-56 rounded-full bg-primary/15 blur-3xl" />
-          <div className="relative flex flex-col gap-2 md:flex-row md:items-end md:justify-between">
-            <div>
-              <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-                <BarChart3 size={14} />
-                数据分析
-              </div>
-              <h2 className="text-2xl font-black tracking-tight text-text">统计总览</h2>
-              <p className="mt-1 text-sm text-text-muted">集中查看专注、任务、打卡和笔记的长期趋势。</p>
-            </div>
-            <div className="text-xs text-text-muted">已并入仪表盘底部</div>
+        <div className="flex items-center justify-between gap-3 border-b border-border pb-3">
+          <div className="flex min-w-0 items-center gap-2">
+            <BarChart3 size={16} className="shrink-0 text-primary" />
+            <h2 className="text-sm font-semibold text-text">数据分析</h2>
           </div>
+          <span className="shrink-0 text-[11px] text-text-muted">已并入仪表盘</span>
         </div>
       )}
       {/* Export Button */}
@@ -676,98 +666,82 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
       )}
 
       {/* Overview Stats */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3 md:gap-4">
+      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
         {overviewStats.map((stat) => {
             const Icon = stat.icon
             const delta = stat.todayDelta
             return (
-              <div key={stat.label} className="glass-card p-4">
-                <div className={`w-8 h-8 rounded-lg ${stat.bg} flex items-center justify-center mb-2`}>
-                  <Icon size={16} className={stat.color} />
-                </div>
-                <div className="flex items-baseline gap-1.5">
-                  <div className="text-xl md:text-2xl font-bold text-text">{stat.value}</div>
+              <GlassCard key={stat.label} className="p-3">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className={`w-7 h-7 rounded-lg ${stat.bg} flex items-center justify-center shrink-0`}>
+                    <Icon size={14} className={stat.color} />
+                  </div>
+                  <span className="truncate text-[11px] text-text-muted">{stat.label}</span>
                   {delta !== 0 && Math.abs(delta) >= 1 && (
-                    <span className={`text-[10px] font-medium ${delta > 0 ? 'text-success' : 'text-danger'}`}>
+                    <span className={`ml-auto shrink-0 text-[10px] font-medium ${delta > 0 ? 'text-success' : 'text-danger'}`}>
                       {delta > 0 ? '↑' : '↓'}{Math.abs(delta)}
                     </span>
                   )}
                 </div>
-                <div className="text-xs text-text-muted mt-1">{stat.label}</div>
+                <div className="mt-1.5 text-xl font-bold text-text">{stat.value}</div>
                 {'sub' in stat && stat.sub && (
-                  <div className="text-[10px] text-text-muted mt-0.5">{stat.sub}</div>
+                  <div className="mt-0.5 truncate text-[10px] text-text-muted">{stat.sub}</div>
                 )}
-              </div>
+              </GlassCard>
             )
           })}
       </div>
 
       {/* Weekly Summary */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-3">
-          <BarChart3 size={18} className="text-primary" />
+      <GlassCard className="dashboard-panel p-4">
+        <div className="flex items-center gap-2 mb-2">
+          <BarChart3 size={16} className="text-primary shrink-0" />
           <h3 className="text-sm font-semibold text-text">本周总结</h3>
         </div>
 
-        {/* Monthly mini stats */}
-        <div className="flex items-center gap-4 mb-4 pb-3 border-b border-border text-xs text-text-muted">
+        <div className="mb-3 flex flex-wrap items-center gap-x-3 gap-y-1 border-b border-border pb-2 text-[11px] text-text-muted">
           <span className="font-medium text-text">{currentMonthLabel}</span>
           <span>番茄 <span className="text-primary font-medium">{monthPomodoro}</span>{pomodoroTrend !== 0 && <span className={pomodoroTrend > 0 ? 'text-success ml-0.5' : 'text-danger ml-0.5'}>{pomodoroTrend > 0 ? '↑' : '↓'}{Math.abs(pomodoroTrend)}%</span>}</span>
           <span>任务 <span className="text-success font-medium">{monthTodos}</span>{monthTodoRate >= 0 && <span className="text-text-muted/60"> ({monthTodoRate}%)</span>}</span>
           <span>专注 <span className="text-warning font-medium">{monthFocusDisplay}</span>{focusTrend !== 0 && <span className={focusTrend > 0 ? 'text-success ml-0.5' : 'text-danger ml-0.5'}>{focusTrend > 0 ? '↑' : '↓'}{Math.abs(focusTrend)}%</span>}</span>
-          <span>打卡 <span className="text-orange-400 font-medium">{monthHabitCount}</span> 次{habitTrend !== 0 && <span className={habitTrend > 0 ? 'text-success ml-0.5' : 'text-danger ml-0.5'}>{habitTrend > 0 ? '↑' : '↓'}{Math.abs(habitTrend)}%</span>}</span>
-          <span>日均 <span className="text-purple-400 font-medium">{avgPomodoroPerDay}</span> 个番茄</span>
-          <span>日均专注 <span className="text-cyan-400 font-medium">{avgFocusPerDay}</span> 分</span>
+          <span>打卡 <span className="text-orange-400 font-medium">{monthHabitCount}</span> 次</span>
+          <span>日均番茄 <span className="text-purple-400 font-medium">{avgPomodoroPerDay}</span></span>
           <span>活跃 <span className="text-emerald-400 font-medium">{monthActiveDays}</span>/{daysInMonth} 天</span>
         </div>
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          <div className="p-3 rounded-lg bg-surface-lighter/50 text-center">
-            <div className="text-lg font-bold text-primary">{weeklySummary.weekPomodoro}</div>
-            <div className="text-xs text-text-muted mt-1">番茄钟</div>
-            <div className="text-[10px] text-text-muted flex items-center justify-center gap-1">
+        <div className="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-4 gap-2">
+          <div className="rounded-lg bg-surface-lighter/50 p-2.5 text-left">
+            <div className="text-[10px] text-text-muted">番茄钟</div>
+            <div className="text-base font-bold text-primary">{weeklySummary.weekPomodoro}</div>
+            <div className="text-[10px] text-text-muted">
               {fmtMin(weeklySummary.weekFocusMinutes)}
               {weeklySummary.pomodoroTrend !== 0 && (
-                <span className={weeklySummary.pomodoroTrend > 0 ? 'text-success' : 'text-danger'}>
+                <span className={weeklySummary.pomodoroTrend > 0 ? 'text-success ml-1' : 'text-danger ml-1'}>
                   {weeklySummary.pomodoroTrend > 0 ? '↑' : '↓'}{Math.abs(weeklySummary.pomodoroTrend)}%
                 </span>
               )}
             </div>
-            <div className="text-[10px] text-text-muted mt-0.5">
-              日均 {(weeklySummary.weekPomodoro / 7).toFixed(1)} 个
-              {weeklySummary.activeDays > 0 && <span> · 活跃日均 {Math.round(weeklySummary.weekPomodoro / weeklySummary.activeDays)} 个</span>}
-            </div>
           </div>
-          <div className="p-3 rounded-lg bg-surface-lighter/50 text-center">
-            <div className="text-lg font-bold text-success">{weeklySummary.weekTodos}</div>
-            <div className="text-xs text-text-muted mt-1">完成任务</div>
+          <div className="rounded-lg bg-surface-lighter/50 p-2.5 text-left">
+            <div className="text-[10px] text-text-muted">完成任务</div>
+            <div className="text-base font-bold text-success">{weeklySummary.weekTodos}</div>
             {weeklySummary.todoTrend !== 0 && (
               <div className={`text-[10px] ${weeklySummary.todoTrend > 0 ? 'text-success' : 'text-danger'}`}>
                 {weeklySummary.todoTrend > 0 ? '↑' : '↓'}{Math.abs(weeklySummary.todoTrend)}% 较上周
               </div>
             )}
           </div>
-          <div className="p-3 rounded-lg bg-surface-lighter/50 text-center">
-            <div className="text-lg font-bold text-warning">{weeklySummary.weekHabitAvg}%</div>
-            <div className="text-xs text-text-muted mt-1">打卡完成率</div>
-            {weeklySummary.habitTrend !== 0 && (
-              <div className={`text-[10px] ${weeklySummary.habitTrend > 0 ? 'text-success' : 'text-danger'}`}>
-                {weeklySummary.habitTrend > 0 ? '↑' : '↓'}{Math.abs(weeklySummary.habitTrend)}% 较上周
-              </div>
-            )}
+          <div className="rounded-lg bg-surface-lighter/50 p-2.5 text-left">
+            <div className="text-[10px] text-text-muted">打卡完成率</div>
+            <div className="text-base font-bold text-warning">{weeklySummary.weekHabitAvg}%</div>
           </div>
-          <div className="p-3 rounded-lg bg-surface-lighter/50 text-center">
-            <div className="text-lg font-bold text-purple-400">{weeklySummary.activeDays}/7</div>
-            <div className="text-xs text-text-muted mt-1">活跃天数</div>
-            {weeklySummary.lastWeekActiveDays > 0 && weeklySummary.activeDays !== weeklySummary.lastWeekActiveDays && (
-              <div className={`text-[10px] ${weeklySummary.activeDays > weeklySummary.lastWeekActiveDays ? 'text-success' : 'text-danger'}`}>
-                {weeklySummary.activeDays > weeklySummary.lastWeekActiveDays ? '↑' : '↓'}上周 {weeklySummary.lastWeekActiveDays} 天
-              </div>
-            )}
+          <div className="rounded-lg bg-surface-lighter/50 p-2.5 text-left">
+            <div className="text-[10px] text-text-muted">活跃天数</div>
+            <div className="text-base font-bold text-purple-400">{weeklySummary.activeDays}/7</div>
           </div>
-          <div className="p-3 rounded-lg bg-surface-lighter/50 text-center">
-            <div className={`text-lg font-bold ${weeklySummary.goalDays >= 5 ? 'text-success' : weeklySummary.goalDays >= 3 ? 'text-warning' : 'text-danger'}`}>{weeklySummary.goalDays}/7</div>
-            <div className="text-xs text-text-muted mt-1">达标天数</div>
-            <div className="h-1 mt-1.5 bg-surface rounded-full overflow-hidden">
+          <div className="rounded-lg bg-surface-lighter/50 p-2.5 text-left">
+            <div className="text-[10px] text-text-muted">达标天数</div>
+            <div className={`text-base font-bold ${weeklySummary.goalDays >= 5 ? 'text-success' : weeklySummary.goalDays >= 3 ? 'text-warning' : 'text-danger'}`}>{weeklySummary.goalDays}/7</div>
+            <div className="h-1 mt-1 bg-surface rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
                 style={{
@@ -776,98 +750,87 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
                 }}
               />
             </div>
-            {weeklySummary.lastWeekGoalDays > 0 && weeklySummary.goalDays !== weeklySummary.lastWeekGoalDays ? (
-              <div className={`text-[10px] mt-1 ${weeklySummary.goalDays > weeklySummary.lastWeekGoalDays ? 'text-success' : 'text-danger'}`}>
-                {weeklySummary.goalDays > weeklySummary.lastWeekGoalDays ? '↑' : '↓'}上周 {weeklySummary.lastWeekGoalDays} 天
-              </div>
-            ) : (
-              <div className="text-[10px] text-text-muted mt-1">目标 {dailyPomodoroGoal} 个/天</div>
-            )}
           </div>
-          <div className="p-3 rounded-lg bg-surface-lighter/50 text-center">
-            <div className={`text-lg font-bold ${weeklySummary.weekEfficiency >= 80 ? 'text-success' : weeklySummary.weekEfficiency >= 50 ? 'text-warning' : 'text-danger'}`}>{weeklySummary.weekEfficiency}%</div>
-            <div className="text-xs text-text-muted mt-1">周效率分</div>
-            <div className="h-1 mt-1.5 bg-surface rounded-full overflow-hidden">
+          <div className="rounded-lg bg-surface-lighter/50 p-2.5 text-left">
+            <div className="text-[10px] text-text-muted">周效率分</div>
+            <div className={`text-base font-bold ${weeklySummary.weekEfficiency >= 80 ? 'text-success' : weeklySummary.weekEfficiency >= 50 ? 'text-warning' : 'text-danger'}`}>{weeklySummary.weekEfficiency}%</div>
+            <div className="h-1 mt-1 bg-surface rounded-full overflow-hidden">
               <div
                 className="h-full rounded-full transition-all duration-500"
-                style={{
-                  width: `${weeklySummary.weekEfficiency}%`,
-                  background: weeklySummary.weekEfficiency >= 80
-                    ? 'linear-gradient(90deg, var(--color-success), #059669)'
-                    : weeklySummary.weekEfficiency >= 50
-                    ? 'linear-gradient(90deg, var(--color-warning), #d97706)'
-                    : 'linear-gradient(90deg, var(--color-danger), #dc2626)',
-                }}
+                style={{ width: `${weeklySummary.weekEfficiency}%`, background: weeklySummary.weekEfficiency >= 80 ? 'var(--color-success)' : weeklySummary.weekEfficiency >= 50 ? 'var(--color-warning)' : 'var(--color-danger)' }}
               />
             </div>
-            <div className={`text-[10px] mt-1 ${weeklySummary.weekEfficiency >= 80 ? 'text-success' : weeklySummary.weekEfficiency >= 50 ? 'text-warning' : 'text-danger'}`}>
-              {weeklySummary.weekEfficiency >= 80 ? '优秀' : weeklySummary.weekEfficiency >= 50 ? '良好' : '需努力'}
-            </div>
           </div>
-          <div className="p-3 rounded-lg bg-surface-lighter/50 text-center">
-            <div className="text-lg font-bold text-cyan-400">{workBreakRatio}</div>
-            <div className="text-xs text-text-muted mt-1">专注/休息比</div>
-            <div className="text-[10px] text-text-muted">工作与休息</div>
+          <div className="rounded-lg bg-surface-lighter/50 p-2.5 text-left">
+            <div className="text-[10px] text-text-muted">专注/休息比</div>
+            <div className="text-base font-bold text-cyan-400">{workBreakRatio}</div>
           </div>
         </div>
-      </div>
+      </GlassCard>
 
       {/* Best Day */}
       {bestDayOfWeek && (
-        <div className="glass-card p-4 flex items-center gap-3">
-          <div className="w-10 h-10 rounded-xl bg-purple-500/15 flex items-center justify-center">
-            <BarChart3 size={20} className="text-purple-400" />
+        <GlassCard className="p-3">
+          <div className="flex items-center gap-3">
+          <div className="w-9 h-9 rounded-xl bg-purple-500/15 flex items-center justify-center shrink-0">
+            <BarChart3 size={18} className="text-purple-400" />
           </div>
-          <div>
+          <div className="min-w-0 flex-1">
             <div className="text-sm font-medium text-text">最高效的一天：{bestDayOfWeek.name}</div>
-            <div className="text-xs text-text-muted">
+            <div className="text-xs text-text-muted truncate">
               累计完成 {bestDayOfWeek.count} 个番茄钟
               {totalPomodoro > 0 && <span className="ml-1">(占 {Math.round(bestDayOfWeek.count / totalPomodoro * 100)}%)</span>}
             </div>
           </div>
-        </div>
+          </div>
+        </GlassCard>
       )}
 
       {/* Streak */}
       {(currentStreak.count > 0 || longestStreak > 0) && (
         <div className="grid grid-cols-2 gap-3">
           {currentStreak.count > 0 && (
-            <div className="glass-card p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-orange-500/15 flex items-center justify-center">
-                <Flame size={20} className="text-orange-400" />
+            <GlassCard className="p-3">
+              <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-orange-500/15 flex items-center justify-center shrink-0">
+                <Flame size={18} className="text-orange-400" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-text">当前连续</div>
                 <div className="text-xs text-text-muted">自 {currentStreak.startDate} 起</div>
               </div>
-              <div className="ml-auto text-2xl font-bold text-orange-400">
+              <div className="shrink-0 text-xl font-bold text-orange-400">
                 {currentStreak.count}<span className="text-xs text-text-muted ml-0.5">天</span>
               </div>
-            </div>
+              </div>
+            </GlassCard>
           )}
           {longestStreak > 0 && (
-            <div className="glass-card p-4 flex items-center gap-3">
-              <div className="w-10 h-10 rounded-xl bg-yellow-500/15 flex items-center justify-center">
-                <Flame size={20} className="text-yellow-400" />
+            <GlassCard className="p-3">
+              <div className="flex items-center gap-3">
+              <div className="w-9 h-9 rounded-xl bg-yellow-500/15 flex items-center justify-center shrink-0">
+                <Flame size={18} className="text-yellow-400" />
               </div>
-              <div>
+              <div className="min-w-0 flex-1">
                 <div className="text-sm font-medium text-text">最长连续</div>
                 <div className="text-xs text-text-muted">历史最佳记录</div>
               </div>
-              <div className="ml-auto text-2xl font-bold text-yellow-400">
+              <div className="shrink-0 text-xl font-bold text-yellow-400">
                 {longestStreak}<span className="text-xs text-text-muted ml-0.5">天</span>
               </div>
-            </div>
+              </div>
+            </GlassCard>
           )}
         </div>
       )}
 
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {/* Pomodoro Chart */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Timer size={18} className="text-primary" />
+      <GlassCard className="dashboard-panel p-4">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
+          <Timer size={16} className="text-primary shrink-0" />
           <h3 className="text-sm font-semibold text-text">近7天番茄钟</h3>
-          <span className="ml-auto text-xs text-text-muted">
+          <span className="text-[11px] text-text-muted">
             共 {chartStats.pomoTotal} 个 · 达标 {chartStats.pomoGoalDays} 天 · 日均 {chartStats.pomoDailyAvg}
           </span>
         </div>
@@ -888,14 +851,14 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
           valueKey="count"
           target={dailyPomodoroGoal}
         />
-      </div>
+      </GlassCard>
 
       {/* Focus Time Chart */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Flame size={18} className="text-success" />
+      <GlassCard className="dashboard-panel p-4">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
+          <Flame size={16} className="text-success shrink-0" />
           <h3 className="text-sm font-semibold text-text">近7天专注时长</h3>
-          <span className="ml-auto text-xs text-text-muted">
+          <span className="text-[11px] text-text-muted">
             共 {chartStats.focusTotalDisplay}
             {chartStats.focusActiveDays > 0 && ` · 日均 ${chartStats.focusDailyAvg}分`}
           </span>
@@ -913,40 +876,17 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
           labelKey="label"
           valueKey="minutes"
         />
+      </GlassCard>
       </div>
 
-      {/* Todo Completion Chart */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <CheckSquare size={18} className="text-success" />
-          <h3 className="text-sm font-semibold text-text">近7天任务完成</h3>
-          <span className="ml-auto text-xs text-text-muted">
-            共 {chartStats.todoTotal} 个
-            {chartStats.todoActiveDays > 0 && ` · 日均 ${chartStats.todoDailyAvg}`}
-          </span>
-        </div>
-        {chartStats.todoBestDay.completed > 0 && (
-          <div className="flex items-center gap-2 mb-3 px-3 py-2 rounded-lg bg-success/5">
-            <CheckSquare size={14} className="text-success" />
-            <span className="text-xs text-text-muted">最佳: <span className="text-success font-medium">{chartStats.todoBestDay.label}</span> ({chartStats.todoBestDay.completed} 个任务)</span>
-          </div>
-        )}
-        <BarChart
-          data={todosByDay}
-          max={maxTodos}
-          color="var(--color-success)"
-          labelKey="label"
-          valueKey="completed"
-        />
-      </div>
-
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {/* Habit Completion Rate */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <Target size={18} className="text-warning" />
+      <GlassCard className="dashboard-panel p-4">
+        <div className="flex flex-wrap items-center gap-x-2 gap-y-1 mb-3">
+          <Target size={16} className="text-warning shrink-0" />
           <h3 className="text-sm font-semibold text-text">近7天打卡完成率</h3>
           {habits.length > 0 && (
-            <span className="ml-auto flex items-center gap-1 text-xs text-text-muted">
+            <span className="flex items-center gap-1 text-[11px] text-text-muted">
               平均 {chartStats.habitAvg}%
               {chartStats.habitTrend > 5 && <span className="text-success">↑</span>}
               {chartStats.habitTrend < -5 && <span className="text-danger">↓</span>}
@@ -960,9 +900,7 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
           </div>
         )}
         {habits.length === 0 ? (
-          <div className="flex items-center justify-center h-32 text-sm text-text-muted">
-            添加每日打卡后即可查看完成率
-          </div>
+          <p className="py-1 text-xs text-text-muted text-left">添加每日打卡后即可查看完成率</p>
         ) : (
         <div className="space-y-3">
           {habitsByDay.map((day, i) => {
@@ -986,11 +924,61 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
           })}
         </div>
         )}
+      </GlassCard>
+
+      {/* Priority Distribution */}
+      <GlassCard className="dashboard-panel p-4">
+        <div className="flex items-center gap-2 mb-4">
+          <BarChart3 size={18} className="text-purple-400" />
+          <h3 className="text-sm font-semibold text-text">任务优先级分布</h3>
+        </div>
+        {todos.length > 0 && (
+            <div className="flex items-center gap-2 mb-4">
+              <div className="flex-1 h-3 bg-surface-lighter rounded-full overflow-hidden flex">
+                {chartStats.highPct > 0 && <div className="h-full bg-danger" style={{ width: `${chartStats.highPct}%` }} />}
+                {chartStats.medPct > 0 && <div className="h-full bg-warning" style={{ width: `${chartStats.medPct}%` }} />}
+                {chartStats.lowPct > 0 && <div className="h-full bg-success" style={{ width: `${chartStats.lowPct}%` }} />}
+              </div>
+              <div className="flex items-center gap-2 text-[10px] text-text-muted flex-shrink-0">
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-danger" />高</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning" />中</span>
+                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success" />低</span>
+              </div>
+            </div>
+        )}
+        <div className="grid grid-cols-2 gap-3">
+          {PRIORITY_CARDS.map((p) => {
+            const pStats = chartStats.priorityStats.get(p.priority) || { total: 0, completed: 0, completionRate: 0, weekAdded: 0 }
+            const pct = todos.length > 0 ? Math.round((pStats.total / todos.length) * 100) : 0
+            return (
+              <div key={p.label} className="text-center p-3 rounded-lg bg-surface-lighter/50">
+                <div className={`text-2xl font-bold ${p.textColor}`}>{pStats.total}</div>
+                <div className="text-xs text-text-muted mt-1">{p.label}</div>
+                <div className="text-[10px] text-text-muted mt-1">{pct}% 占比{pStats.weekAdded > 0 && <span> · 本周 +{pStats.weekAdded}</span>}</div>
+                <div className={`h-1 mt-2 rounded-full ${p.color} mx-auto`} style={{ width: `${Math.max(pct, 10)}%` }} />
+                {pStats.total > 0 && (
+                  <>
+                    <div className="text-[10px] text-text-muted mt-1.5">
+                      完成率 <span className={p.textColor}>{pStats.completionRate}%</span>
+                    </div>
+                    <div className="h-1 mt-1 bg-surface-lighter rounded-full overflow-hidden">
+                      <div
+                        className={`h-full rounded-full ${p.color}`}
+                        style={{ width: `${pStats.completionRate}%`, opacity: 0.7 }}
+                      />
+                    </div>
+                  </>
+                )}
+              </div>
+            )
+          })}
+        </div>
+      </GlassCard>
       </div>
 
       {/* Focus Hours Heatmap */}
       {workSessions.length > 0 && (
-        <div className="glass-card p-5">
+        <GlassCard className="p-5">
           <div className="flex items-center gap-2 mb-4">
             <Clock size={18} className="text-cyan-400" />
             <h3 className="text-sm font-semibold text-text">专注时段分布</h3>
@@ -1051,57 +1039,8 @@ export default function StatsPage({ embedded = false }: StatsPageProps) {
               </span>
             </div>
           )}
-        </div>
+        </GlassCard>
       )}
-
-      {/* Priority Distribution */}
-      <div className="glass-card p-5">
-        <div className="flex items-center gap-2 mb-4">
-          <BarChart3 size={18} className="text-purple-400" />
-          <h3 className="text-sm font-semibold text-text">任务优先级分布</h3>
-        </div>
-        {todos.length > 0 && (
-            <div className="flex items-center gap-2 mb-4">
-              <div className="flex-1 h-3 bg-surface-lighter rounded-full overflow-hidden flex">
-                {chartStats.highPct > 0 && <div className="h-full bg-danger" style={{ width: `${chartStats.highPct}%` }} />}
-                {chartStats.medPct > 0 && <div className="h-full bg-warning" style={{ width: `${chartStats.medPct}%` }} />}
-                {chartStats.lowPct > 0 && <div className="h-full bg-success" style={{ width: `${chartStats.lowPct}%` }} />}
-              </div>
-              <div className="flex items-center gap-2 text-[10px] text-text-muted flex-shrink-0">
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-danger" />高</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-warning" />中</span>
-                <span className="flex items-center gap-1"><span className="w-2 h-2 rounded-full bg-success" />低</span>
-              </div>
-            </div>
-        )}
-        <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-          {PRIORITY_CARDS.map((p) => {
-            const pStats = chartStats.priorityStats.get(p.priority) || { total: 0, completed: 0, completionRate: 0, weekAdded: 0 }
-            const pct = todos.length > 0 ? Math.round((pStats.total / todos.length) * 100) : 0
-            return (
-              <div key={p.label} className="text-center p-3 rounded-lg bg-surface-lighter/50">
-                <div className={`text-2xl font-bold ${p.textColor}`}>{pStats.total}</div>
-                <div className="text-xs text-text-muted mt-1">{p.label}</div>
-                <div className="text-[10px] text-text-muted mt-1">{pct}% 占比{pStats.weekAdded > 0 && <span> · 本周 +{pStats.weekAdded}</span>}</div>
-                <div className={`h-1 mt-2 rounded-full ${p.color} mx-auto`} style={{ width: `${Math.max(pct, 10)}%` }} />
-                {pStats.total > 0 && (
-                  <>
-                    <div className="text-[10px] text-text-muted mt-1.5">
-                      完成率 <span className={p.textColor}>{pStats.completionRate}%</span>
-                    </div>
-                    <div className="h-1 mt-1 bg-surface-lighter rounded-full overflow-hidden">
-                      <div
-                        className={`h-full rounded-full ${p.color}`}
-                        style={{ width: `${pStats.completionRate}%`, opacity: 0.7 }}
-                      />
-                    </div>
-                  </>
-                )}
-              </div>
-            )
-          })}
-        </div>
-      </div>
     </section>
   )
 }

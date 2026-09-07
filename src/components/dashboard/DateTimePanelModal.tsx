@@ -1,6 +1,5 @@
 import { memo, useEffect } from 'react'
 import { createPortal } from 'react-dom'
-import { X } from 'lucide-react'
 import DatePanel from './DatePanel'
 import TimePanel from './TimePanel'
 
@@ -32,19 +31,14 @@ export default memo(function DateTimePanelModal({ mode, onClose }: DateTimePanel
     >
       <button
         type="button"
-        className="absolute inset-0 modal-veil liquid-glass-veil"
+        className="absolute inset-0 modal-veil"
         onClick={onClose}
         aria-label="关闭时间日期弹窗"
       />
-      <div className="relative z-10 w-full max-w-5xl">
-        <button
-          type="button"
-          onClick={onClose}
-          className="absolute -right-2 -top-2 z-20 rounded-full border border-white/20 liquid-glass-chip p-2 text-text-muted shadow-lg transition hover:text-text"
-          aria-label="关闭"
-        >
-          <X size={18} />
-        </button>
+      <div
+        className={`datetime-modal-panel relative z-10 w-full ${mode === 'clock' ? 'max-w-2xl' : 'max-w-5xl'}`}
+        onClick={(event) => event.stopPropagation()}
+      >
         {mode === 'clock' ? <TimePanel /> : <DatePanel />}
       </div>
     </div>,

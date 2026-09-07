@@ -9,6 +9,7 @@ import {
   REMINDERS_KEY,
   type WorkspaceReminder,
 } from '../../utils/reminders'
+import { GlassCard } from '../common/GlassSurface'
 
 function formatDue(dueAt: string): string {
   const [date, time] = dueAt.split('T')
@@ -28,7 +29,7 @@ export default function DashboardReminders() {
   if (openAll.length === 0) return null
 
   return (
-    <section className="rounded-[28px] border border-amber-500/20 bg-amber-500/5 p-4 shadow-xl shadow-black/5 backdrop-blur-xl">
+    <GlassCard className="dashboard-panel p-4">
       <div className="mb-3 flex items-center gap-2 text-sm font-bold text-text">
         <Bell size={16} className="text-amber-400" />
         待办提醒
@@ -36,13 +37,13 @@ export default function DashboardReminders() {
           {openAll.length}
         </span>
         {openAll.length > 5 && (
-          <button
-            type="button"
-            className="ml-auto text-[10px] font-medium text-amber-300/90 hover:text-amber-200"
-            onClick={() => setExpanded((v) => !v)}
-          >
-            {expanded ? '收起' : `展开全部 ${openAll.length} 条`}
-          </button>
+              <button
+                type="button"
+                className="interactive-glass dashboard-chip ml-auto px-2 py-0.5 text-[10px] font-medium text-amber-300/90"
+                onClick={() => setExpanded((v) => !v)}
+              >
+                {expanded ? '收起' : `展开全部 ${openAll.length} 条`}
+              </button>
         )}
       </div>
       <div className="space-y-2">
@@ -63,7 +64,7 @@ export default function DashboardReminders() {
               </div>
               <button
                 type="button"
-                className="rounded-xl bg-white/5 px-2 py-1 text-[10px] font-semibold text-text-muted hover:bg-white/10"
+                className="interactive-glass dashboard-chip px-2 py-1 text-[10px] font-semibold text-text-muted"
                 onClick={() => {
                   const prevDueAt = reminder.dueAt
                   update(reminder.id, { dueAt: formatLocalDateTimeMinute(new Date(Date.now() + 30 * 60 * 1000)), done: false })
@@ -77,7 +78,7 @@ export default function DashboardReminders() {
               </button>
               <button
                 type="button"
-                className="rounded-xl bg-emerald-500/15 p-1.5 text-emerald-400 hover:bg-emerald-500/25"
+                className="interactive-glass dashboard-chip p-1.5 text-emerald-400"
                 title="完成提醒"
                 onClick={() => {
                   const snapshot = { dueAt: reminder.dueAt, done: reminder.done }
@@ -94,6 +95,6 @@ export default function DashboardReminders() {
           )
         })}
       </div>
-    </section>
+    </GlassCard>
   )
 }

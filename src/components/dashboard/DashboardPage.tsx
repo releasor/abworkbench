@@ -1,4 +1,4 @@
-﻿import {
+import {
   CheckSquare,
   Timer,
   StickyNote,
@@ -6,17 +6,13 @@
   Zap,
   Target,
   ArrowRight,
-  Calendar,
   CircleCheck,
   Flame,
-  Plus,
   BarChart3,
-  Check,
   Cloud,
   Sun,
   CloudRain,
   CloudSnow,
-  MapPin,
   Award,
   Banknote,
   BriefcaseBusiness,
@@ -24,11 +20,12 @@
   Settings2,
   X,
 } from 'lucide-react'
-import { lazy, Suspense, useState, useRef, useMemo, useEffect, useCallback } from 'react'
-import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent } from 'react'
+import { lazy, Suspense, useState, useMemo, useEffect, useCallback } from 'react'
+import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from 'react'
+import type { LucideIcon } from 'lucide-react'
+import clsx from 'clsx'
 import type { Page } from '../layout/Sidebar'
 import { useStore } from '../../store'
-import { eventMatchesShortcut, useShortcutStore } from '../../shortcuts'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useToday } from '../../hooks/useToday'
 import { prevDateStr, nextDateStr } from '../../modules/taskflow/dateUtils'
@@ -37,57 +34,33 @@ import { useTick } from '../../hooks/useTick'
 import { getRelativeTime, WEEKDAY_NAMES, durationMinutes, fmtMin, getHabitStreak, dayNumToDateStr, getMonthLabel, dayNumToShortLabel, fmtHHmm, dayNumToFullLabel, dayNumToYMD } from '../../utils/format'
 import { buildPomodoroByDateMap, buildCompletedByDateMap, buildCreatedDateMap, buildHabitsByDateMap } from '../../utils/stats'
 import { buildAchievements } from '../../utils/achievements'
-import { parseQuickCreateInput, buildQuickCreateDueAt, buildQuickCreateSubtasks } from '../../modules/taskflow/utils/quickCreateParser'
 import { showToast } from '../../modules/taskflow/utils/toastEvent'
 import { generateMockWeather } from '../weather/WeatherWidget'
 import { useTranslation } from '../../i18n'
 import { formatGreetingTitle } from './greetingTitle'
 import { buildTodayPlanning, type PlanningTone } from './todayPlanning'
-import { buildTodayTimeBlocks } from './timeBlocks'
 import { getHabitProgress } from '../habits/habitSchedule'
 import DashboardReminders from './DashboardReminders'
 import { buildWorkdayStatus, formatCountdown, formatCurrency, normalizeWorkdaySettings, readWorkdaySettings, WORKDAY_SETTINGS_KEY, type WorkdaySettings } from './workday'
 import { getPeriod, stripMarkdown } from './notePreview'
 import { safeSet } from '../../utils/safeLocalStorage'
 import ErrorBoundary from '../common/ErrorBoundary'
-import { LOCAL_DATA_CHANGE_EVENT } from '../../utils/localData'
-import {
-  TIME_BLOCK_SCHEDULE_KEY,
-  getDayTaskHours,
-  readTimeBlockSchedule,
-  setTaskScheduledHour,
-} from '../../utils/timeBlockSchedule'
-
+import { GlassCard } from '../common/GlassSurface'
+import BorderGlow from '../common/BorderGlow/BorderGlow'
+import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../common/BorderGlow/borderGlowTheme'
 const StatsPage = lazy(() => import('../stats/StatsPage'))
 
 interface DashboardPageProps {
   onNavigate: (page: Page) => void
-  onOpenDailyBrief?: (mode?: 'morning' | 'evening') => void
-  onOpenQuickCapture?: () => void
   onOpenClockPanel?: () => void
   onOpenDatePanel?: () => void
 }
-
-const PRIORITY_COLORS: Record<string, string> = { urgent: 'bg-danger', high: 'bg-danger', medium: 'bg-warning', low: 'bg-success' }
 
 const WELCOME_ACTION_KEYS = [
   { page: 'taskflow' as Page, labelKey: 'dashboard.createFirstTask' as const, icon: CheckSquare },
   { page: 'pomodoro' as Page, labelKey: 'dashboard.startPomodoro' as const, icon: Timer },
   { page: 'habits' as Page, labelKey: 'dashboard.addHabit' as const, icon: Target },
   { page: 'notes' as Page, labelKey: 'dashboard.writeNote' as const, icon: StickyNote },
-]
-
-const QUICK_ACTION_KEYS = [
-  { page: 'taskflow' as Page, labelKey: 'dashboard.addTask' as const, icon: CheckSquare, color: 'from-primary to-primary-dark' },
-  { page: 'pomodoro' as Page, labelKey: 'dashboard.startFocus' as const, icon: Timer, color: 'from-success to-emerald-600' },
-  { page: 'habits' as Page, labelKey: 'dashboard.checkHabit' as const, icon: Target, color: 'from-warning to-secondary' },
-  { page: 'notes' as Page, labelKey: 'dashboard.writeNoteAction' as const, icon: StickyNote, color: 'from-purple-500 to-purple-600' },
-]
-
-const PRIORITY_BTN_KEYS = [
-  { key: 'high' as const, color: 'bg-danger', titleKey: 'dashboard.highPriority' as const },
-  { key: 'medium' as const, color: 'bg-warning', titleKey: 'dashboard.mediumPriority' as const },
-  { key: 'low' as const, color: 'bg-success', titleKey: 'dashboard.lowPriority' as const },
 ]
 
 const PLANNING_TONE_STYLES: Record<PlanningTone, { dot: string; text: string; badge: string }> = {
@@ -107,12 +80,46 @@ function writeWorkdaySettings(settings: WorkdaySettings): WorkdaySettings {
   return normalized
 }
 
-export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuickCapture, onOpenClockPanel, onOpenDatePanel }: DashboardPageProps) {
+function DashboardCardHeader({
+  icon: Icon,
+  title,
+  trailing,
+  subtitle,
+  iconClassName = 'text-primary',
+  className,
+}: {
+  icon?: LucideIcon
+  title: string
+  trailing?: ReactNode
+  subtitle?: string
+  iconClassName?: string
+  className?: string
+}) {
+  return (
+    <div className={clsx('dashboard-card-header', className)}>
+      <div className="dashboard-card-header__main min-w-0">
+        <div className="flex min-w-0 items-center gap-2">
+          {Icon ? <Icon size={15} className={clsx('shrink-0', iconClassName)} /> : null}
+          <h3 className="truncate text-sm font-semibold text-text">{title}</h3>
+          {subtitle ? (
+            <span className="hidden min-w-0 truncate text-xs text-text-muted lg:inline">
+              <span className="mx-1.5 text-text-muted/40">·</span>
+              {subtitle}
+            </span>
+          ) : null}
+        </div>
+        {subtitle ? <p className="mt-0.5 truncate text-xs text-text-muted lg:hidden">{subtitle}</p> : null}
+      </div>
+      {trailing ? <div className="dashboard-card-header__trailing shrink-0">{trailing}</div> : null}
+    </div>
+  )
+}
+
+export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDatePanel }: DashboardPageProps) {
   const taskFlowTasks = useTaskStore((s) => s.tasks)
   const categories = useTaskStore((s) => s.categories)
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
   const fetchCategories = useTaskStore((s) => s.fetchCategories)
-  const createTask = useTaskStore((s) => s.createTask)
   const notes = useStore((s) => s.notes)
   const pomodoroSessions = useStore((s) => s.pomodoroSessions)
   const habits = useStore((s) => s.habits)
@@ -121,9 +128,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
   const checkInHabit = useStore((s) => s.checkInHabit)
   const undoHabitCheckIn = useStore((s) => s.undoHabitCheckIn)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
-  const [quickTodo, setQuickTodo] = useState('')
-  const [quickPriority, setQuickPriority] = useState<'low' | 'medium' | 'high'>('medium')
-  const [quickDueDate, setQuickDueDate] = useState('')
   const [togglingHabitId, setTogglingHabitId] = useState<string | null>(null)
   const [showAllTimeline, setShowAllTimeline] = useState(false)
   const [showDashboardStats, setShowDashboardStats] = useState(() => {
@@ -136,24 +140,13 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     }
   })
   const now = useTick(1000)
+  const glowTheme = useBorderGlowTheme()
+  const surfaceColor = useBorderGlowSurfaceColor()
   const [showWorkdaySettings, setShowWorkdaySettings] = useState(false)
   const [workdaySettings, setWorkdaySettings] = useState<WorkdaySettings>(readWorkdaySettings)
   const [draftWorkdaySettings, setDraftWorkdaySettings] = useState<WorkdaySettings>(workdaySettings)
-  const [scheduleRevision, setScheduleRevision] = useState(0)
   const hour = useCurrentHour()
-  const quickTodoRef = useRef<HTMLInputElement>(null)
-  const shortcutOverrides = useShortcutStore((s) => s.overrides)
-  const { t, tWith, language } = useTranslation()
-  const dateInputLocale = language === 'zh' ? 'zh-CN' : 'en-US'
-
-  useEffect(() => {
-    const onLocal = (event: Event) => {
-      const key = (event as CustomEvent<{ key?: string }>).detail?.key
-      if (key === TIME_BLOCK_SCHEDULE_KEY) setScheduleRevision((n) => n + 1)
-    }
-    window.addEventListener(LOCAL_DATA_CHANGE_EVENT, onLocal as EventListener)
-    return () => window.removeEventListener(LOCAL_DATA_CHANGE_EVENT, onLocal as EventListener)
-  }, [])
+  const { t, tWith } = useTranslation()
 
   const weather = useMemo(() => generateMockWeather(weatherCity), [weatherCity])
 
@@ -167,20 +160,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
       showToast('加载分类失败', 'error')
     })
   }, [fetchTasks, fetchCategories])
-
-  // 'n' to focus quick add input
-  useEffect(() => {
-    const handler = (e: KeyboardEvent) => {
-      const target = e.target as HTMLElement
-      if (target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable) return
-      if (eventMatchesShortcut('dashboardQuickAdd', e)) {
-        e.preventDefault()
-        quickTodoRef.current?.focus()
-      }
-    }
-    window.addEventListener('keydown', handler)
-    return () => window.removeEventListener('keydown', handler)
-  }, [shortcutOverrides])
 
   const { todayStr, todayMidnightMs, tomorrowMidnightMs, yesterdayStr } = useToday()
   const [selectedDate, setSelectedDate] = useState(todayStr)
@@ -198,32 +177,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     completedAt: task.completedAt ? Date.parse(task.completedAt) : undefined,
     dueDate: task.dueDate ? task.dueDate.slice(0, 10) : undefined,
   })), [taskFlowTasks])
-
-  const handleQuickAddTask = useCallback(async () => {
-    const title = quickTodo.trim()
-    if (!title) return
-    try {
-      const parsed = parseQuickCreateInput(title, { projects: categories })
-      const dueFromText = buildQuickCreateDueAt(parsed)
-      await createTask({
-        title: parsed.title || title,
-        description: parsed.raw !== (parsed.title || title) ? parsed.raw : undefined,
-        priority: parsed.raw.includes('紧急') || parsed.raw.includes('高优先') ? 'high' : quickPriority,
-        category: parsed.projectId || categories[0]?.id || 'cat-work',
-        tags: parsed.tags,
-        dueDate: dueFromText || (quickDueDate ? `${quickDueDate}T00:00:00.000Z` : null),
-        subtasks: buildQuickCreateSubtasks(parsed),
-        status: 'todo',
-      })
-      setQuickTodo('')
-      setQuickDueDate('')
-      quickTodoRef.current?.focus()
-      showToast('已添加任务', 'success')
-    } catch (err) {
-      console.error('创建任务失败:', err);
-      showToast('创建任务失败', 'error');
-    }
-  }, [categories, createTask, quickDueDate, quickPriority, quickTodo])
 
   const navigateFromCard = useCallback((page: Page, event: ReactMouseEvent<HTMLElement>) => {
     const target = event.target
@@ -288,16 +241,14 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     const monthStartMs = todayMidnightMs - (dayNumToYMD(todayDayNum).d - 1) * 86400000
     let todayNewNotes = 0
     let totalNoteChars = 0
-    let monthNewNotes = 0
     for (const n of notes) {
       totalNoteChars += n.content.length
       if (n.createdAt >= todayMidnightMs && n.createdAt < tomorrowMidnightMs) todayNewNotes++
-      if (n.createdAt >= monthStartMs) monthNewNotes++
     }
 
-    return { completedTodos, overdueTodos, dueTodayTodos, todaySessions, todayWorkSessions, todayFocusMinutes, completedHabitsToday, todayNewNotes, completedHabitsYesterday, longestHabitStreak, totalNoteChars, monthNewNotes, completedHabitIdsToday, habitStreakMap, monthStartMs }
+    return { completedTodos, overdueTodos, dueTodayTodos, todaySessions, todayWorkSessions, todayFocusMinutes, completedHabitsToday, todayNewNotes, completedHabitsYesterday, longestHabitStreak, totalNoteChars, completedHabitIdsToday, habitStreakMap, monthStartMs }
   }, [todos, pomodoroSessions, habits, notes, todayStr, todayMidnightMs, tomorrowMidnightMs, yesterdayStr])
-  const { completedTodos, overdueTodos, dueTodayTodos, todaySessions, todayWorkSessions, todayFocusMinutes, completedHabitsToday, todayNewNotes, completedHabitsYesterday, longestHabitStreak, totalNoteChars, monthNewNotes, completedHabitIdsToday, habitStreakMap, monthStartMs } = baseData
+  const { completedTodos, overdueTodos, dueTodayTodos, todaySessions, todayWorkSessions, todayFocusMinutes, completedHabitsToday, todayNewNotes, completedHabitsYesterday, longestHabitStreak, totalNoteChars, completedHabitIdsToday, habitStreakMap, monthStartMs } = baseData
 
   const derivedData = useMemo(() => {
     const DAY = 86400000
@@ -365,10 +316,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     const weekAvgScore = Math.round(weekScores.reduce((a, b) => a + b, 0) / 7)
     const scoreDiff = totalScore - yesterdayScore
 
-    // Quick todo stats
-    const todayAdded = todosCreatedByDate.get(todayStr) || 0
-    const todayDone = todosCompletedByDate.get(todayStr) || 0
-
     // Week/last-week completed todos using todosCompletedByDate map
     const todayDay = (todayDayNum + 4) % 7
     const weekStartMs = todayMidnightMs - ((todayDay === 0 ? 6 : todayDay - 1) * DAY)
@@ -397,14 +344,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     const habitMonthRate = habits.length > 0 ? Math.round(monthHabitCount / (habits.length * daysInMonth) * 100) : 0
 
     // Sparkline SVG data
-    const habitProgressRing = habits.length > 0 ? (() => {
-      const pct = Math.round((completedHabitsToday / habits.length) * 100)
-      const r = 8
-      const c = 2 * Math.PI * r
-      const o = c * (1 - pct / 100)
-      const color = pct >= 80 ? 'var(--color-success)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-primary)'
-      return { r, c, o, color }
-    })() : null
     const scoreColor = totalScore >= 80 ? 'var(--color-success)' : totalScore >= 50 ? 'var(--color-warning)' : 'var(--color-primary)'
     const progressColor = totalScore >= 80 ? 'text-success' : totalScore >= 50 ? 'text-warning' : 'text-primary'
     const circumference = 2 * Math.PI * 36
@@ -429,14 +368,14 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     return {
       monthPomodoro: monthPomodoroTotal, monthFocusMinutes: monthFocusTotal, monthTodos, monthTodoRate, daysInMonth, monthHabitCount, monthHabitRate, monthlyProgress,
       totalScore, scoreDiff, weekAvgScore, weekScores, pomodoroRate, taskRate, habitRate,
-      todayAdded, todayDone, weekCompleted, lastWeekCompleted,
+      weekCompleted, lastWeekCompleted,
       habitWeekRate, habitMonthRate,
-      scoreColor, progressColor, circumference, ringOffset, sparkAreaPath, sparkLinePath, sparkLastPt, habitProgressRing,
+      scoreColor, progressColor, circumference, ringOffset, sparkAreaPath, sparkLinePath, sparkLastPt,
       currentMonthLabel: getMonthLabel(monthStartMs),
       pomodoroStreak,
     }
   }, [pomodoroSessions, todos, habits, dailyPomodoroGoal, todayStr, yesterdayStr, todayWorkSessions.length, completedTodos, completedHabitsToday, completedHabitsYesterday, todayMidnightMs, monthStartMs])
-  const { monthPomodoro, monthFocusMinutes, monthTodos, monthTodoRate, daysInMonth, monthHabitCount, monthHabitRate, monthlyProgress, totalScore, scoreDiff, weekAvgScore, weekScores, pomodoroRate, taskRate, habitRate, todayAdded, todayDone, weekCompleted, lastWeekCompleted, habitWeekRate, habitMonthRate, scoreColor, progressColor, circumference, ringOffset, sparkAreaPath, sparkLinePath, sparkLastPt, habitProgressRing, currentMonthLabel, pomodoroStreak } = derivedData
+  const { totalScore, scoreDiff, weekAvgScore, weekScores, pomodoroRate, taskRate, habitRate, weekCompleted, lastWeekCompleted, habitWeekRate, habitMonthRate, scoreColor, progressColor, circumference, ringOffset, sparkAreaPath, sparkLinePath, sparkLastPt, pomodoroStreak } = derivedData
 
   const greeting = useMemo(() => {
     const allHabitsDone = habits.length > 0 && completedHabitsToday === habits.length
@@ -554,71 +493,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     setShowWorkdaySettings(false)
   }, [draftWorkdaySettings])
 
-  const recentTodos = useMemo(() => {
-    const todayDay = Math.floor(todayMidnightMs / 86400000)
-    // Pre-compute day-diff per unique dueDate (avoids Date allocation per sort comparison)
-    const diffByDue = new Map<string, number>()
-    const getDiff = (dueDate: string) => {
-      let d = diffByDue.get(dueDate)
-      if (d === undefined) {
-        const [y, m, d2] = dueDate.split('-').map(Number)
-        d = Math.floor(Date.UTC(y, m - 1, d2) / 86400000) - todayDay
-        diffByDue.set(dueDate, d)
-      }
-      return d
-    }
-    const score = (t: typeof todos[0]) => {
-      if (t.completed) return 1000 + (t.completedAt || 0)
-      let s = 0
-      if (t.dueDate) {
-        const diff = getDiff(t.dueDate)
-        if (diff < 0) s = -300 + diff       // overdue: most urgent
-        else if (diff === 0) s = -200        // due today
-        else if (diff <= 3) s = -100 + diff  // due soon
-      }
-      if (t.priority === 'high') s -= 50
-      else if (t.priority === 'medium') s -= 25
-      return s - (t.createdAt / 1e12)       // newer tasks break ties
-    }
-    // Top-5 selection (single pass, no full sort)
-    const top: Array<{ todo: typeof todos[0]; s: number }> = []
-    for (const todo of todos) {
-      const s = score(todo)
-      if (top.length < 5) {
-        top.push({ todo, s })
-      } else if (s < top[4].s) {
-        top[4] = { todo, s }
-      } else {
-        continue
-      }
-      for (let i = top.length - 1; i > 0; i--) {
-        if (top[i].s < top[i - 1].s) { const tmp = top[i]; top[i] = top[i - 1]; top[i - 1] = tmp }
-        else break
-      }
-    }
-    return top.map(({ todo }) => {
-      let dueStatus: { label: string; color: string; bg: string } | null = null
-
-      if (todo.dueDate && !todo.completed) {
-        const diff = getDiff(todo.dueDate)
-
-        if (diff < 0) {
-          dueStatus = { label: '逾期', color: 'text-danger', bg: 'bg-danger/15' }
-        } else if (diff === 0) {
-          dueStatus = { label: t('dashboard.dueToday'), color: 'text-orange-400', bg: 'bg-orange-500/15' }
-        } else {
-          const dueParts = todo.dueDate.split('-')
-          dueStatus = { label: `${dueParts[1]}/${dueParts[2]}`, color: 'text-text-muted', bg: 'bg-surface-lighter' }
-        }
-      }
-
-      const dateDisplay = todo.completed && todo.completedAt
-        ? dayNumToShortLabel(Math.floor(todo.completedAt / 86400000))
-        : dayNumToShortLabel(Math.floor(todo.createdAt / 86400000))
-
-      return { ...todo, dueStatus, dateDisplay }
-    })
-  }, [todos, todayMidnightMs, t])
   const recentNotes = useMemo(() => {
     const isBetter = (a: typeof notes[0], b: typeof notes[0]) =>
       a.pinned !== b.pinned ? a.pinned : a.updatedAt > b.updatedAt
@@ -754,26 +628,6 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
     pomodoroSessions,
   }), [hour, todayStr, yesterdayStr, todayMidnightMs, tomorrowMidnightMs, dailyPomodoroGoal, todos, habits, pomodoroSessions])
 
-  const timeBlockOverrides = useMemo(() => {
-    void scheduleRevision
-    return getDayTaskHours(todayStr, readTimeBlockSchedule())
-  }, [todayStr, scheduleRevision])
-  const timeBlockPlan = useMemo(() => buildTodayTimeBlocks({
-    todayStr,
-    todayMidnightMs,
-    tomorrowMidnightMs,
-    tasks: todos,
-    habits,
-    pomodoroSessions,
-    hourOverrides: timeBlockOverrides,
-  }), [todayStr, todayMidnightMs, tomorrowMidnightMs, todos, habits, pomodoroSessions, timeBlockOverrides])
-
-  const onDropTaskToHour = useCallback((hour: number, taskId: string) => {
-    setTaskScheduledHour(todayStr, taskId, hour)
-    setScheduleRevision((n) => n + 1)
-    showToast(`已排到 ${String(hour).padStart(2, '0')}:00`, 'success')
-  }, [todayStr])
-
   const achievements = useMemo(() => buildAchievements({
     todayStr,
     todayMidnightMs,
@@ -795,15 +649,22 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
 
   return (
     <ErrorBoundary>
-    <div className="space-y-6 motion-stagger">
+    <div className="dashboard-page flex flex-col gap-4 motion-stagger">
       {/* Greeting — cinematic hero */}
-      <div className="dashboard-hero relative overflow-hidden rounded-[34px] border border-primary/25 p-6 md:p-8 shadow-2xl shadow-primary/10">
+      <BorderGlow
+        {...glowTheme}
+        borderRadius={34}
+        backgroundColor={surfaceColor}
+        glowMaskColor={surfaceColor}
+        className="w-full border-glow-card--glass"
+        innerClassName="dashboard-hero relative overflow-hidden p-6 md:p-8"
+      >
         <div className="relative z-[2] flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
           <div className="max-w-2xl">
             <div className="home-kicker mb-3 inline-flex items-center gap-2">
               <Zap size={12} />
               <button onClick={prevDay} className="rounded px-1 hover:bg-primary/20 transition" title="前一天" aria-label="前一天">←</button>
-              <span>{isSelectedToday ? '今日工作台' : `${selectedDate} 工作台`}</span>
+              <span>{isSelectedToday ? '今日概览' : `${selectedDate} 概览`}</span>
               <button onClick={nextDay} className="rounded px-1 hover:bg-primary/20 transition" title="后一天" aria-label="后一天">→</button>
               {!isSelectedToday && (
                 <button onClick={() => setSelectedDate(todayStr)} className="rounded px-1.5 py-0.5 text-[10px] bg-primary/20 hover:bg-primary/30 transition normal-case tracking-normal" aria-label="回到今天">回到今天</button>
@@ -822,10 +683,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
               <span>{greeting.sub}</span>
             </div>
             <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" onClick={() => onOpenDailyBrief?.('morning')} className="rounded-xl bg-primary/15 px-3 py-1.5 text-xs font-semibold text-primary hover:bg-primary/25">今日作战板</button>
-              <button type="button" onClick={() => onOpenDailyBrief?.('evening')} className="rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-text-muted hover:bg-white/10">晚间复盘</button>
-              <button type="button" onClick={() => onOpenQuickCapture?.()} className="rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-text-muted hover:bg-white/10">快速捕获</button>
-              <button type="button" onClick={() => onNavigate('reminders')} className="rounded-xl bg-white/5 px-3 py-1.5 text-xs font-semibold text-text-muted hover:bg-white/10">提醒中心</button>
+              <button type="button" onClick={() => onNavigate('reminders')} className="interactive-glass dashboard-chip rounded-xl px-3 py-1.5 text-xs font-semibold text-text-muted">提醒中心</button>
             </div>
             {pomodoroStreak > 1 && (
               <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1">
@@ -864,16 +722,16 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 <button onClick={() => {
                   if (!showWorkdaySettings) setDraftWorkdaySettings(workdaySettings)
                   setShowWorkdaySettings((value) => !value)
-                }} className="rounded-xl border border-border bg-surface/80 p-2 text-text-muted transition hover:border-primary/40 hover:text-primary" aria-label="设置上下班和工资">
+                }} className="interactive-glass rounded-xl p-2 text-text-muted" aria-label="设置上下班和工资">
                   <Settings2 size={15} />
                 </button>
               </div>
               <div className="mt-3 grid grid-cols-2 gap-2">
-                <button onClick={() => onOpenClockPanel?.()} className="rounded-2xl bg-surface/70 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label="打开时钟面板">
+                <button onClick={() => onOpenClockPanel?.()} className="interactive-glass rounded-2xl px-3 py-2 text-left" aria-label="打开时钟面板">
                   <div className="text-[10px] text-text-muted">当前时间</div>
                   <div className="mt-1 font-mono text-sm font-bold tabular-nums text-text">{currentTimeDisplay}</div>
                 </button>
-                <button onClick={() => { setDraftWorkdaySettings(workdaySettings); setShowWorkdaySettings(true) }} className="rounded-2xl bg-surface/70 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label="打开工资设置">
+                <button onClick={() => { setDraftWorkdaySettings(workdaySettings); setShowWorkdaySettings(true) }} className="interactive-glass rounded-2xl px-3 py-2 text-left" aria-label="打开工资设置">
                   <div className="text-[10px] text-text-muted">今日已赚</div>
                   <div className="mt-1 text-sm font-bold text-success">{formatCurrency(workdayStatus.todayEarned)}</div>
                 </button>
@@ -886,14 +744,35 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 <span>{workdaySettings.endTime} 下班</span>
               </div>
             </div>
-            <div className="relative grid h-28 w-28 place-items-center rounded-[28px] border border-primary/25 bg-primary/10 shadow-2xl shadow-primary/10 card-float-soft">
-              <svg viewBox="0 0 96 96" className="absolute inset-3 -rotate-90">
-                <circle cx="48" cy="48" r="36" fill="none" stroke="var(--color-border)" strokeWidth="7" />
-                <circle cx="48" cy="48" r="36" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={ringOffset} className="transition-all duration-700" />
-              </svg>
-              <button onClick={() => onNavigate('taskflow')} className="relative text-center" aria-label={`效率分: ${totalScore}分，点击查看任务流`}>
-                <div className="text-3xl font-black text-text">{totalScore}</div>
-                <div className="text-[10px] text-text-muted">效率分</div>
+            <div className="flex flex-col gap-3">
+              <button
+                type="button"
+                onClick={() => onNavigate('taskflow')}
+                className="interactive-glass dashboard-hero-score relative grid h-28 w-28 place-items-center rounded-[28px] card-float-soft"
+                aria-label={`效率分: ${totalScore}分，点击查看任务流`}
+              >
+                <svg viewBox="0 0 96 96" className="pointer-events-none absolute inset-3 -rotate-90">
+                  <circle cx="48" cy="48" r="36" fill="none" stroke="var(--color-border)" strokeWidth="7" />
+                  <circle cx="48" cy="48" r="36" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={ringOffset} className="transition-all duration-700" />
+                </svg>
+                <span className="relative text-center">
+                  <span className="block text-3xl font-black text-text">{totalScore}</span>
+                  <span className="block text-[10px] text-text-muted">效率分</span>
+                </span>
+              </button>
+              <button
+                type="button"
+                onClick={() => onNavigate('weather')}
+                className="interactive-glass dashboard-hero-weather no-motion relative flex h-28 w-28 flex-col items-center justify-center gap-0.5 rounded-[28px] px-2 py-3 text-center card-float-soft"
+                aria-label={`天气：${weather.city} ${weather.temp}度 ${weather.description}`}
+              >
+                {(() => {
+                  const Icon = CONDITION_ICONS[weather.condition]
+                  return <Icon className={`h-6 w-6 shrink-0 ${CONDITION_COLORS[weather.condition]} opacity-90`} />
+                })()}
+                <div className="text-2xl font-black leading-none text-text">{weather.temp}°</div>
+                <div className="text-[10px] leading-tight text-text-muted">{weather.description}</div>
+                <div className="max-w-full truncate px-1 text-[9px] leading-tight text-text-muted">{weather.city}</div>
               </button>
             </div>
           </div>
@@ -901,27 +780,27 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
         {/* Quick Stats */}
         <div className="relative z-[3] mt-5 grid grid-cols-2 gap-2 border-t border-border pt-4 md:grid-cols-5">
           {totalScore > 0 && (
-              <button onClick={() => onNavigate('taskflow')} className="flex items-center gap-1.5 rounded-2xl bg-background/50 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label={`效率分: ${totalScore}%`}>
+              <button onClick={() => onNavigate('taskflow')} className="interactive-glass dashboard-quick-stat flex items-center gap-1.5 rounded-2xl px-3 py-2 text-left" aria-label={`效率分: ${totalScore}%`}>
                 <span className={`text-xs font-medium ${progressColor}`}>{totalScore}%</span>
                 <span className="text-xs text-text-muted">{t('dashboard.progress')}</span>
               </button>
           )}
-          <button onClick={() => onNavigate('taskflow')} className="flex items-center gap-1.5 rounded-2xl bg-background/50 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label={`任务: ${completedTodos}/${todos.length} 已完成`}>
+          <button onClick={() => onNavigate('taskflow')} className="interactive-glass dashboard-quick-stat flex items-center gap-1.5 rounded-2xl px-3 py-2 text-left" aria-label={`任务: ${completedTodos}/${todos.length} 已完成`}>
             <CheckSquare size={12} className="text-primary" />
             <span className="text-xs text-text-muted">{tWith('dashboard.tasks', completedTodos, todos.length)}</span>
           </button>
-          <button onClick={() => onNavigate('pomodoro')} className="flex items-center gap-1.5 rounded-2xl bg-background/50 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label={`番茄钟: ${todayWorkSessions.length}/${dailyPomodoroGoal}`}>
+          <button onClick={() => onNavigate('pomodoro')} className="interactive-glass dashboard-quick-stat flex items-center gap-1.5 rounded-2xl px-3 py-2 text-left" aria-label={`番茄钟: ${todayWorkSessions.length}/${dailyPomodoroGoal}`}>
             <Timer size={12} className="text-success" />
             <span className="text-xs text-text-muted">{tWith('dashboard.pomodoros', todayWorkSessions.length, dailyPomodoroGoal)}</span>
           </button>
-          <button onClick={() => onNavigate('habits')} className="flex items-center gap-1.5 rounded-2xl bg-background/50 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label={`习惯: ${completedHabitsToday}/${habits.length} 已完成`}>
+          <button onClick={() => onNavigate('habits')} className="interactive-glass dashboard-quick-stat flex items-center gap-1.5 rounded-2xl px-3 py-2 text-left" aria-label={`习惯: ${completedHabitsToday}/${habits.length} 已完成`}>
             <Target size={12} className="text-warning" />
             <span className="text-xs text-text-muted">{tWith('dashboard.habits', completedHabitsToday, habits.length)}</span>
             {completedHabitsToday > completedHabitsYesterday && completedHabitsYesterday > 0 && (
               <span className="text-[10px] text-success">↑</span>
             )}
           </button>
-          <button onClick={() => onNavigate('notes')} className="flex items-center gap-1.5 rounded-2xl bg-background/50 px-3 py-2 text-left transition hover:bg-surface-lighter" aria-label={`笔记: ${notes.length} 篇${todayNewNotes > 0 ? `，今日新增 ${todayNewNotes} 篇` : ''}`}>
+          <button onClick={() => onNavigate('notes')} className="interactive-glass dashboard-quick-stat flex items-center gap-1.5 rounded-2xl px-3 py-2 text-left" aria-label={`笔记: ${notes.length} 篇${todayNewNotes > 0 ? `，今日新增 ${todayNewNotes} 篇` : ''}`}>
             <StickyNote size={12} className="text-purple-400" />
             <span className="text-xs text-text-muted">{tWith('dashboard.notesCount', notes.length)}{todayNewNotes > 0 && <span className="ml-0.5">· {tWith('dashboard.todayNotes', todayNewNotes)}</span>}</span>
           </button>
@@ -933,7 +812,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 <Banknote size={16} className="text-success" />
                 上下班与工资设置
               </div>
-              <button onClick={() => setShowWorkdaySettings(false)} className="rounded-xl p-1.5 text-text-muted hover:bg-surface-lighter hover:text-text" aria-label="关闭工资设置">
+              <button onClick={() => setShowWorkdaySettings(false)} className="interactive-glass rounded-xl p-1.5 text-text-muted" aria-label="关闭工资设置">
                 <X size={16} />
               </button>
             </div>
@@ -960,10 +839,10 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
               <button onClick={saveWorkdaySettings} className="rounded-xl bg-primary px-4 py-2 text-sm font-semibold text-white transition hover:bg-primary-light">
                 保存
               </button>
-            </div>
           </div>
-        )}
-      </div>
+        </div>
+      )}
+      </BorderGlow>
 
       <DashboardReminders />
 
@@ -971,7 +850,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
       {!isSelectedToday && (() => {
         const selectedDayTodos = todos.filter((t) => t.dueDate === selectedDate)
         return (
-        <div className="rounded-3xl border border-border bg-surface/85 p-5 shadow-lg shadow-black/5">
+        <GlassCard className="dashboard-panel p-5">
           <div className="mb-3 flex items-center justify-between">
             <h3 className="text-sm font-semibold text-text">{selectedDate} 的任务</h3>
             <span className="text-xs text-text-muted">{selectedDayTodos.length} 个任务</span>
@@ -989,53 +868,47 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
               ))
             )}
           </div>
-        </div>
+        </GlassCard>
         )
       })()}
 
-      {/* Today Plan / Evening Review */}
-      <div className="glass-card p-5">
-        <div className="mb-4 flex flex-col gap-3 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-start gap-3">
-            <div className="grid h-10 w-10 flex-shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-              {planningPanel.mode === 'morning' ? <Sun size={18} /> : <CircleCheck size={18} />}
-            </div>
-            <div>
-              <h3 className="text-sm font-semibold text-text">{planningPanel.title}</h3>
-              <p className="mt-1 text-xs text-text-muted">{planningPanel.headline}</p>
-            </div>
-          </div>
-          <span className="inline-flex w-fit items-center gap-1.5 rounded-full bg-surface-lighter px-3 py-1 text-[11px] text-text-muted">
-            <Clock size={12} />
-            {planningPanel.mode === 'morning' ? '自动生成今日安排' : '自动生成今日总结'}
-          </span>
-        </div>
-        <div className="grid grid-cols-1 gap-4 md:grid-cols-2 xl:grid-cols-4">
+      <div className="dashboard-stack">
+      {/* Today Plan + Project Overview — left 2/3, right 1/3 */}
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-[minmax(0,2fr)_minmax(0,1fr)]">
+      <GlassCard className="dashboard-panel p-4">
+        <DashboardCardHeader
+          icon={planningPanel.mode === 'morning' ? Sun : CircleCheck}
+          title={planningPanel.title}
+          subtitle={planningPanel.headline}
+          trailing={(
+            <span className="inline-flex items-center gap-1 whitespace-nowrap text-[11px] text-text-muted">
+              <Clock size={12} />
+              {planningPanel.mode === 'morning' ? '自动生成今日安排' : '自动生成今日总结'}
+            </span>
+          )}
+        />
+        <div className="dashboard-panel__body flex flex-col gap-3 pr-1">
           {planningPanel.sections.map((section) => (
-            <div key={section.id} className="min-w-0 border-l border-border pl-4">
-              <div className="mb-2 flex items-center justify-between gap-2">
+            <div key={section.id} className="min-w-0 border-l border-border pl-3">
+              <div className="mb-1.5 flex items-center justify-between gap-2">
                 <h4 className="truncate text-xs font-semibold text-text">{section.title}</h4>
                 <button
                   onClick={() => navigateFromPlanning(section.id)}
-                  className="text-[11px] text-primary transition-colors hover:text-primary-light"
+                  className="interactive-glass dashboard-chip shrink-0 px-2 py-0.5 text-[11px] text-primary"
                 >
                   处理
                 </button>
               </div>
-              <div className="space-y-2">
+              <div className="space-y-1.5">
                 {section.items.map((item) => {
                   const tone = PLANNING_TONE_STYLES[item.tone]
                   return (
-                    <div key={item.id} className="min-w-0">
-                      <div className="flex min-w-0 items-start gap-2">
-                        <span className={`mt-1.5 h-1.5 w-1.5 flex-shrink-0 rounded-full ${tone.dot}`} />
-                        <p className="min-w-0 flex-1 break-words text-xs leading-relaxed text-text">{item.text}</p>
-                      </div>
-                      <div className="mt-1 ml-3.5">
-                        <span className={`inline-flex max-w-full rounded-full px-2 py-0.5 text-[10px] ${tone.badge}`}>
-                          {item.meta}
-                        </span>
-                      </div>
+                    <div key={item.id} className="flex min-w-0 items-center gap-2">
+                      <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${tone.dot}`} />
+                      <p className="min-w-0 flex-1 truncate text-xs text-text">{item.text}</p>
+                      <span className={`shrink-0 rounded-full px-1.5 py-0.5 text-[10px] ${tone.badge}`}>
+                        {item.meta}
+                      </span>
                     </div>
                   )
                 })}
@@ -1043,110 +916,63 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
             </div>
           ))}
         </div>
-      </div>
+      </GlassCard>
 
-      {/* Weather Card */}
-      <button
-        onClick={() => onNavigate('weather')}
-        className="glass-card p-4 flex items-center gap-4 hover:border-primary/50 hover:scale-[1.01] transition-all text-left w-full"
+      <GlassCard
+        className="dashboard-panel flex h-full cursor-pointer flex-col p-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
+        role="button"
+        tabIndex={0}
+        onClick={() => onNavigate('taskflow')}
+        onKeyDown={(event) => handleCardKeyDown('taskflow', event)}
+        aria-label="打开任务流查看全部项目"
       >
-        {(() => {
-          const Icon = CONDITION_ICONS[weather.condition]
-          return <Icon className={`w-10 h-10 ${CONDITION_COLORS[weather.condition]} opacity-80`} />
-        })()}
-        <div className="flex-1 min-w-0">
-          <div className="flex items-center gap-2">
-            <span className="text-2xl font-bold text-text">{weather.temp}°</span>
-            <span className="text-sm text-text-muted">{weather.description}</span>
-          </div>
-          <div className="flex items-center gap-1 text-xs text-text-muted mt-0.5">
-            <MapPin size={12} />
-            <span>{weather.city}</span>
-            <span className="mx-1">·</span>
-            <span>体感 {weather.feelsLike}°</span>
-            <span className="mx-1">·</span>
-            <span>{weather.windDirection}风 {weather.windSpeed}km/h</span>
-          </div>
-        </div>
-        <ArrowRight size={16} className="text-text-muted" />
-      </button>
-
-      {/* Today Time Blocks */}
-      <div className="glass-card p-5">
-        <div className="mb-4 flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between">
-          <div className="flex items-center gap-2">
-            <Calendar size={18} className="text-primary" />
-            <div>
-              <h3 className="text-sm font-semibold text-text">今日时间块</h3>
-              <p className="text-xs text-text-muted">拖拽任务到时段即可排程 · 08:00-21:00</p>
-            </div>
-          </div>
-          <span className="text-xs text-text-muted">{timeBlockPlan.scheduledCount} 项已排入今天</span>
-        </div>
-        <div className="max-h-80 space-y-1 overflow-y-auto pr-1">
-          {timeBlockPlan.blocks.map((block) => {
-            const isCurrentHour = block.hour === hour
-            return (
+        <DashboardCardHeader
+          icon={FolderKanban}
+          title="项目概览"
+          trailing={(
+            <button
+              onClick={(event) => { event.stopPropagation(); onNavigate('taskflow') }}
+              className="interactive-glass dashboard-chip inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] text-primary"
+            >
+              全部 <ArrowRight size={12} />
+            </button>
+          )}
+        />
+        <div className="dashboard-panel__body flex min-h-0 flex-1 flex-col gap-2.5 isolate">
+          {projectOverview.length === 0 ? (
+            <p className="dashboard-panel__empty py-6 text-center">
+              还没有项目分类，去任务流建一个吧
+            </p>
+          ) : (
+            projectOverview.map((row) => (
               <div
-                key={block.hour}
-                className={`grid grid-cols-[54px_1fr] gap-3 rounded-lg px-2 py-2 transition-colors ${isCurrentHour ? 'bg-primary/10' : 'hover:bg-surface-lighter/50'}`}
-                onDragOver={(e) => {
-                  e.preventDefault()
-                  e.dataTransfer.dropEffect = 'move'
-                }}
-                onDrop={(e) => {
-                  e.preventDefault()
-                  const taskId = e.dataTransfer.getData('text/task-id') || e.dataTransfer.getData('text/plain')
-                  if (!taskId) return
-                  onDropTaskToHour(block.hour, taskId)
-                }}
+                key={row.category.id}
+                className="interactive-glass rounded-xl p-2.5"
               >
-                <div className={`pt-1 text-xs font-mono ${isCurrentHour ? 'text-primary' : 'text-text-muted'}`}>{block.label}</div>
-                <div className="min-w-0 border-l border-border pl-3">
-                  {block.items.length === 0 ? (
-                    <div className="text-xs text-text-muted/50">空档 · 可拖入任务</div>
-                  ) : (
-                    <div className="flex flex-wrap gap-2">
-                      {block.items.map((item) => {
-                        const tone = PLANNING_TONE_STYLES[item.tone]
-                        const taskId = item.type === 'task' && item.id.startsWith('task-') ? item.id.slice(5) : null
-                        return (
-                          <button
-                            key={item.id}
-                            type="button"
-                            draggable={!!taskId}
-                            onDragStart={(e) => {
-                              if (!taskId) return
-                              e.dataTransfer.setData('text/task-id', taskId)
-                              e.dataTransfer.setData('text/plain', taskId)
-                              e.dataTransfer.effectAllowed = 'move'
-                            }}
-                            onClick={() => {
-                              if (item.type === 'pomodoro') onNavigate('pomodoro')
-                              else if (item.type === 'habit') onNavigate('habits')
-                              else onNavigate('taskflow')
-                            }}
-                            className={`inline-flex max-w-full items-center gap-1.5 rounded-full px-2.5 py-1 text-left text-[11px] transition-transform hover:scale-[1.02] ${tone.badge} ${taskId ? 'cursor-grab active:cursor-grabbing' : ''}`}
-                            title={taskId ? `${item.title} · 拖拽到其它时段` : `${item.title} · ${item.meta}`}
-                          >
-                            {item.type === 'pomodoro' ? <Timer size={12} /> : item.type === 'habit' ? <Target size={12} /> : <CheckSquare size={12} />}
-                            <span className="truncate">{item.title}</span>
-                            <span className="text-[10px] opacity-70">{item.meta}</span>
-                          </button>
-                        )
-                      })}
-                    </div>
-                  )}
+                <div className="mb-1.5 flex items-center gap-2">
+                  <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: row.category.color }} />
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-text">{row.category.name}</span>
+                  <span className="shrink-0 whitespace-nowrap text-[10px] text-text-muted">{row.active} 活跃</span>
                 </div>
+                <div className="mb-1.5 h-1 overflow-hidden rounded-full bg-surface-lighter">
+                  <div
+                    className="h-full rounded-full transition-all duration-500"
+                    style={{ width: `${row.progress}%`, backgroundColor: row.category.color }}
+                  />
+                </div>
+                <p className="truncate text-[10px] text-text-muted">
+                  {row.nextTitle || '暂无待办'} · {row.progress}%
+                </p>
               </div>
-            )
-          })}
+            ))
+          )}
         </div>
+      </GlassCard>
       </div>
 
       {/* Welcome Message for New Users */}
       {todos.length === 0 && pomodoroSessions.length === 0 && habits.length === 0 && notes.length === 0 && (
-        <div className="glass-card p-6 border-primary/20">
+        <GlassCard className="p-6 border-primary/20">
           <div className="flex items-start gap-4">
             <div className="w-12 h-12 rounded-xl bg-primary/15 flex items-center justify-center flex-shrink-0">
               <Zap size={24} className="text-primary" />
@@ -1163,7 +989,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                     <button
                       key={action.page}
                       onClick={() => onNavigate(action.page)}
-                      className="flex items-center gap-2 px-3 py-2 rounded-lg bg-surface-lighter hover:bg-surface-lighter/80 text-sm text-text-muted hover:text-text transition-all"
+                      className="interactive-glass flex items-center gap-2 rounded-lg px-3 py-2 text-sm text-text-muted"
                     >
                       <Icon size={14} />
                       {t(action.labelKey)}
@@ -1173,95 +999,23 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
               </div>
             </div>
           </div>
-        </div>
+        </GlassCard>
       )}
 
-      {/* Quick Actions — Mineradio home-card grid */}
-      <div className="grid grid-cols-2 md:grid-cols-4 gap-3">
-        {QUICK_ACTION_KEYS.map((action, index) => {
-          const Icon = action.icon
-          const tones = ['mix', 'local', 'library', 'mix'] as const
-          const labels = ['FOCUS', 'FLOW', 'RITUAL', 'NOTES']
-          return (
-            <button
-              key={action.page}
-              type="button"
-              onClick={() => onNavigate(action.page)}
-              className="home-card"
-              data-home-tone={tones[index % tones.length]}
-            >
-              <div className="home-card-label">{labels[index]}</div>
-              <div className="home-card-title flex items-center gap-2">
-                <Icon size={18} />
-                {t(action.labelKey)}
-              </div>
-              <div className="home-card-sub">快速进入</div>
-            </button>
-          )
-        })}
-      </div>
-
-      {/* Monthly Mini Stats */}
-      {monthPomodoro > 0 || monthTodos > 0 || monthHabitCount > 0 || monthNewNotes > 0 ? (
-          <div className="glass-card p-4">
-            <div className="flex items-center gap-2 mb-3">
-              <Calendar size={14} className="text-text-muted" />
-              <span className="text-xs text-text-muted">{tWith('dashboard.monthlyStats', currentMonthLabel, daysInMonth)}</span>
-              {monthPomodoro > 0 && (
-                <span className="ml-auto text-[10px] text-text-muted">{tWith('dashboard.monthGoal', monthlyProgress)}</span>
-              )}
-            </div>
-            {monthPomodoro > 0 && (
-              <div className="h-1.5 bg-surface-lighter rounded-full overflow-hidden mb-3">
-                <div
-                  className="h-full rounded-full transition-all duration-500"
-                  style={{
-                    width: `${monthlyProgress}%`,
-                    background: monthlyProgress >= 100
-                      ? 'linear-gradient(135deg, var(--color-success), #059669)'
-                      : monthlyProgress >= 75
-                      ? 'linear-gradient(135deg, var(--color-primary), var(--color-success))'
-                      : 'linear-gradient(135deg, var(--color-primary), var(--color-primary-light))',
-                  }}
-                />
-              </div>
-            )}
-            <div className="flex items-center gap-4 text-xs flex-wrap">
-              <div className="flex items-center gap-1.5">
-                <Timer size={12} className="text-primary" />
-                <span className="text-text-muted">{t('dashboard.pomodoroLabel')} <span className="text-text font-medium">{monthPomodoro}</span></span>
-                <span className="text-text-muted/50">({tWith('dashboard.dailyAvg', (monthPomodoro / daysInMonth).toFixed(1))})</span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <Clock size={12} className="text-cyan-400" />
-                <span className="text-text-muted">{t('dashboard.focusLabel')} <span className="text-text font-medium">{fmtMin(monthFocusMinutes)}</span></span>
-              </div>
-              <div className="flex items-center gap-1.5">
-                <CheckSquare size={12} className="text-success" />
-                <span className="text-text-muted">{t('dashboard.taskLabel')} <span className="text-text font-medium">{monthTodos}</span></span>
-                {monthTodoRate >= 0 && <span className="text-text-muted/50">({monthTodoRate}%)</span>}
-              </div>
-              {monthHabitCount > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <Target size={12} className="text-warning" />
-                  <span className="text-text-muted">{t('dashboard.checkinLabel')} <span className="text-text font-medium">{monthHabitCount}</span></span>
-                  {monthHabitRate >= 0 && <span className="text-text-muted/50">({monthHabitRate}%)</span>}
-                </div>
-              )}
-              {monthNewNotes > 0 && (
-                <div className="flex items-center gap-1.5">
-                  <StickyNote size={12} className="text-purple-400" />
-                  <span className="text-text-muted">{t('dashboard.noteLabel')} <span className="text-text font-medium">{monthNewNotes}</span></span>
-                </div>
-              )}
-            </div>
-          </div>
-        ) : null}
-
+      <div className="grid grid-cols-1 gap-4 xl:grid-cols-2">
       {/* Daily Productivity Score */}
-          <div className="glass-card p-5 flex items-center gap-5">
-            <div className="relative w-20 h-20 flex-shrink-0">
-              <svg viewBox="0 0 80 80" className="w-full h-full -rotate-90">
+          <GlassCard className="dashboard-panel p-4">
+            <DashboardCardHeader
+              title={t('dashboard.todayEfficiency')}
+              trailing={(
+                <span className="whitespace-nowrap text-[11px] text-text-muted">
+                  {totalScore >= 100 ? t('dashboard.scorePerfect') : totalScore >= 80 ? t('dashboard.scoreGreat') : totalScore >= 50 ? t('dashboard.scoreGood') : t('dashboard.scoreLow')}
+                </span>
+              )}
+            />
+            <div className="flex items-center gap-4">
+            <div className="relative h-16 w-16 flex-shrink-0">
+              <svg viewBox="0 0 80 80" className="h-full w-full -rotate-90">
                 <circle cx="40" cy="40" r="36" fill="none" stroke="var(--color-border)" strokeWidth="6" />
                 <circle
                   cx="40" cy="40" r="36" fill="none"
@@ -1274,7 +1028,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 />
               </svg>
               <div className="absolute inset-0 flex flex-col items-center justify-center">
-                <span className="text-xl font-bold text-text">{totalScore}</span>
+                <span className="text-lg font-bold text-text">{totalScore}</span>
                 {scoreDiff !== 0 && (
                   <span className={`text-[9px] font-medium ${scoreDiff > 0 ? 'text-success' : 'text-danger'}`}>
                     {scoreDiff > 0 ? '↑' : '↓'}{Math.abs(scoreDiff)}
@@ -1282,39 +1036,34 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 )}
               </div>
             </div>
-            <div className="flex-1 min-w-0">
-              <div className="text-sm font-medium text-text mb-1">{t('dashboard.todayEfficiency')}</div>
-              <div className="text-xs text-text-muted mb-2">
-                {totalScore >= 100 ? t('dashboard.scorePerfect') : totalScore >= 80 ? t('dashboard.scoreGreat') : totalScore >= 50 ? t('dashboard.scoreGood') : t('dashboard.scoreLow')}
-              </div>
-              <div className="flex items-center gap-3 text-[10px] text-text-muted">
-                <span className="flex items-center gap-1">
-                  <span className="w-1.5 h-1.5 rounded-full bg-primary" />
+            <div className="min-w-0 flex-1">
+              <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-[10px] text-text-muted">
+                <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                  <span className="h-1.5 w-1.5 rounded-full bg-primary" />
                   番茄 {Math.round(pomodoroRate * 100)}%
                 </span>
                 {taskRate >= 0 && (
-                  <span className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-warning" />
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    <span className="h-1.5 w-1.5 rounded-full bg-warning" />
                     任务 {Math.round(taskRate * 100)}%
                   </span>
                 )}
                 {habitRate >= 0 && (
-                  <span className="flex items-center gap-1">
-                    <span className="w-1.5 h-1.5 rounded-full bg-success" />
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    <span className="h-1.5 w-1.5 rounded-full bg-success" />
                     打卡 {Math.round(habitRate * 100)}%
                   </span>
                 )}
                 {weekAvgScore > 0 && (
-                  <span className="flex items-center gap-1 ml-auto">
-                    <span className="w-1.5 h-1.5 rounded-full bg-text-muted/40" />
+                  <span className="inline-flex items-center gap-1 whitespace-nowrap">
+                    <span className="h-1.5 w-1.5 rounded-full bg-text-muted/40" />
                     {tWith('dashboard.weekAvg', weekAvgScore)}
                   </span>
                 )}
               </div>
-              {/* 7-day sparkline */}
               {weekScores.some((s) => s > 0) && (
                   <div className="mt-2 flex items-center gap-2">
-                    <svg width={120} height={24} className="overflow-visible">
+                    <svg width={100} height={20} className="overflow-visible">
                       <path d={sparkAreaPath} fill="var(--color-primary)" opacity="0.1" />
                       <path d={sparkLinePath} fill="none" stroke="var(--color-primary)" strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
                       <circle cx={sparkLastPt[0]} cy={sparkLastPt[1]} r="2.5" fill="var(--color-primary)" />
@@ -1323,188 +1072,134 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                   </div>
               )}
             </div>
-          </div>
+            </div>
+          </GlassCard>
 
       {/* Achievements */}
-      <div className="glass-card p-5">
-        <div className="mb-4 flex items-center justify-between gap-3">
-          <div className="flex items-center gap-2">
-            <Award size={18} className="text-warning" />
-            <h3 className="text-sm font-semibold text-text">连续记录</h3>
-          </div>
-          <span className="text-xs text-text-muted">
-            {achievements.badges.filter((badge) => badge.unlocked).length}/{achievements.badges.length} 已达成
-          </span>
-        </div>
-        <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
+      <GlassCard className="dashboard-panel p-4">
+        <DashboardCardHeader
+          icon={Award}
+          iconClassName="text-warning"
+          title="连续记录"
+          trailing={(
+            <span className="whitespace-nowrap text-[11px] text-text-muted">
+              {achievements.badges.filter((badge) => badge.unlocked).length}/{achievements.badges.length} 已达成
+            </span>
+          )}
+        />
+        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
           {achievements.badges.map((badge) => (
             <div
               key={badge.id}
-              className={`rounded-xl border p-3 transition-colors ${
+              className={`rounded-xl border p-2.5 transition-colors ${
                 badge.unlocked
                   ? 'border-warning/30 bg-warning/10'
                   : 'border-border bg-background/35'
               }`}
             >
-              <div className="mb-2 flex items-center justify-between gap-2">
-                <span className="truncate text-xs font-semibold text-text">{badge.title}</span>
-                <span className={`h-2 w-2 rounded-full ${badge.unlocked ? 'bg-warning' : 'bg-text-muted/30'}`} />
+              <div className="mb-1 flex items-center justify-between gap-2">
+                <span className="truncate text-[11px] font-semibold text-text">{badge.title}</span>
+                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${badge.unlocked ? 'bg-warning' : 'bg-text-muted/30'}`} />
               </div>
-              <div className={badge.unlocked ? 'text-lg font-black text-warning' : 'text-lg font-black text-text-muted'}>
-                {badge.value}
+              <div className="flex items-baseline justify-between gap-2">
+                <span className={badge.unlocked ? 'text-base font-black text-warning' : 'text-base font-black text-text-muted'}>
+                  {badge.value}
+                </span>
+                <p className="min-w-0 truncate text-[10px] text-text-muted">{badge.description}</p>
               </div>
-              <p className="mt-1 text-[11px] leading-4 text-text-muted">{badge.description}</p>
             </div>
           ))}
         </div>
-      </div>
-
-      {/* Quick Add Todo */}
-      <div className="rounded-[30px] border border-border bg-surface/80 p-4 shadow-xl shadow-black/5">
-        {todayAdded > 0 || todayDone > 0 ? (
-          <div className="mb-3 flex items-center gap-2 text-[11px] text-text-muted">
-            {todayAdded > 0 && <span>{tWith('dashboard.todayAdded', todayAdded)}</span>}
-            {todayAdded > 0 && todayDone > 0 && <span> · </span>}
-            {todayDone > 0 && <span className="text-success">{tWith('dashboard.todayDone', todayDone)}</span>}
-          </div>
-        ) : null}
-        <div className="flex flex-col gap-3 lg:flex-row">
-          <input
-            ref={quickTodoRef}
-            type="text"
-            value={quickTodo}
-            onChange={(e) => setQuickTodo(e.target.value)}
-            onKeyDown={(e) => {
-              if (e.key === 'Enter' && quickTodo.trim()) {
-                void handleQuickAddTask()
-              }
-            }}
-            placeholder={t('dashboard.quickAdd')}
-            aria-label="快速添加任务"
-            className="h-14 flex-1 rounded-2xl border border-border bg-background/60 px-5 text-sm text-text outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
-          />
-          <div className="relative lg:w-44">
-            <Calendar size={14} className="absolute left-4 top-1/2 -translate-y-1/2 text-text-muted pointer-events-none" />
-            <input
-              key={`quick-due-${dateInputLocale}`}
-              lang={dateInputLocale}
-              type="date"
-              value={quickDueDate}
-              onChange={(e) => setQuickDueDate(e.target.value)}
-              className="h-14 w-full rounded-2xl border border-border bg-background/60 pl-10 pr-3 text-center text-xs text-text outline-none transition-all focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
-              aria-label="截止日期"
-              title={t('dashboard.dueDate')}
-            />
-          </div>
-          <div className="flex items-center gap-1 rounded-2xl border border-border bg-background/60 p-2">
-            {PRIORITY_BTN_KEYS.map((p) => (
-              <button
-                key={p.key}
-                onClick={() => setQuickPriority(p.key)}
-                title={t(p.titleKey)}
-                aria-label={t(p.titleKey)}
-                className={`h-9 w-9 rounded-xl flex items-center justify-center transition-all ${
-                  quickPriority === p.key
-                    ? `${p.color} ring-2 ring-white/20 scale-105`
-                    : 'bg-surface-lighter hover:bg-surface-lighter/80'
-                }`}
-              >
-                <div className={`w-2.5 h-2.5 rounded-full ${quickPriority === p.key ? 'bg-white' : p.color}`} />
-              </button>
-            ))}
-          </div>
-          <button
-            onClick={() => {
-              if (quickTodo.trim()) {
-                void handleQuickAddTask()
-              }
-            }}
-            className="grid h-14 w-14 place-items-center rounded-2xl bg-primary text-white shadow-xl shadow-primary/25 transition-all hover:-translate-y-0.5 hover:bg-primary-dark"
-            aria-label="添加任务"
-          >
-            <Plus size={18} />
-          </button>
-        </div>
+      </GlassCard>
       </div>
 
       {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
+      <div className="dashboard-stat-grid grid grid-cols-2 gap-4 lg:grid-cols-4">
         {stats.map((stat) => {
           const Icon = stat.icon
           const Badge = stat.badge
           return (
-            <button
+            <GlassCard
               key={stat.label}
-              type="button"
+              role="button"
+              tabIndex={0}
               onClick={() => onNavigate(stat.page)}
-              className="group relative overflow-hidden rounded-[30px] border border-border bg-surface/80 p-5 text-left shadow-xl shadow-black/5 transition-all hover:-translate-y-1 hover:border-primary/35 hover:shadow-2xl hover:shadow-primary/10 focus:outline-none focus:ring-2 focus:ring-primary/50"
+              onKeyDown={(event) => {
+                if (event.key === 'Enter' || event.key === ' ') {
+                  event.preventDefault()
+                  onNavigate(stat.page)
+                }
+              }}
+              className="dashboard-panel dashboard-stat-tile group relative cursor-pointer overflow-hidden p-3.5 text-left focus:outline-none focus:ring-2 focus:ring-primary/50"
               aria-label={`打开${stat.label}模块`}
             >
-              <div className={`absolute -right-8 -top-8 h-24 w-24 rounded-full bg-gradient-to-br ${stat.color} opacity-10 blur-2xl transition-opacity group-hover:opacity-25`} />
-              <div className="flex items-start justify-between mb-3">
-                <div className={`relative w-11 h-11 rounded-2xl ${stat.iconBg} flex items-center justify-center shadow-lg shadow-black/5`}>
-                  <Icon size={20} className={stat.iconColor} />
+              <div className={`pointer-events-none absolute -right-8 -top-8 h-20 w-20 rounded-full bg-gradient-to-br ${stat.color} opacity-10 blur-2xl transition-opacity group-hover:opacity-20`} />
+              <div className="relative mb-2 flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <div className={`grid h-8 w-8 shrink-0 place-items-center rounded-xl ${stat.iconBg}`}>
+                    <Icon size={16} className={stat.iconColor} />
+                  </div>
+                  <span className="truncate text-xs text-text-muted">{stat.label}</span>
                 </div>
-                {Badge && <Badge size={14} className={stat.badgeColor} />}
+                {Badge ? <Badge size={14} className={stat.badgeColor} /> : null}
               </div>
-              <div className="relative text-3xl font-black tracking-tight text-text">{stat.value}</div>
-              <div className="text-xs text-text-muted mt-1">{stat.label}</div>
-              <div className={`h-1 mt-3 rounded-full bg-gradient-to-r ${stat.color}`} />
-              <div className="text-xs text-text-muted mt-2">{stat.sub}</div>
+              <div className="relative flex min-w-0 items-baseline gap-2">
+                <span className="text-2xl font-black tracking-tight text-text">{stat.value}</span>
+                <span className="min-w-0 truncate text-[11px] text-text-muted">{stat.sub}</span>
+              </div>
               {'streak' in stat && stat.streak && stat.streak > 0 && (
-                <div className="flex items-center gap-1 mt-1">
+                <div className="relative mt-1 flex items-center gap-1">
                   <Flame size={10} className="text-orange-400" />
                   <span className="text-[10px] text-orange-400">{tWith('dashboard.streakDays', stat.streak)}</span>
                 </div>
               )}
-            </button>
+            </GlassCard>
           )
         })}
       </div>
 
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {/* Weekly Focus Chart */}
-      <div
-        className="glass-card p-5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+      <GlassCard
+        className="dashboard-panel cursor-pointer p-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
         role="button"
         tabIndex={0}
         onClick={(event) => navigateFromCard('pomodoro', event)}
         onKeyDown={(event) => handleCardKeyDown('pomodoro', event)}
         aria-label="打开番茄钟模块"
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <BarChart3 size={18} className="text-primary" />
-            <h3 className="text-sm font-semibold text-text">{t('dashboard.weeklyFocus')}</h3>
-          </div>
-          <div className="flex items-center gap-2 text-xs text-text-muted">
-            <span>{tWith('dashboard.totalSessions', weeklyChartData.thisWeek)}</span>
-            <span>·</span>
-            <span>{fmtMin(weeklyChartData.weekFocusMin)}</span>
-            <span>·</span>
-            <span>{tWith('dashboard.dailyAvgSessions', (weeklyChartData.thisWeek / 7).toFixed(1))}</span>
-            {weeklyChartData.trend !== 0 && (
-              <>
-                <span>·</span>
-                <span className={weeklyChartData.trend > 0 ? 'text-success' : 'text-danger'}>
-                  {tWith('dashboard.vsLastWeek', weeklyChartData.trend)}
-                </span>
-              </>
-            )}
-          </div>
-        </div>
+        <DashboardCardHeader
+          icon={BarChart3}
+          title={t('dashboard.weeklyFocus')}
+          trailing={(
+            <span className="whitespace-nowrap text-[11px] text-text-muted">
+              {tWith('dashboard.totalSessions', weeklyChartData.thisWeek)}
+              <span className="mx-1">·</span>
+              {fmtMin(weeklyChartData.weekFocusMin)}
+              <span className="mx-1">·</span>
+              {tWith('dashboard.dailyAvgSessions', (weeklyChartData.thisWeek / 7).toFixed(1))}
+              {weeklyChartData.trend !== 0 && (
+                <>
+                  <span className="mx-1">·</span>
+                  <span className={weeklyChartData.trend > 0 ? 'text-success' : 'text-danger'}>
+                    {tWith('dashboard.vsLastWeek', weeklyChartData.trend)}
+                  </span>
+                </>
+              )}
+            </span>
+          )}
+        />
         {weeklyChartData.thisWeek === 0 && weeklyChartData.lastWeek === 0 ? (
-          <div className="flex items-center justify-center h-24 text-sm text-text-muted">
-            <div className="text-center">
-              <BarChart3 size={24} className="mx-auto mb-2 opacity-30" />
-              <p>{t('dashboard.noFocusThisWeek')}</p>
-              <button
-                onClick={() => onNavigate('pomodoro')}
-                className="text-xs text-primary hover:text-primary-light mt-1 transition-colors"
-              >
-                {t('dashboard.startFirstPomodoro')}
-              </button>
-            </div>
-          </div>
+          <p className="dashboard-panel__empty">
+            {t('dashboard.noFocusThisWeek')}
+            <button
+              type="button"
+              onClick={(e) => { e.stopPropagation(); onNavigate('pomodoro') }}
+              className="ml-2 text-primary hover:text-primary-light transition-colors"
+            >
+              {t('dashboard.startFirstPomodoro')} →
+            </button>
+          </p>
         ) : (
         <div className="relative flex items-end gap-2 h-24">
           {/* Goal target line */}
@@ -1545,250 +1240,119 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
           )})}
         </div>
         )}
-      </div>
+      </GlassCard>
 
-      {/* Content Grid */}
-      <div className="grid grid-cols-1 lg:grid-cols-2 gap-6">
-        {/* Recent Tasks */}
-        <div
-          className="glass-card p-5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-          role="button"
-          tabIndex={0}
-          onClick={(event) => navigateFromCard('taskflow', event)}
-          onKeyDown={(event) => handleCardKeyDown('taskflow', event)}
-          aria-label="打开任务流模块"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <CheckSquare size={18} className="text-primary" />
-              <h3 className="text-sm font-semibold text-text">{t('dashboard.todoPriority')}</h3>
-            </div>
-            <button
-              onClick={() => onNavigate('taskflow')}
-              className="text-xs text-primary hover:text-primary-light transition-colors flex items-center gap-1"
-            >
-              {t('dashboard.viewAll')} <ArrowRight size={12} />
-            </button>
-          </div>
-          {recentTodos.length === 0 ? (
-            <div className="text-center py-6">
-              <CheckSquare size={32} className="mx-auto mb-2 text-text-muted opacity-30" />
-              <p className="text-sm text-text-muted">{t('dashboard.noTasks')}</p>
-              <button
-                onClick={() => onNavigate('taskflow')}
-                className="text-xs text-primary hover:text-primary-light mt-1 transition-colors"
-              >
-                {t('dashboard.goAddTask')}
-              </button>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              {recentTodos.map((todo) => {
-                return (
-                <div
-                  key={todo.id}
-                  className="flex items-center gap-3 p-2 rounded-lg hover:bg-surface-lighter transition-colors"
-                >
-                  <div
-                    className={`w-4 h-4 rounded-full border-2 flex items-center justify-center flex-shrink-0 ${
-                      todo.completed ? 'bg-success border-success' : 'border-border'
-                    }`}
-                  >
-                    {todo.completed && <Check size={8} className="text-white" />}
-                  </div>
-                  <span
-                    className={`text-sm flex-1 ${
-                      todo.completed ? 'line-through text-text-muted' : 'text-text'
-                    }`}
-                  >
-                    {todo.text}
-                  </span>
-                  <div className={`w-1.5 h-1.5 rounded-full ${PRIORITY_COLORS[todo.priority]}`} />
-                  {todo.dueStatus && (
-                    <span className={`text-[10px] px-1.5 py-0.5 rounded-full ${todo.dueStatus.bg} ${todo.dueStatus.color}`}>
-                      {todo.dueStatus.label}
-                    </span>
-                  )}
-                  {todo.completed && todo.completedAt && todo.completedAt >= todayMidnightMs && todo.completedAt < tomorrowMidnightMs ? (
-                    <span className="text-[10px] px-1.5 py-0.5 rounded-full bg-success/15 text-success">{t('dashboard.completedToday')}</span>
-                  ) : (
-                    <span className="text-xs text-text-muted">
-                      {todo.dateDisplay}
-                    </span>
-                  )}
-                </div>
-                )
-              })}
-            </div>
-          )}
-        </div>
-
-        {/* Recent Notes */}
-        <div
-          className="glass-card p-5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+      {/* Recent Notes */}
+      <GlassCard
+          className="dashboard-panel cursor-pointer p-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
           role="button"
           tabIndex={0}
           onClick={(event) => navigateFromCard('notes', event)}
           onKeyDown={(event) => handleCardKeyDown('notes', event)}
           aria-label="打开笔记模块"
         >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <StickyNote size={18} className="text-warning" />
-              <h3 className="text-sm font-semibold text-text">{t('dashboard.recentNotes')}</h3>
-            </div>
-            <button
-              onClick={() => onNavigate('notes')}
-              className="text-xs text-primary hover:text-primary-light transition-colors flex items-center gap-1"
-            >
-              {t('dashboard.viewAll')} <ArrowRight size={12} />
-            </button>
-          </div>
-          {recentNotes.length === 0 ? (
-            <div className="text-center py-6">
-              <StickyNote size={32} className="mx-auto mb-2 text-text-muted opacity-30" />
-              <p className="text-sm text-text-muted">{t('dashboard.noNotes')}</p>
+          <DashboardCardHeader
+            icon={StickyNote}
+            iconClassName="text-warning"
+            title={t('dashboard.recentNotes')}
+            trailing={(
               <button
                 onClick={() => onNavigate('notes')}
-                className="text-xs text-primary hover:text-primary-light mt-1 transition-colors"
+                className="interactive-glass dashboard-chip inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] text-primary"
               >
-                {t('dashboard.goCreateNote')}
+                {t('dashboard.viewAll')} <ArrowRight size={12} />
               </button>
-            </div>
+            )}
+          />
+          {recentNotes.length === 0 ? (
+            <p className="dashboard-panel__empty">
+              {t('dashboard.noNotes')}
+              <button
+                type="button"
+                onClick={(e) => { e.stopPropagation(); onNavigate('notes') }}
+                className="ml-2 text-primary hover:text-primary-light transition-colors"
+              >
+                {t('dashboard.goCreateNote')} →
+              </button>
+            </p>
           ) : (
-            <div className="space-y-3">
+            <div className="space-y-1.5">
               {recentNotes.map((note) => (
                 <div
                   key={note.id}
-                  className="p-3 rounded-lg hover:bg-surface-lighter transition-colors"
+                  className="interactive-glass rounded-lg px-1.5 py-1.5"
                 >
-                  <div className="flex items-center gap-2 mb-1">
+                  <div className="flex min-w-0 items-center gap-2">
                     <div
-                      className="w-2 h-2 rounded-full"
+                      className="h-2 w-2 shrink-0 rounded-full"
                       style={{ backgroundColor: note.color }}
                     />
-                    <span className="text-sm font-medium text-text">{note.title}</span>
+                    <span className="min-w-0 truncate text-xs font-medium text-text">{note.title}</span>
                     {note.pinned && (
-                      <span className="text-[9px] px-1 py-0.5 rounded bg-primary/15 text-primary">{t('dashboard.pinned')}</span>
+                      <span className="shrink-0 rounded bg-primary/15 px-1 py-0.5 text-[9px] text-primary">{t('dashboard.pinned')}</span>
                     )}
                     {note.content.length > 0 && (
-                      <span className="text-[10px] text-text-muted/60">{tWith('dashboard.charCount', note.content.length)} · {tWith('dashboard.readTime', Math.max(1, Math.ceil(note.content.length / 400)))}</span>
+                      <span className="hidden shrink-0 text-[10px] text-text-muted/60 sm:inline">
+                        {tWith('dashboard.charCount', note.content.length)} · {tWith('dashboard.readTime', Math.max(1, Math.ceil(note.content.length / 400)))}
+                      </span>
                     )}
-                    <span className="text-[10px] text-text-muted ml-auto">{note.relativeTime}</span>
+                    <span className="ml-auto shrink-0 text-[10px] text-text-muted">{note.relativeTime}</span>
                   </div>
-                  <p className="text-xs text-text-muted line-clamp-2 ml-4">
+                  <p className="mt-0.5 truncate pl-4 text-[11px] text-text-muted">
                     {note.preview}
                   </p>
                 </div>
               ))}
             </div>
           )}
-        </div>
+        </GlassCard>
       </div>
 
-      {/* Project Overview */}
-      {projectOverview.length > 0 && (
-        <div
-          className="glass-card p-5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
-          role="button"
-          tabIndex={0}
-          onClick={() => onNavigate('taskflow')}
-          onKeyDown={(event) => handleCardKeyDown('taskflow', event)}
-          aria-label="打开任务流查看全部项目"
-        >
-          <div className="flex items-center justify-between mb-4">
-            <div className="flex items-center gap-2">
-              <FolderKanban size={18} className="text-primary" />
-              <h3 className="text-sm font-semibold text-text">项目概览</h3>
-            </div>
-            <button
-              onClick={(event) => { event.stopPropagation(); onNavigate('taskflow') }}
-              className="text-xs text-primary hover:text-primary-light transition-colors flex items-center gap-1"
-            >
-              查看全部 <ArrowRight size={12} />
-            </button>
-          </div>
-          <div className="grid grid-cols-1 gap-3 sm:grid-cols-2 lg:grid-cols-4">
-            {projectOverview.map((row) => (
-              <div
-                key={row.category.id}
-                className="rounded-2xl border border-border bg-background/45 p-3 transition hover:border-primary/30"
-              >
-                <div className="flex items-center gap-2 mb-2">
-                  <div className="h-2.5 w-2.5 rounded-full" style={{ backgroundColor: row.category.color }} />
-                  <span className="text-sm font-semibold text-text truncate">{row.category.name}</span>
-                  <span className="ml-auto text-[10px] text-text-muted">{row.active} 活跃</span>
-                </div>
-                <div className="h-1.5 overflow-hidden rounded-full bg-surface-lighter mb-2">
-                  <div
-                    className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${row.progress}%`, backgroundColor: row.category.color }}
-                  />
-                </div>
-                <p className="text-[11px] text-text-muted truncate">
-                  {row.nextTitle || '暂无待办'}
-                </p>
-              </div>
-            ))}
-          </div>
-        </div>
-      )}
-
+      <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
       {/* Daily Check-in Summary */}
-      <div
-        className="glass-card p-5 cursor-pointer focus:outline-none focus:ring-2 focus:ring-primary/50"
+      <GlassCard
+        className="dashboard-panel cursor-pointer p-4 focus:outline-none focus:ring-2 focus:ring-primary/50"
         role="button"
         tabIndex={0}
         onClick={(event) => navigateFromCard('habits', event)}
         onKeyDown={(event) => handleCardKeyDown('habits', event)}
         aria-label="打开每日打卡模块"
       >
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Target size={18} className="text-success" />
-            <h3 className="text-sm font-semibold text-text">{t('dashboard.todayHabits')}</h3>
-            {habitProgressRing && (
-                <div className="relative w-5 h-5">
-                  <svg viewBox="0 0 20 20" className="w-full h-full -rotate-90">
-                    <circle cx="10" cy="10" r={habitProgressRing.r} fill="none" stroke="var(--color-border)" strokeWidth="2" />
-                    <circle cx="10" cy="10" r={habitProgressRing.r} fill="none" stroke={habitProgressRing.color} strokeWidth="2" strokeDasharray={habitProgressRing.c} strokeDashoffset={habitProgressRing.o} strokeLinecap="round" className="transition-all duration-500" />
-                  </svg>
-                </div>
-            )}
-          </div>
-          <div className="flex items-center gap-2">
-            {habits.length > 0 && (
-              <>
-                <span className="text-xs text-text-muted">
+        <DashboardCardHeader
+          icon={Target}
+          iconClassName="text-success"
+          title={t('dashboard.todayHabits')}
+          trailing={(
+            <div className="flex items-center gap-2">
+              {habits.length > 0 && (
+                <span className="whitespace-nowrap text-[11px] text-text-muted">
                   {completedHabitsToday}/{habits.length} {t('dashboard.completed')}
+                  {longestHabitStreak > 1 && <span className="ml-1 text-orange-400">🔥{longestHabitStreak}</span>}
+                  {habitWeekRate > 0 && <span className="ml-1">周{habitWeekRate}%</span>}
+                  {habitMonthRate > 0 && <span className="ml-1">月{habitMonthRate}%</span>}
                 </span>
-                {longestHabitStreak > 1 && (
-                  <span className="text-[10px] text-orange-400">🔥 {longestHabitStreak}天连续</span>
-                )}
-                {habitWeekRate > 0 && <span className="text-[10px] text-text-muted">本周 {habitWeekRate}%</span>}
-                {habitMonthRate > 0 && <span className="text-[10px] text-text-muted ml-1">本月 {habitMonthRate}%</span>}
-              </>
-            )}
-            <button
-              onClick={() => onNavigate('habits')}
-              className="text-xs text-primary hover:text-primary-light transition-colors flex items-center gap-1"
-            >
-              {t('dashboard.manage')} <ArrowRight size={12} />
-            </button>
-          </div>
-        </div>
-          <div className="flex flex-wrap gap-2 mb-3">
+              )}
+              <button
+                onClick={() => onNavigate('habits')}
+                className="interactive-glass dashboard-chip inline-flex items-center gap-1 whitespace-nowrap px-2 py-0.5 text-[11px] text-primary"
+              >
+                {t('dashboard.manage')} <ArrowRight size={12} />
+              </button>
+            </div>
+          )}
+        />
+          <div className="mb-2 flex flex-wrap gap-1.5">
             {habits.length === 0 ? (
-              <div className="w-full text-center py-4">
-                <Target size={32} className="mx-auto mb-2 text-text-muted opacity-30" />
-                <p className="text-sm text-text-muted mb-2">{t('dashboard.noHabits')}</p>
+              <p className="dashboard-panel__empty w-full">
+                {t('dashboard.noHabits')}
                 <button
-                  onClick={() => onNavigate('habits')}
-                  className="text-xs text-primary hover:text-primary-light transition-colors"
+                  type="button"
+                  onClick={(e) => { e.stopPropagation(); onNavigate('habits') }}
+                  className="ml-2 text-primary hover:text-primary-light transition-colors"
                 >
-                  {t('dashboard.goAddHabit')}
+                  {t('dashboard.goAddHabit')} →
                 </button>
-              </div>
+              </p>
             ) : (
               habits.map((habit) => {
                 const isCompleted = completedHabitIdsToday.has(habit.id)
@@ -1804,20 +1368,20 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                       setTimeout(() => setTogglingHabitId((prev) => prev === habit.id ? null : prev), 300)
                     }}
                     aria-label={`${habit.name}，${isCompleted ? '已完成' : '未完成'}${streak > 1 ? `，连续${streak}天打卡` : ''}`}
-                    className={`flex items-center gap-2 px-3 py-2 rounded-lg transition-all hover:scale-[1.02] ${
-                      isCompleted ? 'bg-success/10' : 'bg-surface-lighter hover:bg-surface-lighter/80'
-                    } ${togglingHabitId === habit.id ? 'scale-110' : ''}`}
+                    className={`interactive-glass inline-flex items-center gap-1.5 rounded-lg px-2.5 py-1.5 text-xs ${
+                      isCompleted ? 'ring-1 ring-success/30' : ''
+                    } ${togglingHabitId === habit.id ? 'scale-105' : ''}`}
                   >
                     <span>{habit.icon}</span>
-                    <span className={`text-sm ${isCompleted ? 'text-success' : 'text-text-muted'}`}>
+                    <span className={`whitespace-nowrap ${isCompleted ? 'text-success' : 'text-text-muted'}`}>
                       {habit.name}
                     </span>
                     {streak > 1 && (
-                      <span className="text-[10px] text-orange-400 flex items-center gap-0.5">
+                      <span className="inline-flex items-center gap-0.5 text-[10px] text-orange-400">
                         <Flame size={10} />{streak}
                       </span>
                     )}
-                    {isCompleted && <span className="text-success text-xs">✓</span>}
+                    {isCompleted && <span className="text-success text-[10px]">✓</span>}
                   </button>
                 )
               })
@@ -1832,40 +1396,40 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 />
               </div>
               {completedHabitsToday === habits.length ? (
-                <div className="text-xs text-success mt-2 text-center font-medium">
+                <div className="mt-1.5 text-center text-[11px] font-medium text-success">
                   {t('dashboard.habitsAllDone')}
                 </div>
               ) : completedHabitsToday > 0 ? (
-                <div className="text-xs text-text-muted mt-2 text-center">
+                <div className="mt-1.5 text-center text-[11px] text-text-muted">
                   {tWith('dashboard.habitsRemaining', habits.length - completedHabitsToday)}
                 </div>
               ) : null}
             </>
           )}
-        </div>
+        </GlassCard>
 
       {/* Timeline */}
-      <div className="glass-card p-5">
-        <div className="flex items-center justify-between mb-4">
-          <h3 className="text-sm font-semibold text-text flex items-center gap-2">
-            <Clock size={18} className="text-text-muted" />
-            {t('dashboard.todayTimeline')}
-          </h3>
-          {timelineEvents.total > 0 && (
-            <span className="text-xs text-text-muted">{tWith('dashboard.activities', timelineEvents.total)}</span>
-          )}
-        </div>
-        <div className="relative pl-6 border-l-2 border-border space-y-4">
+      <GlassCard className="dashboard-panel p-4">
+        <DashboardCardHeader
+          icon={Clock}
+          iconClassName="text-text-muted"
+          title={t('dashboard.todayTimeline')}
+          trailing={timelineEvents.total > 0 ? (
+            <span className="whitespace-nowrap text-[11px] text-text-muted">{tWith('dashboard.activities', timelineEvents.total)}</span>
+          ) : undefined}
+        />
+        <div className="relative space-y-3 border-l-2 border-border pl-5">
           {timelineEvents.items.length === 0 ? (
-            <div className="text-center py-2">
-              <p className="text-sm text-text-muted mb-2">{t('dashboard.noActivity')}</p>
+            <p className="dashboard-panel__empty">
+              {t('dashboard.noActivity')}
               <button
+                type="button"
                 onClick={() => onNavigate('pomodoro')}
-                className="text-xs text-primary hover:text-primary-light transition-colors"
+                className="ml-2 text-primary hover:text-primary-light transition-colors"
               >
-                {t('dashboard.startPomodoroHint')}
+                {t('dashboard.startPomodoroHint')} →
               </button>
-            </div>
+            </p>
           ) : (
             <>
               {(showAllTimeline ? timelineEvents.items : timelineEvents.items.slice(0, 8)).map((event, i, arr) => {
@@ -1880,9 +1444,11 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                     <div className="text-[10px] text-text-muted/60 font-medium mb-2 -ml-6">{event.period}</div>
                   )}
                   <div className="relative">
-                    <div className={`absolute -left-[25px] w-3 h-3 rounded-full ${event.color} border-2 border-surface`} />
-                    <div className="text-sm text-text">{event.label}</div>
-                    <div className="text-xs text-text-muted">{event.hhmm} · {event.relative}</div>
+                    <div className={`absolute -left-[25px] top-1 h-2.5 w-2.5 rounded-full ${event.color} border-2 border-surface`} />
+                    <div className="flex min-w-0 items-baseline gap-2 text-xs">
+                      <span className="min-w-0 truncate font-medium text-text">{event.label}</span>
+                      <span className="shrink-0 whitespace-nowrap text-text-muted">{event.hhmm} · {event.relative}</span>
+                    </div>
                   </div>
                   {showGap && (
                     <div className="relative mt-2 mb-1">
@@ -1899,7 +1465,7 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
                 <button
                   onClick={() => setShowAllTimeline(!showAllTimeline)}
                   aria-expanded={showAllTimeline}
-                  className="text-xs text-primary hover:text-primary-light transition-colors mt-2"
+                  className="interactive-glass dashboard-chip mt-2 px-2 py-1 text-xs text-primary"
                 >
                   {showAllTimeline ? t('dashboard.collapse') : tWith('dashboard.viewAllTimeline', timelineEvents.total)}
                 </button>
@@ -1907,12 +1473,16 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
             </>
           )}
         </div>
+      </GlassCard>
+      </div>
+
       </div>
 
       {/* Dashboard Stats — collapsed by default to reduce density */}
       <div className="dashboard-stats-section">
-        <button
-          type="button"
+        <GlassCard
+          role="button"
+          tabIndex={0}
           onClick={() => {
             setShowDashboardStats((prev) => {
               const next = !prev
@@ -1920,7 +1490,17 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
               return next
             })
           }}
-          className="mb-3 flex w-full items-center justify-between rounded-panel border border-border bg-surface/70 px-4 py-3 text-left hover:border-primary/30"
+          onKeyDown={(event) => {
+            if (event.key === 'Enter' || event.key === ' ') {
+              event.preventDefault()
+              setShowDashboardStats((prev) => {
+                const next = !prev
+                try { localStorage.setItem('abworkbench-dashboard-stats-open', next ? '1' : '0') } catch { /* ignore */ }
+                return next
+              })
+            }
+          }}
+          className="dashboard-panel flex w-full cursor-pointer items-center justify-between px-4 py-3 text-left"
           aria-expanded={showDashboardStats}
         >
           <span className="flex items-center gap-2 text-sm font-semibold text-text">
@@ -1928,11 +1508,13 @@ export default function DashboardPage({ onNavigate, onOpenDailyBrief, onOpenQuic
             统计总览
           </span>
           <span className="text-xs text-text-muted">{showDashboardStats ? '收起' : '展开详情'}</span>
-        </button>
+        </GlassCard>
         {showDashboardStats && (
-          <Suspense fallback={<div className="glass-card h-56 animate-pulse" />}>
-            <StatsPage embedded />
-          </Suspense>
+          <div className="mt-4">
+            <Suspense fallback={<GlassCard className="dashboard-panel h-56 animate-pulse" />}>
+              <StatsPage embedded />
+            </Suspense>
+          </div>
         )}
       </div>
     </div>

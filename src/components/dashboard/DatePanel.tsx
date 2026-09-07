@@ -9,6 +9,7 @@ import {
   getWeekOfYear,
   mondayStartOffset,
 } from '../../utils/chineseCalendar'
+import GlowPanel from '../common/BorderGlow/GlowPanel'
 
 const WEEKDAY_HEADERS = ['一', '二', '三', '四', '五', '六', '日'] as const
 const MONTH_OPTIONS = Array.from({ length: 12 }, (_, i) => i)
@@ -36,7 +37,7 @@ export default memo(function DatePanel() {
   }
 
   return (
-    <div className="liquid-glass-panel modal-panel-cinematic overflow-hidden">
+    <GlowPanel borderRadius={34} className="modal-panel-cinematic overflow-hidden">
       <div className="flex flex-col lg:flex-row">
         <div className="relative min-w-0 flex-1 p-4 md:p-5">
           <div className="pointer-events-none absolute inset-0 flex items-center justify-center text-[140px] font-black text-text/[0.04]">
@@ -47,7 +48,7 @@ export default memo(function DatePanel() {
             <select
               value={viewMonth.getFullYear()}
               onChange={(e) => setViewMonth(new Date(Number(e.target.value), viewMonth.getMonth(), 1))}
-              className="rounded-xl liquid-glass-chip px-3 py-2 text-sm font-semibold text-text outline-none focus:border-primary/40"
+              className="rounded-xl surface-chip px-3 py-2 text-sm font-semibold text-text outline-none focus:border-primary/40"
               aria-label="选择年份"
             >
               {YEAR_OPTIONS.map((year) => (
@@ -57,7 +58,7 @@ export default memo(function DatePanel() {
             <select
               value={viewMonth.getMonth()}
               onChange={(e) => setViewMonth(new Date(viewMonth.getFullYear(), Number(e.target.value), 1))}
-              className="rounded-xl liquid-glass-chip px-3 py-2 text-sm font-semibold text-text outline-none focus:border-primary/40"
+              className="rounded-xl surface-chip px-3 py-2 text-sm font-semibold text-text outline-none focus:border-primary/40"
               aria-label="选择月份"
             >
               {MONTH_OPTIONS.map((month) => (
@@ -68,7 +69,7 @@ export default memo(function DatePanel() {
               <button
                 type="button"
                 onClick={() => shiftMonth(-1)}
-                className="grid h-9 w-9 place-items-center rounded-xl liquid-glass-chip text-text-muted transition hover:border-primary/30 hover:text-text"
+                className="grid h-9 w-9 place-items-center rounded-xl surface-chip text-text-muted transition hover:border-primary/30 hover:text-text"
                 aria-label="上个月"
               >
                 <ChevronLeft size={16} />
@@ -80,14 +81,14 @@ export default memo(function DatePanel() {
                   setViewMonth(new Date(now.getFullYear(), now.getMonth(), 1))
                   setSelected(now)
                 }}
-                className="rounded-xl liquid-glass-chip px-3 py-2 text-xs font-semibold text-text-muted transition hover:border-primary/30 hover:text-primary"
+                className="rounded-xl surface-chip px-3 py-2 text-xs font-semibold text-text-muted transition hover:border-primary/30 hover:text-primary"
               >
                 今天
               </button>
               <button
                 type="button"
                 onClick={() => shiftMonth(1)}
-                className="grid h-9 w-9 place-items-center rounded-xl liquid-glass-chip text-text-muted transition hover:border-primary/30 hover:text-text"
+                className="grid h-9 w-9 place-items-center rounded-xl surface-chip text-text-muted transition hover:border-primary/30 hover:text-text"
                 aria-label="下个月"
               >
                 <ChevronRight size={16} />
@@ -163,7 +164,7 @@ export default memo(function DatePanel() {
           </div>
         </div>
 
-        <aside className="liquid-glass-pane w-full border-t border-white/10 p-4 md:p-5 lg:w-[280px] lg:border-l lg:border-t-0">
+        <aside className="surface-pane w-full border-t border-white/10 p-4 md:p-5 lg:w-[280px] lg:border-l lg:border-t-0">
           <div className="mb-4 text-center">
             <div className="text-sm font-semibold text-text">
               {selected.getFullYear()}-{String(selected.getMonth() + 1).padStart(2, '0')}-{String(selected.getDate()).padStart(2, '0')}
@@ -180,11 +181,11 @@ export default memo(function DatePanel() {
           </div>
 
           <div className="mb-4 grid grid-cols-2 gap-2 text-center">
-            <div className="rounded-2xl liquid-glass-chip px-3 py-2">
+            <div className="rounded-2xl surface-chip px-3 py-2">
               <div className="text-[10px] text-text-muted">生肖</div>
               <div className="mt-1 text-sm font-semibold text-text">{selectedInfo.yearShengXiao}</div>
             </div>
-            <div className="rounded-2xl liquid-glass-chip px-3 py-2">
+            <div className="rounded-2xl surface-chip px-3 py-2">
               <div className="text-[10px] text-text-muted">星座</div>
               <div className="mt-1 text-sm font-semibold text-text">{selectedInfo.constellation}</div>
             </div>
@@ -205,13 +206,13 @@ export default memo(function DatePanel() {
           </div>
 
           <div className="mt-4 grid grid-cols-2 gap-2 text-[11px] text-text-muted">
-            <div className="rounded-xl liquid-glass-chip px-2.5 py-2">喜神 {selectedInfo.positions.xi}</div>
-            <div className="rounded-xl liquid-glass-chip px-2.5 py-2">财神 {selectedInfo.positions.cai}</div>
-            <div className="rounded-xl liquid-glass-chip px-2.5 py-2">福神 {selectedInfo.positions.fu}</div>
-            <div className="rounded-xl liquid-glass-chip px-2.5 py-2">阳贵 {selectedInfo.positions.yangGui}</div>
+            <div className="rounded-xl surface-chip px-2.5 py-2">喜神 {selectedInfo.positions.xi}</div>
+            <div className="rounded-xl surface-chip px-2.5 py-2">财神 {selectedInfo.positions.cai}</div>
+            <div className="rounded-xl surface-chip px-2.5 py-2">福神 {selectedInfo.positions.fu}</div>
+            <div className="rounded-xl surface-chip px-2.5 py-2">阳贵 {selectedInfo.positions.yangGui}</div>
           </div>
         </aside>
       </div>
-    </div>
+    </GlowPanel>
   )
 })

@@ -23,6 +23,7 @@ import {
 import { getRelativeTimeShort, WEEKDAY_NAMES, fmtMin, fmtHHmm } from '../../utils/format'
 import { useStore } from '../../store'
 import { useTranslation } from '../../i18n'
+import { useTick } from '../../hooks/useTick'
 
 interface WeatherData {
   city: string
@@ -95,9 +96,13 @@ function getHourlyCondition(hour: number, dayNum: number): WeatherData['conditio
   return 'cloudy'
 }
 
+function getLocalMinutesOfDay(nowMs: number): number {
+  const d = new Date(nowMs)
+  return d.getHours() * 60 + d.getMinutes()
+}
+
 function getDaylightInfo(sunriseMin: number, sunsetMin: number, daylightMin: number, nowMs: number) {
-  const secInDay = ((Math.floor(nowMs / 1000) % 86400) + 86400) % 86400
-  const nowMin = Math.floor(secInDay / 60)
+  const nowMin = getLocalMinutesOfDay(nowMs)
   const elapsed = nowMin - sunriseMin
   const progress = Math.max(0, Math.min(1, elapsed / daylightMin))
   const isDaytime = nowMin >= sunriseMin && nowMin <= sunsetMin
@@ -155,9 +160,12 @@ const CITY_LIST = Object.keys(CITY_OFFSETS)
 
 // eslint-disable-next-line react-refresh/only-export-components
 export function generateMockWeather(city: string = '北京'): WeatherData {
-  const ts = Date.now()
-  const hour = Math.floor((Math.floor(ts / 1000) % 86400) / 3600)
-  const dayNum = Math.floor(ts / 86400000)
+  const local = new Date()
+  const hour = local.getHours()
+  const weekday = local.getDay()
+  const dayStart = new Date(local)
+  dayStart.setHours(0, 0, 0, 0)
+  const dayNum = Math.floor(dayStart.getTime() / 86400000)
   const seasonOffset = Math.sin((dayNum / 365) * Math.PI * 2 - Math.PI / 2) * 8
   const cityOffset = CITY_OFFSETS[city]?.temp ?? 0
   const baseTemp = (hour < 6 || hour > 20 ? 16 : hour < 12 ? 21 : hour < 18 ? 25 : 22) + seasonOffset + cityOffset
@@ -222,7 +230,7 @@ export function generateMockWeather(city: string = '北京'): WeatherData {
       const high = dayTemp + Math.round(3 + Math.random() * 4)
       const low = dayTemp - Math.round(3 + Math.random() * 4)
       return {
-        day: i === 0 ? '今天' : WEEKDAY_NAMES[(dayNum + 4 + i) % 7],
+        day: i === 0 ? '今天' : WEEKDAY_NAMES[(weekday + i) % 7],
         temp: dayTemp,
         high,
         low,
@@ -282,26 +290,14 @@ export default function WeatherWidget() {
   const [locating, setLocating] = useState(false)
   const autoLocateDone = useRef(false)
   const [lastUpdated, setLastUpdated] = useState(() => Date.now())
-  const [now, setNow] = useState(() => Date.now())
+  const nowDate = useTick(30_000)
+  const now = nowDate.getTime()
+  const currentHour = nowDate.getHours()
   const [showCityPicker, setShowCityPicker] = useState(false)
   const [citySearch, setCitySearch] = useState('')
   const pickerRef = useRef<HTMLDivElement>(null)
 
-  useEffect(() => {
-    const timer = setInterval(() => setNow(Date.now()), 60000)
-    return () => clearInterval(timer)
-  }, [])
-
-  // Auto-locate on mount
-  useEffect(() => {
-    if (!weatherAutoLocate || autoLocateDone.current) return
-    autoLocateDone.current = true
-    detectCity().then((city) => {
-      if (city) setWeatherCity(city)
-    })
-  }, [weatherAutoLocate, setWeatherCity])
-
-  // Load weather when city changes
+  // Load weather when city or local hour changes (keep "现在" / forecast aligned)
   useEffect(() => {
     queueMicrotask(() => {
       setLoading(true)
@@ -313,7 +309,16 @@ export default function WeatherWidget() {
       setLoading(false)
     }, delay)
     return () => clearTimeout(timer)
-  }, [weatherCity])
+  }, [weatherCity, currentHour])
+
+  // Auto-locate on mount
+  useEffect(() => {
+    if (!weatherAutoLocate || autoLocateDone.current) return
+    autoLocateDone.current = true
+    detectCity().then((city) => {
+      if (city) setWeatherCity(city)
+    })
+  }, [weatherAutoLocate, setWeatherCity])
 
   // Close city picker on outside click
   useEffect(() => {
@@ -401,7 +406,7 @@ export default function WeatherWidget() {
     }
 
     // Current period index
-    const hour = Math.floor((Math.floor(now / 1000) % 86400) / 3600)
+    const hour = new Date(now).getHours()
     let currentPeriodIdx = -1
     for (let i = 0; i < PERIOD_RANGES.length; i++) {
       if (i === 5 ? (hour >= 20 || hour < 5) : (hour >= PERIOD_RANGES[i][0] && hour < PERIOD_RANGES[i][1])) {
@@ -638,7 +643,7 @@ export default function WeatherWidget() {
         {detailItems.map((detail) => {
           const Icon = detail.icon
           return (
-            <div key={detail.label} className="rounded-[26px] border border-border bg-surface/75 p-4 shadow-xl shadow-black/10 transition-all hover:-translate-y-0.5 hover:border-primary/30">
+            <div key={detail.label} className="rounded-[26px] border border-border bg-surface/75 p-4 shadow-xl shadow-black/10 transition-all hover:border-primary/30">
               <div className="mb-4 flex items-center justify-between gap-3">
                 <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface-lighter ${detail.color}`}>
                   <Icon size={18} />
@@ -720,7 +725,7 @@ export default function WeatherWidget() {
             return (
               <div
                 key={`${item.time}-${index}`}
-                className={`relative min-w-[112px] overflow-hidden rounded-[24px] border p-3 transition-all hover:-translate-y-0.5 ${
+                className={`relative min-w-[112px] overflow-hidden rounded-[24px] border p-3 transition-all  ${
                   isNow
                     ? 'border-primary/45 bg-primary/10 shadow-lg shadow-primary/10'
                     : isRainLikely

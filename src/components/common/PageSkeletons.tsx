@@ -1,4 +1,5 @@
 import { memo } from 'react'
+import { GlassCard } from './GlassSurface'
 
 function Block({ className = '' }: { className?: string }) {
   return <div className={`skeleton ${className}`} />
@@ -6,11 +7,11 @@ function Block({ className = '' }: { className?: string }) {
 
 function CardSkeleton() {
   return (
-    <div className="glass-card p-4 space-y-3">
+    <GlassCard className="p-4 space-y-3">
       <Block className="h-5 w-2/5" />
       <Block className="h-4 w-4/5" />
       <Block className="h-4 w-3/5" />
-    </div>
+    </GlassCard>
   )
 }
 
@@ -24,18 +25,18 @@ export const DashboardSkeleton = memo(function DashboardSkeleton() {
       {/* Stats row */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="glass-card p-4 space-y-2">
+          <GlassCard key={i} className="p-4 space-y-2">
             <Block className="h-4 w-1/2" />
             <Block className="h-8 w-2/3" />
-          </div>
+          </GlassCard>
         ))}
       </div>
 
       {/* Chart area */}
-      <div className="glass-card p-6">
+      <GlassCard className="p-6">
         <Block className="h-5 w-1/4 mb-4" />
         <Block className="h-48 w-full" />
-      </div>
+      </GlassCard>
 
       {/* Bottom cards */}
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
@@ -64,10 +65,10 @@ export const PomodoroSkeleton = memo(function PomodoroSkeleton() {
       {/* Stats grid */}
       <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="glass-card p-3 space-y-2">
+          <GlassCard key={i} className="p-3 space-y-2">
             <Block className="h-4 w-1/2" />
             <Block className="h-6 w-2/3" />
-          </div>
+          </GlassCard>
         ))}
       </div>
     </div>
@@ -83,12 +84,12 @@ export const NotesSkeleton = memo(function NotesSkeleton() {
       {/* Note cards grid */}
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-3 gap-4">
         {Array.from({ length: 6 }, (_, i) => (
-          <div key={i} className="glass-card p-4 space-y-3">
+          <GlassCard key={i} className="p-4 space-y-3">
             <Block className="h-5 w-3/4" />
             <Block className="h-4 w-full" />
             <Block className="h-4 w-2/3" />
             <Block className="h-3 w-1/3 mt-2" />
-          </div>
+          </GlassCard>
         ))}
       </div>
     </div>
@@ -99,7 +100,7 @@ export const WeatherSkeleton = memo(function WeatherSkeleton() {
   return (
     <div className="space-y-6 animate-fade-in">
       {/* Current weather card */}
-      <div className="glass-card p-6">
+      <GlassCard className="p-6">
         <div className="flex items-center gap-4">
           <Block className="w-16 h-16 rounded-full" />
           <div className="space-y-2 flex-1">
@@ -107,16 +108,16 @@ export const WeatherSkeleton = memo(function WeatherSkeleton() {
             <Block className="h-4 w-1/2" />
           </div>
         </div>
-      </div>
+      </GlassCard>
 
       {/* Forecast row */}
       <div className="grid grid-cols-3 md:grid-cols-7 gap-3">
         {Array.from({ length: 7 }, (_, i) => (
-          <div key={i} className="glass-card p-3 space-y-2 text-center">
+          <GlassCard key={i} className="p-3 space-y-2 text-center">
             <Block className="h-4 w-8 mx-auto" />
             <Block className="w-8 h-8 rounded-full mx-auto" />
             <Block className="h-4 w-12 mx-auto" />
-          </div>
+          </GlassCard>
         ))}
       </div>
     </div>
@@ -134,7 +135,7 @@ export const HabitsSkeleton = memo(function HabitsSkeleton() {
 
       {/* Habit rows */}
       {Array.from({ length: 4 }, (_, i) => (
-        <div key={i} className="glass-card p-4">
+        <GlassCard key={i} className="p-4">
           <div className="flex items-center gap-3 mb-3">
             <Block className="w-8 h-8 rounded-full" />
             <Block className="h-5 w-1/3" />
@@ -145,7 +146,7 @@ export const HabitsSkeleton = memo(function HabitsSkeleton() {
               <Block key={j} className="w-8 h-8 rounded-full" />
             ))}
           </div>
-        </div>
+        </GlassCard>
       ))}
     </div>
   )
@@ -155,7 +156,7 @@ export const SettingsSkeleton = memo(function SettingsSkeleton() {
   return (
     <div className="space-y-6 animate-fade-in">
       {Array.from({ length: 3 }, (_, i) => (
-        <div key={i} className="glass-card p-6 space-y-4">
+        <GlassCard key={i} className="p-6 space-y-4">
           <Block className="h-5 w-1/4" />
           {Array.from({ length: 3 }, (_, j) => (
             <div key={j} className="flex items-center justify-between">
@@ -163,7 +164,7 @@ export const SettingsSkeleton = memo(function SettingsSkeleton() {
               <Block className="h-8 w-24" />
             </div>
           ))}
-        </div>
+        </GlassCard>
       ))}
     </div>
   )
@@ -183,12 +184,12 @@ export const TaskFlowSkeleton = memo(function TaskFlowSkeleton() {
       <Block className="h-10 w-full rounded-lg" />
       <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-4 gap-4">
         {Array.from({ length: 4 }, (_, i) => (
-          <div key={i} className="glass-card p-4 space-y-3">
+          <GlassCard key={i} className="p-4 space-y-3">
             <Block className="h-5 w-1/3" />
             {Array.from({ length: 3 }, (_, j) => (
               <CardSkeleton key={j} />
             ))}
-          </div>
+          </GlassCard>
         ))}
       </div>
     </div>
@@ -204,12 +205,12 @@ export const HotlistSkeleton = memo(function HotlistSkeleton() {
       </div>
       <div className="grid grid-cols-2 md:grid-cols-3 xl:grid-cols-5 gap-3">
         {Array.from({ length: 10 }, (_, i) => (
-          <div key={i} className="glass-card p-4 space-y-2 min-h-[320px]">
+          <GlassCard key={i} className="p-4 space-y-2 min-h-[320px]">
             <Block className="h-5 w-2/5" />
             {Array.from({ length: 8 }, (_, j) => (
               <Block key={j} className="h-4 w-full" />
             ))}
-          </div>
+          </GlassCard>
         ))}
       </div>
     </div>

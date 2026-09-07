@@ -79,7 +79,7 @@ export function HabitCard({
     <article
       data-habit-id={habit.id}
       className={clsx(
-        'group overflow-hidden rounded-[28px] border bg-surface/75 shadow-xl shadow-black/10 backdrop-blur-xl transition-all duration-300 hover:-translate-y-0.5 hover:border-primary/35 active:scale-[0.995]',
+        'group overflow-hidden rounded-[28px] border bg-surface/75 shadow-xl shadow-black/10 backdrop-blur-xl transition-all duration-300 hover:border-primary/35 active:scale-[0.995]',
         isCompletedToday ? 'border-success/35' : streakAtRisk ? 'border-warning/35' : 'border-border',
       )}
     >
@@ -140,7 +140,7 @@ export function HabitCard({
                 isCompletedToday
                   ? 'bg-success/15 text-success hover:bg-success/25'
                   : todayProgress.canCheckIn
-                    ? 'bg-primary text-on-primary shadow-lg shadow-primary/25 hover:-translate-y-0.5 hover:bg-primary-dark'
+                    ? 'bg-primary text-on-primary shadow-lg shadow-primary/25 hover:bg-primary-dark'
                     : 'cursor-not-allowed bg-surface-lighter text-text-muted',
               )}
             >

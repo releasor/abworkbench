@@ -1025,7 +1025,7 @@ function ColorPalette({
           title={color}
           aria-label={`选择颜色 ${color}`}
           className={clsx(
-            'h-7 w-7 rounded-xl border transition-all hover:-translate-y-0.5',
+            'h-7 w-7 rounded-xl border transition-all ',
             selected === color ? 'border-white/80 shadow-lg scale-105' : 'border-white/10',
           )}
           style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 55%, #000))` }}

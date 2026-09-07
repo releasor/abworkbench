@@ -273,7 +273,7 @@ export default function HabitTracker() {
         <button
           type="button"
           onClick={() => setShowAddForm(true)}
-          className="group flex w-full items-center justify-between rounded-[26px] border border-dashed border-primary/45 bg-primary/10 px-5 py-4 text-left transition-all hover:-translate-y-0.5 hover:border-primary hover:bg-primary/20"
+          className="group flex w-full items-center justify-between rounded-[26px] border border-dashed border-primary/45 bg-primary/10 px-5 py-4 text-left transition-all hover:border-primary hover:bg-primary/20"
         >
           <span className="flex items-center gap-3">
             <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-lg shadow-primary/25">
@@ -304,7 +304,7 @@ export default function HabitTracker() {
                 type="button"
                 onClick={() => addHabit(template.name, template.icon, template.color, template.schedule)}
                 aria-label={`创建习惯: ${template.name}`}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-background/50 px-4 py-3 text-sm text-text-muted transition-all hover:-translate-y-0.5 hover:border-primary/40 hover:text-text"
+                className="flex items-center gap-3 rounded-2xl border border-border bg-background/50 px-4 py-3 text-sm text-text-muted transition-all hover:border-primary/40 hover:text-text"
               >
                 <span
                   className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
