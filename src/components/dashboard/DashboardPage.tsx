@@ -1,4 +1,4 @@
-import {
+﻿import {
   CheckSquare,
   Timer,
   StickyNote,
@@ -657,11 +657,11 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
         backgroundColor={surfaceColor}
         glowMaskColor={surfaceColor}
         className="w-full border-glow-card--glass"
-        innerClassName="dashboard-hero relative overflow-hidden p-6 md:p-8"
+        innerClassName="dashboard-hero relative overflow-hidden p-4 md:p-5"
       >
-        <div className="relative z-[2] flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div className="max-w-2xl">
-            <div className="home-kicker mb-3 inline-flex items-center gap-2">
+        <div className="relative z-[2] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl min-w-0 flex-1">
+            <div className="home-kicker mb-2 inline-flex items-center gap-2">
               <Zap size={12} />
               <button onClick={prevDay} className="rounded px-1 hover:bg-primary/20 transition" title="前一天" aria-label="前一天">←</button>
               <span>{isSelectedToday ? '今日概览' : `${selectedDate} 概览`}</span>
@@ -670,51 +670,49 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
                 <button onClick={() => setSelectedDate(todayStr)} className="rounded px-1.5 py-0.5 text-[10px] bg-primary/20 hover:bg-primary/30 transition normal-case tracking-normal" aria-label="回到今天">回到今天</button>
               )}
             </div>
-            <h2 className="text-4xl font-black tracking-tight text-text md:text-5xl">{formatGreetingTitle(greeting.text, userName)}</h2>
-            <div className="mt-2 flex flex-wrap items-center gap-x-2 gap-y-1 text-sm text-text-muted">
-              <button onClick={() => onOpenDatePanel?.()} className="rounded-lg text-left transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开日期面板">
-                {todayDisplay}
-              </button>
-              <span>·</span>
-              <button onClick={() => onOpenClockPanel?.()} className="rounded-lg font-mono tabular-nums text-text transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开时钟面板">
-                {currentTimeDisplay}
-              </button>
-              <span>·</span>
-              <span>{greeting.sub}</span>
-            </div>
-            <div className="mt-3 flex flex-wrap gap-2">
-              <button type="button" onClick={() => onNavigate('reminders')} className="interactive-glass dashboard-chip rounded-xl px-3 py-1.5 text-xs font-semibold text-text-muted">提醒中心</button>
+            <h2 className="text-3xl font-black tracking-tight text-text md:text-4xl">{formatGreetingTitle(greeting.text, userName)}</h2>
+            <div className="mt-2 space-y-1 text-sm text-text-muted">
+              <div className="flex flex-wrap items-center gap-x-2 gap-y-1">
+                <button onClick={() => onOpenDatePanel?.()} className="rounded-lg text-left transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开日期面板">
+                  {todayDisplay}
+                </button>
+                <span>·</span>
+                <button onClick={() => onOpenClockPanel?.()} className="rounded-lg font-mono tabular-nums text-text transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开时钟面板">
+                  {currentTimeDisplay}
+                </button>
+              </div>
+              <p className="text-sm leading-snug text-text-muted">{greeting.sub}</p>
             </div>
             {pomodoroStreak > 1 && (
-              <div className="mt-3 inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1">
+              <div className="mt-2 inline-flex items-center gap-1.5 rounded-full border border-orange-500/20 bg-orange-500/10 px-3 py-1">
                 <Flame size={14} className={pomodoroStreak >= 30 ? 'text-purple-400' : pomodoroStreak >= 14 ? 'text-amber-400' : 'text-orange-400'} />
                 <span className={`text-xs font-semibold ${pomodoroStreak >= 30 ? 'text-purple-400' : pomodoroStreak >= 14 ? 'text-amber-400' : 'text-orange-400'}`}>
                   {pomodoroStreak >= 30 ? tWith('dashboard.streak30Label', pomodoroStreak) : pomodoroStreak >= 14 ? tWith('dashboard.streak14Label', pomodoroStreak) : tWith('dashboard.streakLabel', pomodoroStreak)}
                 </span>
               </div>
             )}
-            <div className="home-wave-track" aria-hidden>
+            <div className="home-wave-track home-wave-track--compact" aria-hidden>
               {Array.from({ length: 28 }, (_, i) => (
                 <span
                   key={i}
                   style={{
-                    ['--h' as string]: `${6 + ((i * 17) % 34)}px`,
+                    ['--h' as string]: `${4 + ((i * 17) % 22)}px`,
                     ['--d' as string]: `${(i % 9) * 0.12}s`,
                   }}
                 />
               ))}
             </div>
           </div>
-          <div className="grid gap-3 sm:grid-cols-[minmax(250px,340px)_112px] sm:items-stretch">
-            <div className="rounded-[28px] border border-primary/20 bg-background/55 p-4 shadow-xl shadow-black/10">
-              <div className="flex items-start justify-between gap-3">
-                <div className="flex items-center gap-2">
-                  <span className="grid h-9 w-9 place-items-center rounded-2xl bg-primary/10 text-primary">
-                    <BriefcaseBusiness size={16} />
+          <div className="grid gap-2 sm:grid-cols-[minmax(220px,300px)_auto] sm:items-center">
+            <div className="rounded-[22px] border border-primary/20 bg-background/55 px-3 py-2.5 shadow-xl shadow-black/10">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <BriefcaseBusiness size={14} />
                   </span>
-                  <div>
-                    <div className="text-xs text-text-muted">{workdayPhaseLabel}</div>
-                    <button onClick={() => onOpenClockPanel?.()} className="font-mono text-2xl font-black tabular-nums text-text transition hover:text-primary" aria-label={`下班倒计时: ${offWorkCountdown}`}>
+                  <div className="min-w-0">
+                    <div className="text-[10px] leading-none text-text-muted">{workdayPhaseLabel}</div>
+                    <button onClick={() => onOpenClockPanel?.()} className="font-mono text-xl font-black tabular-nums leading-tight text-text transition hover:text-primary" aria-label={`下班倒计时: ${offWorkCountdown}`}>
                       {offWorkCountdown}
                     </button>
                   </div>
@@ -722,63 +720,63 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
                 <button onClick={() => {
                   if (!showWorkdaySettings) setDraftWorkdaySettings(workdaySettings)
                   setShowWorkdaySettings((value) => !value)
-                }} className="interactive-glass rounded-xl p-2 text-text-muted" aria-label="设置上下班和工资">
-                  <Settings2 size={15} />
+                }} className="interactive-glass shrink-0 rounded-xl p-1.5 text-text-muted" aria-label="设置上下班和工资">
+                  <Settings2 size={14} />
                 </button>
               </div>
-              <div className="mt-3 grid grid-cols-2 gap-2">
-                <button onClick={() => onOpenClockPanel?.()} className="interactive-glass rounded-2xl px-3 py-2 text-left" aria-label="打开时钟面板">
-                  <div className="text-[10px] text-text-muted">当前时间</div>
-                  <div className="mt-1 font-mono text-sm font-bold tabular-nums text-text">{currentTimeDisplay}</div>
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                <button onClick={() => onOpenClockPanel?.()} className="interactive-glass rounded-xl px-2.5 py-1.5 text-left" aria-label="打开时钟面板">
+                  <div className="text-[10px] leading-none text-text-muted">当前时间</div>
+                  <div className="mt-0.5 font-mono text-xs font-bold tabular-nums text-text">{currentTimeDisplay}</div>
                 </button>
-                <button onClick={() => { setDraftWorkdaySettings(workdaySettings); setShowWorkdaySettings(true) }} className="interactive-glass rounded-2xl px-3 py-2 text-left" aria-label="打开工资设置">
-                  <div className="text-[10px] text-text-muted">今日已赚</div>
-                  <div className="mt-1 text-sm font-bold text-success">{formatCurrency(workdayStatus.todayEarned)}</div>
+                <button onClick={() => { setDraftWorkdaySettings(workdaySettings); setShowWorkdaySettings(true) }} className="interactive-glass rounded-xl px-2.5 py-1.5 text-left" aria-label="打开工资设置">
+                  <div className="text-[10px] leading-none text-text-muted">今日已赚</div>
+                  <div className="mt-0.5 text-xs font-bold text-success">{formatCurrency(workdayStatus.todayEarned)}</div>
                 </button>
               </div>
-              <div className="mt-3 h-2 overflow-hidden rounded-full bg-surface-lighter">
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-lighter">
                 <div className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-all duration-500" style={{ width: `${workdayStatus.progress}%` }} />
               </div>
-              <div className="mt-2 flex items-center justify-between text-[10px] text-text-muted">
+              <div className="mt-1 flex items-center justify-between text-[10px] text-text-muted">
                 <span>{workdaySettings.startTime} 上班</span>
                 <span>{workdaySettings.endTime} 下班</span>
               </div>
             </div>
-            <div className="flex flex-col gap-3">
+            <div className="flex flex-row items-stretch gap-2">
               <button
                 type="button"
                 onClick={() => onNavigate('taskflow')}
-                className="interactive-glass dashboard-hero-score relative grid h-28 w-28 place-items-center rounded-[28px] card-float-soft"
+                className="interactive-glass dashboard-hero-score relative grid h-[5.25rem] w-[5.25rem] place-items-center rounded-[22px] card-float-soft"
                 aria-label={`效率分: ${totalScore}分，点击查看任务流`}
               >
-                <svg viewBox="0 0 96 96" className="pointer-events-none absolute inset-3 -rotate-90">
+                <svg viewBox="0 0 96 96" className="pointer-events-none absolute inset-2.5 -rotate-90">
                   <circle cx="48" cy="48" r="36" fill="none" stroke="var(--color-border)" strokeWidth="7" />
                   <circle cx="48" cy="48" r="36" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={ringOffset} className="transition-all duration-700" />
                 </svg>
                 <span className="relative text-center">
-                  <span className="block text-3xl font-black text-text">{totalScore}</span>
+                  <span className="block text-2xl font-black text-text">{totalScore}</span>
                   <span className="block text-[10px] text-text-muted">效率分</span>
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('weather')}
-                className="interactive-glass dashboard-hero-weather no-motion relative flex h-28 w-28 flex-col items-center justify-center gap-0.5 rounded-[28px] px-2 py-3 text-center card-float-soft"
+                className="interactive-glass dashboard-hero-weather no-motion relative flex h-[5.25rem] w-[5.25rem] flex-col items-center justify-center gap-0.5 rounded-[22px] px-1.5 py-2 text-center card-float-soft"
                 aria-label={`天气：${weather.city} ${weather.temp}度 ${weather.description}`}
               >
                 {(() => {
                   const Icon = CONDITION_ICONS[weather.condition]
-                  return <Icon className={`h-6 w-6 shrink-0 ${CONDITION_COLORS[weather.condition]} opacity-90`} />
+                  return <Icon className={`h-5 w-5 shrink-0 ${CONDITION_COLORS[weather.condition]} opacity-90`} />
                 })()}
-                <div className="text-2xl font-black leading-none text-text">{weather.temp}°</div>
+                <div className="text-xl font-black leading-none text-text">{weather.temp}°</div>
                 <div className="text-[10px] leading-tight text-text-muted">{weather.description}</div>
-                <div className="max-w-full truncate px-1 text-[9px] leading-tight text-text-muted">{weather.city}</div>
+                <div className="max-w-full truncate px-0.5 text-[9px] leading-tight text-text-muted">{weather.city}</div>
               </button>
             </div>
           </div>
         </div>
         {/* Quick Stats */}
-        <div className="relative z-[3] mt-5 grid grid-cols-2 gap-2 border-t border-border pt-4 md:grid-cols-5">
+        <div className="relative z-[3] mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 md:grid-cols-5">
           {totalScore > 0 && (
               <button onClick={() => onNavigate('taskflow')} className="interactive-glass dashboard-quick-stat flex items-center gap-1.5 rounded-2xl px-3 py-2 text-left" aria-label={`效率分: ${totalScore}%`}>
                 <span className={`text-xs font-medium ${progressColor}`}>{totalScore}%</span>
