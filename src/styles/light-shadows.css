@@ -206,10 +206,20 @@ html[data-theme='light'] .header-glass {
   background: rgba(255, 255, 255, 0.72) !important;
 }
 
-/* Hotlist boards — GlassCard owns material; only keep grid gutter for tile room */
+/* Embed tab: keep floating frosted header (do not flush into canvas) */
+html[data-theme='light'] .app-content-column--embed .header-glass,
+html[data-theme='light'] .app-content-column--embed .header-float {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-radius: var(--radius-frame, 22px) !important;
+  box-shadow: var(--shadow-chrome, var(--shadow-card-tile)) !important;
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+}
+
+/* Hotlist / dashboard grids — same outer edges as header (no light-only inset) */
 html[data-theme='light'] .hotlist-grid,
 html[data-theme='light'] .dashboard-stat-grid {
-  padding-inline: 16px;
+  padding-inline: 0;
   padding-block: 8px;
 }
 
@@ -221,12 +231,13 @@ html[data-theme='light'] .wb-stage .wb-project-card {
 }
 
 html[data-theme='light'] .wb-content-scroll {
-  padding-inline: 14px;
+  padding-inline: 0;
   padding-block: 8px;
 }
 
 html[data-theme='light'] .app-main-stage.page-stack:not(.app-main-stage--embed) {
-  padding-inline: 1.75rem !important;
+  /* Match header chrome outer edges (same as dark): no extra side inset */
+  padding-inline: 0 !important;
   overflow-x: clip;
   overflow-y: auto;
 }
@@ -254,7 +265,20 @@ html[data-theme='light'] .app-main-stage:not(.app-main-stage--embed)::before {
 
 html[data-theme='light'] .app-frame.border-glow-card--glass {
   background: color-mix(in srgb, #fff calc(var(--app-glass-opacity, 90) * 1%), transparent) !important;
+  /* Soft slate rim only — the dark-theme white border + inset highlight
+     reads as a bright vertical line against desktop wallpaper in light mode. */
+  border: 1px solid color-mix(in srgb, #0f172a 7%, transparent) !important;
+  outline: none !important;
   box-shadow:
-    var(--saved-panel-glass-shadow),
-    var(--shadow-elevation-2) !important;
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 18px 48px rgba(15, 23, 42, 0.1) !important;
+}
+
+/* Kill leftover white rim from BorderGlow / saved-panel inset on the window shell */
+html[data-theme='light'] .app-frame.border-glow-card,
+html[data-theme='light'] .app-frame.border-glow-card--glass::before,
+html[data-theme='light'] .app-frame.border-glow-card--glass::after,
+html[data-theme='light'] .app-frame.border-glow-card--glass > .edge-light {
+  border-color: color-mix(in srgb, #0f172a 7%, transparent) !important;
+  box-shadow: none !important;
 }

@@ -142,7 +142,8 @@ html[data-theme="light"] .wb-banner {
 }
 
 html[data-theme="light"] .wb-content-scroll {
-  padding-inline: 14px;
+  /* Match dark / header outer edges — no light-only side inset */
+  padding-inline: 0;
   padding-block: 8px;
 }
 
