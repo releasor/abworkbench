@@ -1,5 +1,5 @@
-/* Abworkbench �?Mineradio control glass (exact tokens).
-   Transparent black glass + white rim �?no cyan tint on panels. */
+/* Abworkbench 鈫?Mineradio control glass (exact tokens).
+   Transparent black glass + white rim 鈥?no cyan tint on panels. */
 
 :root {
   --ease-spring: cubic-bezier(0.16, 1, 0.3, 1);
@@ -46,7 +46,7 @@
     0 12px 34px rgba(0, 0, 0, 0.22),
     0 0 18px rgba(255, 255, 255, 0.06);
 
-  /* 快搜：�”侧�?顶栏更不透明，避�?..�悬浮�-下�...容透出�?*/
+  /* 快搜：�”侧栏/顶栏更不透明，避�...�悬浮�-下�...容透出来 */
   --launcher-panel-glass-bg: linear-gradient(
     112deg,
     rgba(38, 40, 44, 0.9),
@@ -134,10 +134,12 @@ html[data-theme="light"] body {
 
 html[data-theme="light"] .app-frame.border-glow-card--glass {
   background: color-mix(in srgb, #fff calc(var(--app-glass-opacity, 90) * 1%), transparent) !important;
+  /* Must beat the base white rim (color-mix #fff 18%) or light mode shows a
+     bright 1px vertical edge on the left against dark wallpaper. */
+  border: 1px solid color-mix(in srgb, #0f172a 7%, transparent) !important;
   box-shadow:
-    var(--saved-panel-glass-shadow),
-    var(--shadow-elevation-2, 0 24px 80px rgba(15, 23, 42, 0.12)) !important;
-  border: 1px solid color-mix(in srgb, #0f172a 10%, transparent) !important;
+    0 1px 2px rgba(15, 23, 42, 0.04),
+    0 18px 48px rgba(15, 23, 42, 0.1) !important;
 }
 
 /* ---- Stage: keep canvas dark so glass can refract ---- */
@@ -315,7 +317,7 @@ html[data-theme="light"] .dashboard-weather-snippet:hover {
   z-index: 1;
 }
 
-/* Floating chrome layout ��?one progress drives sidebar + gap + header inset (no pop) */
+/* Floating chrome layout �” one progress drives sidebar + gap + header inset (no pop) */
 @property --sidebar-open {
   syntax: '<number>';
   inherits: true;
@@ -361,7 +363,7 @@ html[data-theme="light"] .dashboard-weather-snippet:hover {
   container-name: app-main;
 }
 
-/* Header chrome ��?responsive to content column width (not viewport) */
+/* Header chrome �” responsive to content column width (not viewport) */
 .header-glass {
   min-width: 0;
   max-width: 100%;
@@ -545,7 +547,7 @@ html[data-theme="light"] .dashboard-weather-snippet:hover {
   margin: 0;
   padding: 0;
   border: 0;
-  /* Hit area only ��?never paint a glass square behind the glyph */
+  /* Hit area only �” never paint a glass square behind the glyph */
   background: transparent !important;
   box-shadow: none !important;
   backdrop-filter: none !important;
@@ -638,7 +640,7 @@ html[data-theme="light"] .dashboard-weather-snippet:hover {
   border-bottom: 0 !important;
   z-index: 15;
   position: relative;
-  /* Inset grows as sidebar closes ��?same --sidebar-open as width/gap, so no jump */
+  /* Inset grows as sidebar closes �” same --sidebar-open as width/gap, so no jump */
   margin-left: calc((var(--sidebar-dock-size) + 12px) * (1 - var(--sidebar-open, 1)));
 }
 
@@ -701,7 +703,7 @@ html[data-theme="light"] .shortcut-dock kbd {
   border-radius: var(--radius-md) !important;
 }
 
-/* White ink only on dark glass �?light mode must not inherit this */
+/* White ink only on dark glass 鈥?light mode must not inherit this */
 html[data-theme="dark"] .glass-saved-button,
 html[data-theme="dark"] .btn-primary,
 html[data-theme="dark"] .btn-secondary,
@@ -826,7 +828,7 @@ html.dark .border-border {
 }
 
 /* =========================================================
-   Feature surfaces �?Mineradio glass (every page / module)
+   Feature surfaces 鈫?Mineradio glass (every page / module)
    ========================================================= */
 
 html.dark,
@@ -901,7 +903,7 @@ html.dark .dark\:bg-white\/\[0\.05\] {
   box-shadow: var(--feature-glass-shadow) !important;
 }
 
-/* Bordered rounded shells in content + overlays �?glass card */
+/* Bordered rounded shells in content + overlays 鈫?glass card */
 html.dark .app-main-stage .rounded-xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
 html.dark .app-main-stage .rounded-2xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
 html.dark .app-main-stage .rounded-3xl.border:not(button):not(input):not(select):not(textarea):not(kbd):not(a):not(.rounded-full):not(.wb-chip):not(.wb-mode-pill),
@@ -996,7 +998,7 @@ html[data-theme="light"] .bg-white\/80.rounded-3xl {
   box-shadow: var(--glass-shadow) !important;
 }
 
-/* Nav: glass active pill �?no left indicator bar */
+/* Nav: glass active pill 鈥?no left indicator bar */
 .nav-item-spring {
   border-radius: var(--radius-sm) !important;
   border: 1px solid transparent;
@@ -1231,7 +1233,7 @@ html[data-theme="light"] .app-shell::before {
     radial-gradient(ellipse 40% 35% at 55% 40%, rgba(148, 163, 184, 0.06), transparent 70%) !important;
 }
 
-/* Home cards �?Mineradio-like clear glass */
+/* Home cards 鈥?Mineradio-like clear glass */
 .home-kicker {
   font-size: 10px;
   font-weight: 780;
@@ -1306,7 +1308,7 @@ html[data-theme="light"] .home-kicker {
   display: none;
 }
 
-/* Workbench: same clear glass language (dark theme only �?light uses workbench-fx.css) */
+/* Workbench: same clear glass language (dark theme only 鈥?light uses workbench-fx.css) */
 html[data-theme="dark"] .wb-panel--hero {
   border-color: rgba(255, 255, 255, 0.12) !important;
 }
@@ -1503,7 +1505,7 @@ html:fullscreen .app-frame {
   background: var(--launcher-panel-glass-bg) !important;
   backdrop-filter: var(--launcher-panel-glass-filter) !important;
   -webkit-backdrop-filter: var(--launcher-panel-glass-filter) !important;
-  /* Inset rim only �?outer glow lives on .launcher-shell */
+  /* Inset rim only 鈥?outer glow lives on .launcher-shell */
   box-shadow: var(--saved-panel-glass-shadow) !important;
   border-radius: var(--radius-frame, 22px) !important;
   overflow: hidden !important;
@@ -1805,7 +1807,7 @@ html[data-workspace-mode="minimal"] .app-main-stage::before {
 }
 
 /* =========================================================
-   Light mode �?final pass: kill leftover dark-glass white ink
+   Light mode 鈥?final pass: kill leftover dark-glass white ink
    ========================================================= */
 html[data-theme="light"] .app-frame,
 html[data-theme="light"] .app-overlay-root {
@@ -1864,7 +1866,7 @@ html[data-theme="light"] .pomo-mode-tab.pomo-mode-tab--active * {
 }
 
 /* =========================================================
-   Theme parity ��?chrome stability + matching motion
+   Theme parity �” chrome stability + matching motion
    ========================================================= */
 
 /* Top chrome: no hover lift (beats cinematic-motion .app-frame rules) */
@@ -1932,7 +1934,7 @@ html[data-theme="light"] .shortcut-dock kbd {
   border: 0 !important;
 }
 
-/* React Bits GlassSurface ��?block legacy mineradio glass from overriding refraction */
+/* React Bits GlassSurface �” block legacy mineradio glass from overriding refraction */
 .glass-surface.glass-card,
 .glass-surface.shortcut-dock {
   background: unset !important;
@@ -2062,3 +2064,23 @@ html[data-theme="light"] .nav-item-spring:hover {
 ):hover {
   translate: 0 !important;
 }
+
+/* === Embed tab: floating host header over flat mineradio canvas === */
+.app-content-column--embed {
+  gap: 1rem !important;
+}
+
+.app-content-column--embed .header-glass,
+.app-content-column--embed .header-float {
+  border-radius: var(--radius-frame, 22px) !important;
+}
+
+html[data-theme='light'] .app-content-column--embed .header-glass,
+html[data-theme='light'] .app-content-column--embed .header-float {
+  background: rgba(255, 255, 255, 0.72) !important;
+  border-radius: var(--radius-frame, 22px) !important;
+  box-shadow: var(--shadow-chrome, var(--shadow-card-tile)) !important;
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
+}
+

@@ -7,12 +7,33 @@
     return value === 'light' ? 'light' : 'dark';
   }
 
+  function syncAbwbStagePlaybackClass() {
+    try {
+      var light = normalizeTheme(document.documentElement.dataset.theme || 'dark') === 'light';
+      var onHome = !!(document.body && document.body.classList.contains('empty-home-active'));
+      var stage = light && !onHome;
+      document.documentElement.classList.toggle('abwb-stage-playback', stage);
+      if (document.body) document.body.classList.toggle('abwb-stage-playback', stage);
+    } catch (_) {}
+  }
+
   function applyAbwbLightPlaybackFx() {
     try {
+      syncAbwbStagePlaybackClass();
       if (typeof window.fx === 'undefined' || !window.fx) return false;
-      window.fx.lyricBackgroundAdapt = 1;
+      // Dark stage backdrop again — use normal lyric colors (not paper-adapt)
+      window.fx.lyricBackgroundAdapt = 0;
       if (typeof window.syncFxUniforms === 'function') window.syncFxUniforms();
+      if (typeof window.recoverVisualsAfterBackground === 'function') {
+        window.recoverVisualsAfterBackground('abwb-theme-light');
+      }
       if (typeof window.renderLyrics === 'function') window.renderLyrics({ reason: 'abwb-theme-light' });
+      if (window.fx.particleLyrics && typeof window.createLyricsParticles === 'function') {
+        window.createLyricsParticles();
+      }
+      if (window.fx.particleLyrics && typeof window.requestStageLyricWarmup === 'function') {
+        window.requestStageLyricWarmup('abwb-leave-home', 120);
+      }
       return true;
     } catch (_) {
       return false;
@@ -23,6 +44,8 @@
     var tries = 0;
     function tick() {
       if (normalizeTheme(document.documentElement.dataset.theme || 'dark') !== 'light') return;
+      syncAbwbStagePlaybackClass();
+      if (document.body && document.body.classList.contains('empty-home-active')) return;
       if (applyAbwbLightPlaybackFx()) return;
       if (tries++ < 48) setTimeout(tick, 250);
     }
@@ -42,7 +65,12 @@
     try {
       root.style.colorScheme = mode;
     } catch (_) {}
+    syncAbwbStagePlaybackClass();
     if (mode === 'light') scheduleAbwbLightPlaybackFx();
+    else {
+      root.classList.remove('abwb-stage-playback');
+      if (document.body) document.body.classList.remove('abwb-stage-playback');
+    }
     return mode;
   }
 
@@ -68,6 +96,7 @@
         applyAbwbTheme(params.get('theme') || document.documentElement.dataset.theme || 'dark');
         if (document.body) {
           var obs = new MutationObserver(function () {
+            syncAbwbStagePlaybackClass();
             if (normalizeTheme(document.documentElement.dataset.theme || 'dark') !== 'light') return;
             if (!document.body.classList.contains('empty-home-active')) scheduleAbwbLightPlaybackFx();
           });

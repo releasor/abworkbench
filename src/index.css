@@ -982,30 +982,22 @@
   box-shadow: none !important;
 }
 
-html[data-theme="light"] .app-main-stage--embed {
-  background: #f1f5f9 !important;
-}
-
-html[data-theme="light"] .page-layer--embed.is-active {
-  background: #f1f5f9 !important;
-}
-
-/* Mineradio: one continuous canvas - header + embed share the same flat fill */
+/* Mineradio embed: same canvas as app-frame-shell; header stays floating */
 html[data-theme="light"] .app-content-column--embed {
-  gap: 0;
-  background: #f1f5f9;
-  border-radius: 0;
-  overflow: hidden;
+  gap: 1rem;
+  background: transparent;
+  overflow: visible;
 }
 
-html[data-theme="light"] .app-content-column--embed .header-glass {
+html[data-theme="light"] .app-content-column--embed .header-glass,
+html[data-theme="light"] .app-content-column--embed .header-float {
   margin-left: calc((var(--sidebar-dock-size) + 12px) * (1 - var(--sidebar-open, 1)));
-  background: #f1f5f9 !important;
-  backdrop-filter: none !important;
-  -webkit-backdrop-filter: none !important;
-  box-shadow: none !important;
+  background: rgba(255, 255, 255, 0.72) !important;
+  backdrop-filter: blur(18px) saturate(1.2) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(1.2) !important;
   border: 0 !important;
-  border-radius: var(--radius-frame, 22px) var(--radius-frame, 22px) 0 0 !important;
+  border-radius: var(--radius-frame, 22px) !important;
+  box-shadow: var(--shadow-chrome, var(--shadow-card-tile)) !important;
 }
 
 html[data-theme="light"] .app-content-column--embed .app-main-stage--embed,
@@ -1013,7 +1005,22 @@ html[data-theme="light"] .app-content-column--embed .page-layer--embed,
 html[data-theme="light"] .app-content-column--embed .mineradio-embed,
 html[data-theme="light"] .app-content-column--embed .mineradio-embed__frame,
 html[data-theme="light"] .app-content-column--embed .mineradio-embed__mount {
-  background: #f1f5f9 !important;
+  /* Match app-frame-shell light canvas so embed does not read as a second card */
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  outline: none !important;
+}
+
+html[data-theme="light"] .app-main-stage--embed {
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-radius: 0 !important;
+}
+
+html[data-theme="light"] .page-layer--embed.is-active {
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  border-radius: 0 !important;
 }
 
 .mineradio-embed {
@@ -1033,7 +1040,7 @@ html[data-theme="light"] .app-content-column--embed .mineradio-embed__mount {
 
 html[data-theme="light"] .mineradio-embed,
 .mineradio-embed[data-embed-theme="light"] {
-  background: #f1f5f9;
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .mineradio-embed--state {
@@ -1066,7 +1073,7 @@ html[data-theme="light"] .mineradio-embed,
 
 html[data-theme="light"] .mineradio-embed__frame,
 .mineradio-embed[data-embed-theme="light"] .mineradio-embed__frame {
-  background: #f1f5f9;
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%);
 }
 
 .mineradio-embed__mount {

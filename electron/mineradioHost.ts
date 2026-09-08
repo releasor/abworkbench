@@ -226,7 +226,12 @@ function startStaticServer(root: string, port: number): Promise<http.Server> {
           res.end('Not found')
           return
         }
-        res.writeHead(200, { 'Content-Type': contentType(filePath) })
+        res.writeHead(200, {
+          'Content-Type': contentType(filePath),
+          'Cache-Control': rel.endsWith('.css') || rel.endsWith('.html') || rel.endsWith('.js')
+            ? 'no-cache, must-revalidate'
+            : 'public, max-age=60',
+        })
         fs.createReadStream(filePath).pipe(res)
       } catch (error) {
         res.writeHead(500)

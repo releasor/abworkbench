@@ -88,6 +88,25 @@ html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell 
   background: #f1f5f9 !important;
 }
 
+/* Kill standalone-window rounding on wallpaper / splash layers in embed */
+html.abwb-embedded #wallpaper-engine-layer,
+html.abwb-embedded #wallpaper-engine-image,
+html.abwb-embedded #wallpaper-engine-video,
+html.abwb-embedded #wallpaper-engine-freeze,
+html.abwb-embedded body.desktop-shell #wallpaper-engine-layer,
+html.abwb-embedded body.desktop-shell #wallpaper-engine-image,
+html.abwb-embedded body.desktop-shell #wallpaper-engine-video,
+html.abwb-embedded body.desktop-shell #wallpaper-engine-freeze,
+html.abwb-embedded #splash,
+html.abwb-embedded #splash.ready,
+html.abwb-embedded #custom-bg,
+html.abwb-embedded #album-bg,
+html.abwb-embedded #album-bg-next {
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
 
 /* ---- Top chrome: search vs home/account must not collide ---- */
 html.abwb-embedded #search-area {
@@ -153,28 +172,56 @@ html.abwb-embedded #upload-actions {
 }
 
 
-/* ---- Home layout: left hero aligns with right column top & bottom ---- */
+/* ---- Home layout: full-bleed when active (do NOT force-show when closed) ---- */
 html.abwb-embedded #empty-home,
 html.abwb-embedded body.desktop-shell #empty-home,
 html.abwb-embedded body.empty-home-active #empty-home,
 html.abwb-embedded body.desktop-shell.empty-home-active #empty-home,
 html.abwb-embedded body.empty-home-active.controls-visible #empty-home,
+html.abwb-embedded body.desktop-shell.empty-home-active.controls-visible #empty-home,
+html.abwb-embedded body.desktop-shell.desktop-fullscreen #empty-home,
+html.abwb-embedded html:fullscreen body.desktop-shell #empty-home {
+  top: 72px !important;
+  bottom: 118px !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  /* Keep translateX(0) layout; opacity/visibility still driven by empty-home-active */
+  transform: none !important;
+  overflow: auto;
+  overscroll-behavior: contain;
+  box-sizing: border-box;
+  padding-inline: 16px;
+}
+
+/* Only force visible while home is open — otherwise cards must hide for 3D album */
+html.abwb-embedded body.empty-home-active #empty-home,
+html.abwb-embedded body.desktop-shell.empty-home-active #empty-home,
+html.abwb-embedded body.empty-home-active.controls-visible #empty-home,
 html.abwb-embedded body.desktop-shell.empty-home-active.controls-visible #empty-home {
-  top: 84px;
-  bottom: 122px;
-  overflow: hidden;
+  opacity: 1 !important;
+  pointer-events: auto !important;
+}
+
+html.abwb-embedded body:not(.empty-home-active) #empty-home {
+  opacity: 0 !important;
+  pointer-events: none !important;
 }
 
 html.abwb-embedded #empty-home .empty-home-shell {
-  overflow: hidden;
+  overflow: visible;
   position: relative;
   z-index: 2;
-  min-height: 0;
-  height: 100%;
-  padding-top: 16px;
+  min-height: 100%;
+  height: auto;
+  padding-top: 12px;
+  padding-bottom: 8px;
   gap: 12px;
-  grid-template-rows: auto minmax(0, 1fr);
-  align-items: stretch;
+  grid-template-columns: minmax(280px, 0.9fr) minmax(0, 1.1fr);
+  grid-template-rows: auto auto;
+  align-items: start;
+  align-content: start;
 }
 
 html.abwb-embedded .home-grid,
@@ -182,20 +229,30 @@ html.abwb-embedded .home-quick-grid {
   overflow: visible;
   position: relative;
   z-index: 2;
+  min-width: 0;
 }
 
 html.abwb-embedded #empty-home .home-grid.home-quick-grid {
+  grid-column: 2;
+  grid-row: 1;
   margin-top: 0;
   padding-top: 0;
+  /* Standalone Mineradio uses 4 columns; embed width clips them — use 2x2 */
+  grid-template-columns: repeat(2, minmax(0, 1fr)) !important;
+  gap: 10px;
   align-content: start;
-  align-self: start;
+  align-self: stretch;
+  width: 100%;
+  max-width: 100%;
+  min-width: 0;
 }
 
 html.abwb-embedded #empty-home .home-hero {
+  grid-column: 1;
   grid-row: 1 / span 2;
   align-self: stretch;
   height: auto;
-  min-height: 0 !important;
+  min-height: 100% !important;
   margin-top: 0;
   padding: 0;
 }
@@ -207,47 +264,63 @@ html.abwb-embedded body.desktop-shell .home-hero {
 html.abwb-embedded #empty-home .daily-review-card {
   min-height: 0 !important;
   height: 100%;
+  /* Standalone pins clock to the bottom; in embed that sits on the player.
+     Bias upward so date/time sits mid-left with room above the dock. */
+  justify-content: center !important;
+  padding-top: clamp(12px, 2vh, 28px) !important;
+  padding-bottom: clamp(72px, 14vh, 160px) !important;
 }
 
 html.abwb-embedded #empty-home .home-insight-rail {
+  grid-column: 2;
+  grid-row: 2;
   align-self: stretch;
   min-height: 0;
-  height: 100%;
-  overflow: auto;
-  padding-top: 12px;
+  height: auto;
+  overflow: visible;
+  padding-top: 4px;
   padding-bottom: 0;
   overscroll-behavior: contain;
 }
 
-/* ---- Embed home: light trim + bottom-aligned dock (match left hero) ---- */
-html.abwb-embedded #empty-home .home-grid.home-quick-grid {
-  gap: 12px;
-}
-
+/* ---- Embed home: compact cards + full discovery strip ---- */
 html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card {
-  min-height: 152px;
-  padding: 19px;
+  min-height: 132px;
+  padding: 16px;
 }
 
 html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured {
-  min-height: 170px;
+  min-height: 132px;
 }
 
 html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured .home-card-art {
-  width: 118px;
-  height: 118px;
-  right: 19px;
-  bottom: 19px;
-  border-radius: 25px;
+  width: 96px;
+  height: 96px;
+  right: 14px;
+  bottom: 14px;
+  border-radius: 20px;
+}
+
+html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured .home-card-title,
+html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-quick .home-card-title {
+  max-width: calc(100% - 108px);
+  font-size: 18px;
+}
+
+html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured .home-card-sub,
+html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-quick .home-card-sub {
+  max-width: calc(100% - 108px);
+  font-size: 11px;
 }
 
 html.abwb-embedded #empty-home .home-insight-dock {
-  height: 100%;
+  height: auto;
   min-height: 0;
-  gap: 12px;
-  grid-template-columns: minmax(0, 1.12fr) minmax(260px, .88fr);
-  grid-template-rows: auto 1fr auto;
-  align-content: stretch;
+  gap: 10px;
+  grid-template-columns: minmax(0, 1.12fr) minmax(220px, 0.88fr);
+  /* Content-sized rows — never collapse the discovery strip */
+  grid-template-rows: auto auto auto;
+  align-content: start;
 }
 
 html.abwb-embedded #empty-home .home-listen-card {
@@ -263,40 +336,60 @@ html.abwb-embedded #empty-home .home-next-card {
 html.abwb-embedded #empty-home .home-discovery-strip {
   grid-column: 1 / -1;
   grid-row: 2;
-  min-height: 0;
-  height: 100%;
+  min-height: 118px;
+  height: auto;
   align-self: stretch;
-  overflow: hidden;
+  overflow: visible;
+  padding: 14px 16px;
 }
 
 html.abwb-embedded #empty-home .home-ranking-entry:not(.home-radio-entry) {
   grid-column: 1;
   grid-row: 3;
-  align-self: end;
+  align-self: stretch;
 }
 
 html.abwb-embedded #empty-home .home-radio-entry {
   grid-column: 2;
   grid-row: 3;
-  align-self: end;
+  align-self: stretch;
 }
 
 html.abwb-embedded #empty-home .home-insight-card {
-  min-height: 124px;
+  min-height: 112px;
 }
 
 html.abwb-embedded #empty-home .home-discovery-list {
   min-height: 0;
+  align-self: stretch;
 }
 
 html.abwb-embedded #empty-home .home-discovery-song {
-  min-height: 64px;
-  height: auto;
-  max-height: 78px;
+  min-height: 68px;
+  height: 72px;
+  max-height: none;
+}
+
+html.abwb-embedded #empty-home .home-discovery-copy {
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+  gap: 2px;
+}
+
+html.abwb-embedded #empty-home .home-discovery-title {
+  margin-top: 4px;
+  font-size: 16px;
+  line-height: 1.25;
+}
+
+html.abwb-embedded #empty-home .home-discovery-sub {
+  margin-top: 2px;
+  line-height: 1.4;
 }
 
 html.abwb-embedded #empty-home .home-ranking-entry {
-  min-height: 90px;
+  min-height: 88px;
 }
 
 @media (max-height: 700px) {
@@ -304,25 +397,59 @@ html.abwb-embedded #empty-home .home-ranking-entry {
   html.abwb-embedded body.desktop-shell #empty-home,
   html.abwb-embedded body.empty-home-active #empty-home,
   html.abwb-embedded body.desktop-shell.empty-home-active #empty-home {
-    top: 78px;
-    bottom: 126px;
+    top: 68px !important;
+    bottom: 120px !important;
   }
 
   html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card {
-    min-height: 140px;
-    padding: 17px;
+    min-height: 118px;
+    padding: 14px;
   }
 
   html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured {
-    min-height: 156px;
+    min-height: 118px;
+  }
+
+  html.abwb-embedded #empty-home .home-grid.home-quick-grid .home-card-featured .home-card-art {
+    width: 84px;
+    height: 84px;
   }
 
   html.abwb-embedded #empty-home .home-insight-card {
-    min-height: 112px;
+    min-height: 100px;
+  }
+
+  html.abwb-embedded #empty-home .home-discovery-strip {
+    min-height: 108px;
+    padding: 12px 14px;
   }
 
   html.abwb-embedded #empty-home .home-ranking-entry {
-    min-height: 84px;
+    min-height: 80px;
+  }
+}
+
+@media (max-width: 1100px) {
+  html.abwb-embedded #empty-home .empty-home-shell {
+    grid-template-columns: 1fr;
+    grid-template-rows: auto auto auto;
+  }
+
+  html.abwb-embedded #empty-home .home-hero {
+    grid-column: 1;
+    grid-row: 1;
+    min-height: 320px !important;
+    height: auto;
+  }
+
+  html.abwb-embedded #empty-home .home-grid.home-quick-grid {
+    grid-column: 1;
+    grid-row: 2;
+  }
+
+  html.abwb-embedded #empty-home .home-insight-rail {
+    grid-column: 1;
+    grid-row: 3;
   }
 }
 
@@ -495,8 +622,15 @@ html.abwb-embedded[data-theme="light"] .playlist-item.active {
    ============================================================ */
 
 /* Hide dark wallpaper layers on home — do NOT use display:none on WebGL canvas
-   (breaks context when leaving home). Keep them invisible but mounted. */
-html.abwb-embedded[data-theme="light"] body.empty-home-active #canvas-container,
+   (breaks context when leaving home). Keep them invisible but mounted.
+   Canvas: opacity only (no visibility:hidden) so 3D album + stage lyrics resume cleanly. */
+html.abwb-embedded[data-theme="light"] body.empty-home-active #canvas-container {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  /* keep visibility:visible so WebGL/lyrics keep compositing under home */
+  visibility: visible !important;
+}
+
 html.abwb-embedded[data-theme="light"] body.empty-home-active #custom-bg,
 html.abwb-embedded[data-theme="light"] body.empty-home-active #custom-bg-video,
 html.abwb-embedded[data-theme="light"] body.empty-home-active #album-bg,
@@ -939,30 +1073,33 @@ html.abwb-embedded[data-theme="light"] #user-btn {
 }
 
 
-/* ---- Playback / stage view (playing, not on home) ---- */
+/* ---- Playback / stage view (playing, not on home): 3D album + lyrics ---- */
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active),
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active).desktop-shell,
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active).desktop-shell #desktop-window-shell {
-  background: #f1f5f9 !important;
+  background: #0b1220 !important;
   color: #0f172a !important;
 }
 
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #custom-bg {
-  background: #f1f5f9 !important;
+  /* Let album bloom + WebGL stage own the backdrop (paper wash hid lyrics/album) */
+  background: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
 }
 
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #custom-bg::before,
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #custom-bg::after {
-  opacity: 0.14 !important;
-  filter: blur(72px) brightness(1.04) saturate(0.72) !important;
+  opacity: 0 !important;
 }
 
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg,
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg.visible,
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg-next,
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #album-bg-next.visible {
-  filter: blur(96px) brightness(1.06) saturate(0.68) !important;
-  opacity: 0.26 !important;
+  filter: blur(40px) brightness(1.02) saturate(1.05) !important;
+  opacity: 0.72 !important;
+  visibility: visible !important;
 }
 
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #sonic-workshop-layer,
@@ -974,9 +1111,12 @@ html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #idle-guide-
   pointer-events: none !important;
 }
 
-/* Lift particle field toward paper; lyric readability handled via lyricBackgroundAdapt in abwb-theme.js */
+/* Restore full stage: no wash filter — lyrics + 3D cover must stay readable */
 html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #canvas-container {
-  filter: brightness(1.2) saturate(0.8) contrast(0.9) !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  filter: none !important;
 }
 
 html.abwb-embedded[data-theme="light"] #bottom-bar.stage-mode,
@@ -1209,8 +1349,7 @@ html.abwb-embedded[data-theme="light"],
 html.abwb-embedded[data-theme="light"] body,
 html.abwb-embedded[data-theme="light"] body.desktop-shell,
 html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell,
-html.abwb-embedded[data-theme="light"] body.empty-home-active,
-html.abwb-embedded[data-theme="light"] #empty-home {
+html.abwb-embedded[data-theme="light"] body.empty-home-active {
   background: #f1f5f9 !important;
 }
 
@@ -1946,6 +2085,7 @@ html.abwb-embedded[data-theme="light"] #splash.ready,
 html.abwb-embedded[data-theme="light"] body.splash-active #splash {
   background: #f1f5f9 !important;
   box-shadow: none !important;
+  border-radius: 0 !important;
 }
 
 html.abwb-embedded[data-theme="light"] #empty-home,
@@ -1956,6 +2096,16 @@ html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card {
   border: 0 !important;
   box-shadow: none !important;
   filter: none !important;
+  border-radius: 0 !important;
+}
+
+html.abwb-embedded[data-theme="light"] #empty-home,
+html.abwb-embedded body.desktop-shell.empty-home-active #empty-home {
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  transform: none !important;
 }
 
 html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card::before,
@@ -1970,3 +2120,174 @@ html.abwb-embedded[data-theme="light"] .splash-bg-noise {
   opacity: 0.02 !important;
   mix-blend-mode: multiply !important;
 }
+
+/* Outer shell must be square and flush with Abworkbench — no floating window chrome */
+html.abwb-embedded,
+html.abwb-embedded body,
+html.abwb-embedded body.desktop-shell,
+html.abwb-embedded #desktop-window-shell,
+html.abwb-embedded body.desktop-shell #desktop-window-shell,
+html.abwb-embedded.abwb-theme-light,
+html.abwb-embedded.abwb-theme-light body,
+html.abwb-embedded[data-theme="light"],
+html.abwb-embedded[data-theme="light"] body,
+html.abwb-embedded[data-theme="light"] body.desktop-shell,
+html.abwb-embedded[data-theme="light"] #desktop-window-shell,
+html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell {
+  border-radius: 0 !important;
+  clip-path: none !important;
+  -webkit-clip-path: none !important;
+}
+
+html.abwb-embedded #desktop-window-shell,
+html.abwb-embedded body.desktop-shell #desktop-window-shell,
+html.abwb-embedded[data-theme="light"] #desktop-window-shell,
+html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell {
+  box-shadow: none !important;
+  border: 0 !important;
+  outline: none !important;
+  filter: none !important;
+  inset: 0 !important;
+  margin: 0 !important;
+  transform: none !important;
+}
+
+html.abwb-embedded[data-theme="light"],
+html.abwb-embedded[data-theme="light"] body,
+html.abwb-embedded[data-theme="light"] body.desktop-shell,
+html.abwb-embedded[data-theme="light"] #desktop-window-shell,
+html.abwb-embedded[data-theme="light"] body.desktop-shell #desktop-window-shell,
+html.abwb-embedded[data-theme="light"] #empty-home,
+html.abwb-embedded.abwb-theme-light,
+html.abwb-embedded.abwb-theme-light body {
+  background: #f1f5f9 !important;
+}
+
+/* Left clock/quote sits on the page canvas; keep only inner action chips/cards rounded */
+html.abwb-embedded[data-theme="light"] #empty-home .home-hero,
+html.abwb-embedded[data-theme="light"] #empty-home .daily-review-card,
+html.abwb-embedded[data-theme="light"] #empty-home .empty-home-shell {
+  border-radius: 0 !important;
+}
+
+/* === FINAL full-bleed empty-home (layout only; visibility gated below) === */
+html.abwb-embedded #empty-home,
+html.abwb-embedded body #empty-home,
+html.abwb-embedded body.desktop-shell #empty-home,
+html.abwb-embedded body.empty-home-active #empty-home,
+html.abwb-embedded body.desktop-shell.empty-home-active #empty-home,
+html.abwb-embedded body.empty-home-active.controls-visible #empty-home,
+html.abwb-embedded body.desktop-shell.empty-home-active.controls-visible #empty-home,
+html.abwb-embedded body.desktop-shell.desktop-fullscreen #empty-home {
+  position: fixed !important;
+  left: 0 !important;
+  right: 0 !important;
+  width: 100% !important;
+  max-width: none !important;
+  margin: 0 !important;
+  transform: none !important;
+  -webkit-transform: none !important;
+  border-radius: 0 !important;
+  box-shadow: none !important;
+  background: transparent !important;
+}
+
+html.abwb-embedded body:not(.empty-home-active) #empty-home,
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #empty-home {
+  opacity: 0 !important;
+  pointer-events: none !important;
+  visibility: hidden !important;
+}
+
+html.abwb-embedded body.empty-home-active #empty-home,
+html.abwb-embedded[data-theme='light'] body.empty-home-active #empty-home {
+  opacity: 1 !important;
+  pointer-events: auto !important;
+  visibility: visible !important;
+}
+
+html.abwb-embedded[data-theme='light'] body.empty-home-active #empty-home,
+html.abwb-embedded.abwb-theme-light body.empty-home-active #empty-home {
+  background: transparent !important;
+}
+
+/* === Blend with Abworkbench shell canvas (home / splash only) === */
+html.abwb-embedded[data-theme='light'] body.empty-home-active,
+html.abwb-embedded[data-theme='light'] body.empty-home-active.desktop-shell,
+html.abwb-embedded[data-theme='light'] body.empty-home-active #desktop-window-shell,
+html.abwb-embedded[data-theme='light'] body.desktop-shell.empty-home-active #desktop-window-shell,
+html.abwb-embedded[data-theme='light'] #splash,
+html.abwb-embedded[data-theme='light'] #splash.ready {
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  background-color: #f1f5f9 !important;
+}
+
+/* Default light chrome (before home class settles) still matches shell */
+html.abwb-embedded[data-theme='light']:not(.abwb-stage-playback),
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active):not(.abwb-stage-playback),
+html.abwb-embedded.abwb-theme-light:not(.abwb-stage-playback),
+html.abwb-embedded.abwb-theme-light body:not(.empty-home-active):not(.abwb-stage-playback) {
+  background: linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%) !important;
+  background-color: #f1f5f9 !important;
+}
+
+/* Kill mesh / noise / grid washes so home canvas matches the host shell */
+html.abwb-embedded[data-theme='light'] body::before,
+html.abwb-embedded[data-theme='light'] body::after,
+html.abwb-embedded[data-theme='light'] body.empty-home-active::before,
+html.abwb-embedded[data-theme='light'] body.empty-home-active::after,
+html.abwb-embedded[data-theme='light'] #desktop-window-shell::before,
+html.abwb-embedded[data-theme='light'] #desktop-window-shell::after,
+html.abwb-embedded[data-theme='light'] #custom-bg::before,
+html.abwb-embedded[data-theme='light'] #custom-bg::after,
+html.abwb-embedded[data-theme='light'] #splash::before,
+html.abwb-embedded[data-theme='light'] #splash::after {
+  content: none !important;
+  display: none !important;
+  opacity: 0 !important;
+  background: none !important;
+}
+
+html.abwb-embedded[data-theme='light'] .splash-bg-noise,
+html.abwb-embedded[data-theme='light'] .home-hero::before,
+html.abwb-embedded[data-theme='light'] .home-hero::after,
+html.abwb-embedded[data-theme='light'] #empty-home .daily-review-card::before {
+  opacity: 0 !important;
+  display: none !important;
+  content: none !important;
+  background: none !important;
+}
+
+/* === Leave home: restore 3D album + stage lyrics (wins over shell blend) === */
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active),
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active).desktop-shell,
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #desktop-window-shell,
+html.abwb-embedded[data-theme='light'] body.desktop-shell:not(.empty-home-active) #desktop-window-shell,
+html.abwb-embedded[data-theme='light'].abwb-stage-playback,
+html.abwb-embedded[data-theme='light'].abwb-stage-playback body {
+  background: #0b1220 !important;
+  background-color: #0b1220 !important;
+}
+
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #custom-bg {
+  background: transparent !important;
+  opacity: 1 !important;
+  visibility: visible !important;
+}
+
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #album-bg,
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #album-bg.visible,
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #album-bg-next,
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #album-bg-next.visible {
+  filter: blur(40px) brightness(1.02) saturate(1.05) !important;
+  opacity: 0.72 !important;
+  visibility: visible !important;
+}
+
+html.abwb-embedded[data-theme='light'] body:not(.empty-home-active) #canvas-container {
+  opacity: 1 !important;
+  visibility: visible !important;
+  pointer-events: auto !important;
+  filter: none !important;
+}
+

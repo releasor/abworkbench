@@ -33,15 +33,18 @@ function withEmbedTheme(url: string, theme: EmbedTheme): string {
   try {
     const next = new URL(url)
     next.searchParams.set('theme', theme)
+    // Bust webview HTTP cache so embed CSS/layout edits apply immediately
+    next.searchParams.set('abwb', '20260908d')
     return next.toString()
   } catch {
     const join = url.includes('?') ? '&' : '?'
-    return `${url}${join}theme=${theme}`
+    return `${url}${join}theme=${theme}&abwb=20260908d`
   }
 }
 
 function themeShellBackground(theme: EmbedTheme): string {
-  return theme === 'light' ? '#f1f5f9' : '#050505'
+  // Match host app-frame-shell light canvas (not a flat card fill)
+  return theme === 'light' ? 'linear-gradient(165deg, #f8fafc 0%, #f1f5f9 100%)' : '#050505'
 }
 
 function applyThemeScript(theme: EmbedTheme): string {
@@ -108,7 +111,8 @@ export default function MineradioPage() {
     if (useNative) {
       const el = document.createElement('webview') as MineradioWebview
       el.setAttribute('src', src)
-      el.setAttribute('partition', 'persist:abwb-mineradio-embed')
+      // New partition clears stale HTTP cache that kept old embed CSS
+      el.setAttribute('partition', 'persist:abwb-mineradio-embed-v3')
       el.setAttribute('webpreferences', 'contextIsolation=yes, nodeIntegration=no, sandbox=no')
       el.className = 'mineradio-embed__frame'
       el.style.width = '100%'
