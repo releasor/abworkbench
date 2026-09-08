@@ -37,6 +37,11 @@ electron/data/
 .workbuddy/
 .superpowers/
 
+# Archify scratch (diagram tool checkout / test exports)
+archify-temp/
+docs/archify/*-test.html
+/main.js
+
 # PrizmKit
 .prizmkit/*
 
