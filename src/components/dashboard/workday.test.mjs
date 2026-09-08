@@ -8,8 +8,10 @@ import {
 } from './workday.ts'
 
 test('buildWorkdayStatus calculates countdown and earned salary during work hours', () => {
+  // Use local wall-clock Date parts so phase math matches parseTimeOnDate/setHours
+  // on any CI timezone (ISO +08:00 strings break under UTC).
   const status = buildWorkdayStatus({
-    now: new Date('2026-06-09T12:00:00+08:00'),
+    now: new Date(2026, 5, 9, 12, 0, 0),
     settings: {
       startTime: '09:00',
       endTime: '18:00',
@@ -26,11 +28,11 @@ test('buildWorkdayStatus calculates countdown and earned salary during work hour
 
 test('buildWorkdayStatus clamps earned salary before and after work', () => {
   const before = buildWorkdayStatus({
-    now: new Date('2026-06-09T08:00:00+08:00'),
+    now: new Date(2026, 5, 9, 8, 0, 0),
     settings: DEFAULT_WORKDAY_SETTINGS,
   })
   const after = buildWorkdayStatus({
-    now: new Date('2026-06-09T19:00:00+08:00'),
+    now: new Date(2026, 5, 9, 19, 0, 0),
     settings: { ...DEFAULT_WORKDAY_SETTINGS, monthlySalary: 22000, workdaysPerMonth: 22 },
   })
 

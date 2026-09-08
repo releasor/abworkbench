@@ -24,8 +24,9 @@ test('dayKeyFromIso uses local calendar for ISO timestamps', async () => {
   assert.equal(dayKeyFromIso(undefined), '')
 })
 
-test('formatLocalDateTimeMinute uses local wall clock', async () => {
+test('formatLocalDateTimeMinute uses Beijing wall clock', async () => {
   const { formatLocalDateTimeMinute } = await import('./dateUtils.ts')
-  const local = new Date(2026, 6, 30, 9, 5, 0)
-  assert.equal(formatLocalDateTimeMinute(local), '2026-07-30T09:05')
+  // 01:05 UTC == 09:05 Asia/Shanghai
+  const instant = new Date('2026-07-30T01:05:00.000Z')
+  assert.equal(formatLocalDateTimeMinute(instant), '2026-07-30T09:05')
 })
