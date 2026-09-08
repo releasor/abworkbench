@@ -68,15 +68,6 @@ const pageIcons: Record<Page, typeof LayoutDashboard> = {
   settings: Settings,
 }
 
-const pageShortcuts: Partial<Record<Page, string>> = {
-  dashboard: 'Ctrl+1',
-  taskflow: 'Ctrl+2',
-  reminders: 'Ctrl+6',
-  hotlist: 'Ctrl+3',
-  mineradio: 'Ctrl+4',
-  settings: 'Ctrl+5',
-}
-
 interface Command {
   id: string
   label: string
@@ -277,7 +268,6 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       label: pageTitles[page],
       description: tWith('command.switchTo', pageTitles[page]),
       icon: pageIcons[page],
-      shortcut: pageShortcuts[page],
       action: () => onNavigate(page),
       category: t('command.navigate'),
     })),
@@ -352,8 +342,8 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
     },
     {
       id: 'stealth-reader-library',
-      label: '打开书架',
-      description: '直接打开阅读书架',
+      label: '????',
+      description: '????????',
       icon: BookOpen,
       action: () => {
         void window.electronAPI?.openReader?.({ mode: 'library' })
@@ -684,7 +674,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
         {activeQuote && (
           <div className="px-4 py-3 border-b border-border bg-primary/5">
             <p className="text-sm text-text italic leading-relaxed">"{activeQuote.text}"</p>
-            <p className="text-xs text-text-muted mt-1.5 text-right">� {activeQuote.author}</p>
+            <p className="text-xs text-text-muted mt-1.5 text-right">� {activeQuote.author}</p>
           </div>
         )}
 

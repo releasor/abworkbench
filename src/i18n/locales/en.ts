@@ -363,7 +363,7 @@ export const en = {
   'settings.import': 'Import',
   'settings.importSuccess': 'Import successful!',
   'settings.importFail': 'Import failed: invalid file',
-  'settings.pressForCommands': 'Press Ctrl+K for commands',
+  'settings.pressForCommands': 'Click search for commands',
   'settings.tab.reader': 'Reader',
   'settings.reader.title': 'Stealth reader appearance',
   'settings.reader.desc': 'Floating transparent reader style. Font size and opacity can also be adjusted in the reader window.',

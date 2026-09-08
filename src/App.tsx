@@ -69,7 +69,6 @@ function App() {
   const visualParticles = useStore((s) => s.visualParticles)
   const glowCursor = useStore((s) => s.glowCursor)
   const [reduceMotion, setReduceMotion] = useState(false)
-  const toggleSidebar = useStore((s) => s.toggleSidebar)
   const sidebarCollapsed = useStore((s) => s.sidebarCollapsed)
   const glowTheme = useBorderGlowTheme()
   const surfaceColor = useBorderGlowSurfaceColor()
@@ -270,32 +269,15 @@ function App() {
   useEffect(() => {
     void shortcutOverrides
     const handler = (event: KeyboardEvent) => {
-      const target = event.target as HTMLElement
-      const inField = target.tagName === 'INPUT' || target.tagName === 'TEXTAREA' || target.isContentEditable
-
       if (eventMatchesShortcut('escapeClose', event)) {
         if (showLauncher) return
         event.preventDefault()
         setMobileSidebarOpen(false)
-        return
       }
-
-      if (inField) return
-
-      if (eventMatchesShortcut('toggleSidebar', event)) {
-        event.preventDefault()
-        toggleSidebar()
-        return
-      }
-      if (eventMatchesShortcut('pageDashboard', event)) { event.preventDefault(); goToPage('dashboard'); return }
-      if (eventMatchesShortcut('pageReminders', event)) { event.preventDefault(); goToPage('reminders'); return }
-      if (eventMatchesShortcut('pageHotlist', event)) { event.preventDefault(); goToPage('hotlist'); return }
-      if (eventMatchesShortcut('pageMineradio', event)) { event.preventDefault(); goToPage('mineradio'); return }
-      if (eventMatchesShortcut('pageSettings', event)) { event.preventDefault(); goToPage('settings'); return }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [goToPage, shortcutOverrides, showLauncher, toggleSidebar])
+  }, [shortcutOverrides, showLauncher])
 
   // Global Alt+Space: when main window is focused, Electron routes here for the embedded launcher.
   useEffect(() => {

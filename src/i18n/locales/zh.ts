@@ -366,7 +366,7 @@ export const zh = {
   'settings.import': '导入',
   'settings.importSuccess': '导入成功！',
   'settings.importFail': '导入失败：文件无效',
-  'settings.pressForCommands': '按 Ctrl+K 打开命令面板',
+  'settings.pressForCommands': '点击搜索打开命令面板',
   'settings.tab.reader': '阅读',
   'settings.reader.title': '阅读样式',
   'settings.reader.desc': '透明悬浮窗的阅读外观。也可在阅读窗内调节字号与透明度。',

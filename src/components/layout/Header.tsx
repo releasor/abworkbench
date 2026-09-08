@@ -1,4 +1,4 @@
-import { Search, Bell, Menu, X, Moon, Sun, Timer, Pause, Play, Settings } from 'lucide-react'
+import { Bell, Menu, X, Moon, Sun, Timer, Pause, Play, Settings } from 'lucide-react'
 import { useState, useEffect, useMemo, useRef, useCallback, memo, type CSSProperties } from 'react'
 import clsx from 'clsx'
 import { useStore } from '../../store'
@@ -8,7 +8,6 @@ import { useToday } from '../../hooks/useToday'
 import { nextDateStr } from '../../modules/taskflow/dateUtils'
 import { useTick } from '../../hooks/useTick'
 import { durationMinutes, fmtMin, dayNumToFullLabel, fmtHHmm } from '../../utils/format'
-import { useShortcutStore } from '../../shortcuts'
 import type { Page } from '../../navigation/pages'
 import WindowControls from './WindowControls'
 import { useSyncedLocalCollection } from '../../hooks/useSyncedLocalCollection'
@@ -76,7 +75,6 @@ const LiveClock = memo(function LiveClock({
 interface HeaderProps {
   title: string
   activePage: Page
-  onOpenCommandPalette?: () => void
   onOpenMobileSidebar?: () => void
   onNavigate?: (page: Page) => void
   onOpenClockPanel?: () => void
@@ -94,7 +92,7 @@ interface NotifItem {
   reminderId?: string
 }
 
-export default memo(function Header({ title, activePage, onOpenCommandPalette, onOpenMobileSidebar, onNavigate, onOpenClockPanel, onOpenDatePanel }: HeaderProps) {
+export default memo(function Header({ title, activePage, onOpenMobileSidebar, onNavigate, onOpenClockPanel, onOpenDatePanel }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [seenCount, setSeenCount] = useState(0)
   const notifRef = useRef<HTMLDivElement>(null)
@@ -106,7 +104,6 @@ export default memo(function Header({ title, activePage, onOpenCommandPalette, o
   const habits = useStore((s) => s.habits)
   const notes = useStore((s) => s.notes)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
-  const commandPaletteHotkey = useShortcutStore((s) => s.getAccelerator('commandPalette'))
   const { todayStr, todayMidnightMs, tomorrowMidnightMs } = useToday()
   const tomorrowStr = useMemo(() => nextDateStr(todayStr), [todayStr])
   const { items: reminders, update: updateReminder } = useSyncedLocalCollection<WorkspaceReminder>(REMINDERS_KEY, [])
@@ -362,25 +359,6 @@ export default memo(function Header({ title, activePage, onOpenCommandPalette, o
           className="p-2 icon-glass-btn text-text-muted hover:text-text"
         >
           {themeMode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
-
-        <button
-          onClick={onOpenCommandPalette}
-          className="search-pill relative hidden sm:flex items-center gap-2 pl-9 pr-12 py-2 w-48 md:w-64 text-sm cursor-pointer transition-colors"
-        >
-          <Search size={16} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
-          <span className="text-text-muted">{t('header.searchPlaceholder')}</span>
-          <kbd className="absolute right-2 top-1/2 -translate-y-1/2 px-1.5 py-0.5 text-[10px] text-text-muted rounded-md border border-border/80 bg-black/20">
-            {commandPaletteHotkey}
-          </kbd>
-        </button>
-
-        <button
-          onClick={onOpenCommandPalette}
-          aria-label={t('header.search')}
-          className="p-2 icon-glass-btn text-text-muted hover:text-text sm:hidden"
-        >
-          <Search size={18} />
         </button>
 
         <div className="flex items-center gap-0.5" role="navigation" aria-label="快捷导航">

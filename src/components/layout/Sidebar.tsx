@@ -46,7 +46,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
   const [sidebarAnimating, setSidebarAnimating] = useState(false)
   const prevCollapsedRef = useRef(sidebarCollapsed)
 
-  // Drop backdrop blur while width is tweening — blur+layout is the main jank source.
+  // Drop backdrop blur while width is tweening ? blur+layout is the main jank source.
   useEffect(() => {
     if (prevCollapsedRef.current === sidebarCollapsed) return
     prevCollapsedRef.current = sidebarCollapsed
@@ -59,19 +59,6 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
   }, [sidebarCollapsed])
 
   const launcherHotkey = useShortcutStore((s) => s.getAccelerator('launcher'))
-  const toggleSidebarHotkey = useShortcutStore((s) => s.getAccelerator('toggleSidebar'))
-  const pageDashboardHotkey = useShortcutStore((s) => s.getAccelerator('pageDashboard'))
-  const pageTaskflowHotkey = useShortcutStore((s) => s.getAccelerator('pageTaskflow'))
-  const pageHotlistHotkey = useShortcutStore((s) => s.getAccelerator('pageHotlist'))
-  const pageMineradioHotkey = useShortcutStore((s) => s.getAccelerator('pageMineradio'))
-  const pageSettingsHotkey = useShortcutStore((s) => s.getAccelerator('pageSettings'))
-  const pageHotkeys: Record<string, string> = {
-    dashboard: pageDashboardHotkey,
-    taskflow: pageTaskflowHotkey,
-    hotlist: pageHotlistHotkey,
-    mineradio: pageMineradioHotkey,
-    settings: pageSettingsHotkey,
-  }
   const glowTheme = useBorderGlowTheme()
   const surfaceColor = useBorderGlowSurfaceColor()
 
@@ -108,15 +95,9 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
         ) : (
           <>
             <div className="sidebar-brand-spacer" aria-hidden />
-            <button
-              type="button"
-              onClick={toggleSidebar}
-              aria-label={t('sidebar.collapseSidebar')}
-              title={`${t('sidebar.collapseSidebar')} · ${toggleSidebarHotkey}`}
-              className="flex min-w-0 flex-1 items-center rounded-xl py-2 pr-2 text-left transition-colors hover:bg-surface-lighter"
-            >
+            <div className="flex min-w-0 flex-1 items-center py-2 pr-2">
               <span className="truncate font-semibold text-lg text-text">Abworkbench</span>
-            </button>
+            </div>
           </>
         )}
       </div>
@@ -148,7 +129,6 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
           const Icon = item.icon
           const isActive = activePage === item.id
           const label = t(item.labelKey)
-          const pageHotkey = pageHotkeys[item.id]
           return (
             <button
               key={item.id}
@@ -173,11 +153,6 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
                 />
               </div>
               <span className="text-sm font-medium">{label}</span>
-              {pageHotkey ? (
-                <kbd className="ml-auto text-[10px] px-1.5 py-0.5 rounded bg-surface-lighter text-text-muted opacity-60 font-mono hidden lg:inline">
-                  {pageHotkey}
-                </kbd>
-              ) : null}
             </button>
           )
         })}
@@ -189,14 +164,11 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
             type="button"
             onClick={toggleSidebar}
             aria-label={t('sidebar.collapseSidebar')}
-            title={`${t('sidebar.collapseSidebar')} · ${toggleSidebarHotkey}`}
+            title={t('sidebar.collapseSidebar')}
             className="flex w-full items-center justify-center gap-2 rounded-xl px-3 py-2 text-text-muted transition-all duration-200 hover:bg-surface-lighter hover:text-text"
           >
             <ChevronLeft size={18} />
             <span className="text-sm">{t('sidebar.collapseSidebar')}</span>
-            <kbd className="ml-auto hidden rounded bg-surface-lighter px-1.5 py-0.5 font-mono text-[10px] text-text-muted opacity-60 lg:inline">
-              {toggleSidebarHotkey}
-            </kbd>
           </button>
         </div>
       )}
@@ -218,7 +190,7 @@ export default memo(function Sidebar({ activePage, onPageChange, onOpenLauncher,
           className="sidebar-brand-pin"
           onClick={toggleSidebar}
           aria-label={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapseSidebar')}
-          title={`${sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapseSidebar')} · ${toggleSidebarHotkey}`}
+          title={sidebarCollapsed ? t('sidebar.expand') : t('sidebar.collapseSidebar')}
         >
           <span className="sidebar-brand-pin__glyph">
             <Zap size={18} className="text-white" />
