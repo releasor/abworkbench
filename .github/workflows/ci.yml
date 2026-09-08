@@ -16,5 +16,8 @@ jobs:
           cache: npm
       - run: npm ci
       - run: npm run lint
-      - run: npm test
+      - name: Test
+        run: npm test
+        env:
+          TZ: Asia/Shanghai
       - run: npm run typecheck

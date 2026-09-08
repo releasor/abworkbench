@@ -6,11 +6,11 @@ import { buildFocusDndState, shouldMuteReminder } from './focusDnd.ts'
 const now = Date.parse('2026-06-09T09:00:00+08:00')
 
 test('shouldMuteReminder mutes non-critical reminders during DND', () => {
-  // dueAt must include an offset — bare "YYYY-MM-DDTHH:mm" is local and flips on UTC CI
-  assert.equal(shouldMuteReminder({ enabled: true, reminder: { title: '喝水', dueAt: '2026-06-09T10:00:00+08:00' }, now }), true)
-  assert.equal(shouldMuteReminder({ enabled: true, reminder: { title: '紧急交付', dueAt: '2026-06-09T10:00:00+08:00' }, now }), false)
-  assert.equal(shouldMuteReminder({ enabled: true, reminder: { title: '逾期', dueAt: '2026-06-09T08:00:00+08:00' }, now }), false)
-  assert.equal(shouldMuteReminder({ enabled: false, reminder: { title: '喝水', dueAt: '2026-06-09T10:00:00+08:00' }, now }), false)
+  // dueAt is Beijing wall clock (with or without offset) — matches production formatLocalDateTimeMinute
+  assert.equal(shouldMuteReminder({ enabled: true, reminder: { title: '喝水', dueAt: '2026-06-09T10:00' }, now }), true)
+  assert.equal(shouldMuteReminder({ enabled: true, reminder: { title: '紧急交付', dueAt: '2026-06-09T10:00' }, now }), false)
+  assert.equal(shouldMuteReminder({ enabled: true, reminder: { title: '逾期', dueAt: '2026-06-09T08:00' }, now }), false)
+  assert.equal(shouldMuteReminder({ enabled: false, reminder: { title: '喝水', dueAt: '2026-06-09T10:00' }, now }), false)
 })
 
 test('buildFocusDndState summarizes current focus task', () => {

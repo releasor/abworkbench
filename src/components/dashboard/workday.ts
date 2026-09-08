@@ -1,4 +1,5 @@
 import { safeGet } from '../../utils/safeLocalStorage.ts'
+import { beijingParts, beijingWallToMs } from '../../utils/beijingTime.ts'
 
 export const WORKDAY_SETTINGS_KEY = 'abworkbench-workday-settings'
 
@@ -29,16 +30,17 @@ export const DEFAULT_WORKDAY_SETTINGS: WorkdaySettings = {
 }
 
 const TIME_PATTERN = /^([01]\d|2[0-3]):([0-5]\d)$/
+const PAD2 = (n: number) => (n < 10 ? `0${n}` : `${n}`)
 
 function isValidTime(value: unknown): value is string {
   return typeof value === 'string' && TIME_PATTERN.test(value)
 }
 
+/** Build an absolute Date for HH:mm on the Beijing calendar day of `now`. */
 function parseTimeOnDate(now: Date, value: string): Date {
-  const [hours, minutes] = value.split(':').map(Number)
-  const result = new Date(now)
-  result.setHours(hours, minutes, 0, 0)
-  return result
+  const p = beijingParts(now)
+  const ms = beijingWallToMs(`${p.year}-${PAD2(p.month)}-${PAD2(p.day)}T${value}`)
+  return new Date(ms)
 }
 
 function roundMoney(value: number): number {

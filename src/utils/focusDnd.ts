@@ -1,3 +1,5 @@
+import { beijingWallToMs } from './beijingTime.ts'
+
 export interface FocusDndReminder {
   title: string
   dueAt: string
@@ -15,10 +17,17 @@ export interface FocusDndState {
   summary: string
 }
 
+function parseReminderDueMs(dueAt: string): number {
+  const beijing = beijingWallToMs(dueAt)
+  if (Number.isFinite(beijing)) return beijing
+  const fallback = Date.parse(dueAt)
+  return Number.isFinite(fallback) ? fallback : Number.NaN
+}
+
 export function shouldMuteReminder(input: { enabled: boolean; reminder: FocusDndReminder; now?: number }): boolean {
   if (!input.enabled) return false
   const now = input.now ?? Date.now()
-  const due = Date.parse(input.reminder.dueAt)
+  const due = parseReminderDueMs(input.reminder.dueAt)
   if (!Number.isNaN(due) && due <= now) return false
   if (/紧急|urgent|截止|到期|马上|立即/i.test(input.reminder.title)) return false
   return true
