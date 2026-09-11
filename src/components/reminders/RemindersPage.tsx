@@ -1,4 +1,4 @@
-import { useEffect, useMemo, useState } from 'react'
+import { useCallback, useEffect, useMemo, useState } from 'react'
 import { createPortal } from 'react-dom'
 import { Bell, Check, Clock3, Plus, Trash2, X } from 'lucide-react'
 import { useSyncedLocalCollection } from '../../hooks/useSyncedLocalCollection'
@@ -62,10 +62,10 @@ export default function RemindersPage() {
     setRepeat('once')
   }
 
-  const closeAddModal = () => {
+  const closeAddModal = useCallback(() => {
     setShowAddModal(false)
     resetForm()
-  }
+  }, [])
 
   const create = () => {
     const trimmed = title.trim()
@@ -92,7 +92,7 @@ export default function RemindersPage() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [showAddModal])
+  }, [showAddModal, closeAddModal])
 
   const onComplete = (reminder: WorkspaceReminder) => {
     const patch = completeReminder(reminder)

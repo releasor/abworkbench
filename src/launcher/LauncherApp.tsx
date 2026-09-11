@@ -365,7 +365,6 @@ export default function LauncherApp({
       return
     }
     if (commandId === 'daily-brief') {
-      window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'morning' } }))
       if (onNavigate) onNavigate('dashboard')
       else void window.electronAPI?.openMainPage?.('dashboard')
       hideLauncher()

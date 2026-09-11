@@ -28,7 +28,8 @@ export function readSurfaceColor(): string {
   return raw || '#120F17'
 }
 
-export function getBorderGlowTheme(_isLight = readLightTheme()): BorderGlowTheme {
+export function getBorderGlowTheme(_themeHint = readLightTheme()): BorderGlowTheme {
+  void _themeHint
   return BORDER_GLOW_THEME
 }
 

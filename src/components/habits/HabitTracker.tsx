@@ -192,10 +192,10 @@ export default function HabitTracker() {
     setMonthNav({ y: now.getFullYear(), m: now.getMonth() })
   }
 
-  const closeAddForm = () => {
+  const closeAddForm = useCallback(() => {
     setShowAddForm(false)
     resetForm()
-  }
+  }, [])
 
   const closeEditForm = () => {
     setEditingId(null)
@@ -212,7 +212,7 @@ export default function HabitTracker() {
     }
     window.addEventListener('keydown', onKeyDown)
     return () => window.removeEventListener('keydown', onKeyDown)
-  }, [showAddForm])
+  }, [showAddForm, closeAddForm])
 
   return (
     <div className="space-y-6 animate-fade-in">

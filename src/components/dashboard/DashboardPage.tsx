@@ -24,7 +24,7 @@ import { lazy, Suspense, useState, useMemo, useEffect, useCallback } from 'react
 import type { KeyboardEvent as ReactKeyboardEvent, MouseEvent as ReactMouseEvent, ReactNode } from 'react'
 import type { LucideIcon } from 'lucide-react'
 import clsx from 'clsx'
-import type { Page } from '../layout/Sidebar'
+import type { Page } from '../../navigation/pages'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useWorkbenchStore } from '../../modules/workbench/hooks/useWorkbenchStore'

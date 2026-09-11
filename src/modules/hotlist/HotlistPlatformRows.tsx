@@ -41,6 +41,7 @@ const HotlistGalleryRow = memo(function HotlistGalleryRow({
   rowIndex: number
   onOpen: (url: string) => void
 }) {
+  const boardsKey = boards.map(boardSignature).join('::')
   const items: AccordionGalleryItem[] = useMemo(
     () =>
       boards.map((board) => ({
@@ -51,7 +52,7 @@ const HotlistGalleryRow = memo(function HotlistGalleryRow({
       })),
     // Covers are stable per id/title/row; list content tracks board payload via signature.
     // eslint-disable-next-line react-hooks/exhaustive-deps
-    [boards.map(boardSignature).join('::'), onOpen, rowIndex],
+    [boardsKey, onOpen, rowIndex],
   )
 
   return (

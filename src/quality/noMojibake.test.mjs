@@ -20,7 +20,16 @@ test('user-facing Chinese strings do not contain mojibake placeholders', () => {
 })
 
 test('production source does not write debug output to console.log', () => {
-  const source = readFileSync(join(process.cwd(), 'src/modules/taskflow/utils/notifications.ts'), 'utf8')
+  const taskflowSources = [
+    'src/modules/taskflow/hooks/useTaskStore.ts',
+    'src/modules/taskflow/utils/api.ts',
+    'src/modules/taskflow/utils/offlineAdapter.ts',
+    'src/modules/taskflow/utils/toastEvent.ts',
+  ]
+  const offenders = taskflowSources
+    .map((file) => ({ file, content: readFileSync(join(process.cwd(), file), 'utf8') }))
+    .filter(({ content }) => content.includes('console.log'))
+    .map(({ file }) => file)
 
-  assert.equal(source.includes('console.log'), false)
+  assert.deepEqual(offenders, [])
 })

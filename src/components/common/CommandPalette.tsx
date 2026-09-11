@@ -26,7 +26,7 @@ import {
   Radio,
   Flame,
 } from 'lucide-react'
-import type { Page } from '../layout/Sidebar'
+import type { Page } from '../../navigation/pages'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useTranslation } from '../../i18n'
@@ -237,24 +237,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       createNoteWithContent(`???? - ${timestamp.slice(0, 10)}`, `# ????\n\n- ???\n- ???\n- ?????\n\n?????${timestamp}`)
       return
     }
-    // TaskFlow macros: navigate then dispatch so TaskFlowPage can open filters/modals
-    const taskflowMacros = new Set([
-      'macro-daily-review',
-      'macro-weekly-report',
-      'macro-focus-mode',
-      'macro-bulk-import',
-      'macro-project-scan',
-      'macro-clear-inbox',
-      'macro-start-work',
-    ])
-    if (taskflowMacros.has(macro.id)) {
-      onNavigate(result.targetPage)
-      onClose()
-      window.setTimeout(() => {
-        window.dispatchEvent(new CustomEvent('abworkbench:macro', { detail: { id: macro.id } }))
-      }, 120)
-      return
-    }
+    // TaskFlow UI retired — macros only navigate to Workbench (taskflow page slot)
     onNavigate(result.targetPage)
     onClose()
   }, [createNoteWithContent, onClose, onNavigate])
@@ -310,7 +293,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       description: '??????????????',
       icon: Zap,
       action: () => {
-        window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'morning' } }))
+        onNavigate('dashboard')
         onClose()
       },
       category: t('command.action'),
@@ -321,7 +304,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       description: '???????????',
       icon: FileText,
       action: () => {
-        window.dispatchEvent(new CustomEvent('abworkbench:daily-brief', { detail: { mode: 'evening' } }))
+        onNavigate('notes')
         onClose()
       },
       category: t('command.action'),

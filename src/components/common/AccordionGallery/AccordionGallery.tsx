@@ -88,7 +88,14 @@ const AccordionGallery = ({
 
   const vertical = orientation === 'vertical'
   const count = items.length
-  const [active, setActive] = useState(Math.min(Math.max(defaultIndex, 0), Math.max(count - 1, 0)))
+  const clampedDefault = Math.min(Math.max(defaultIndex, 0), Math.max(count - 1, 0))
+  const [active, setActive] = useState(clampedDefault)
+  const [activeSyncKey, setActiveSyncKey] = useState(`${count}:${defaultIndex}`)
+  const nextActiveSyncKey = `${count}:${defaultIndex}`
+  if (activeSyncKey !== nextActiveSyncKey) {
+    setActiveSyncKey(nextActiveSyncKey)
+    setActive(clampedDefault)
+  }
 
   const prefersReduced =
     typeof window !== 'undefined' && window.matchMedia
@@ -205,9 +212,6 @@ const AccordionGallery = ({
     [],
   )
 
-  useEffect(() => {
-    setActive(Math.min(Math.max(defaultIndex, 0), Math.max(count - 1, 0)))
-  }, [count, defaultIndex])
 
   const handleEnter = (i: number) => {
     if (trigger === 'hover') setActive(i)

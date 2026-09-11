@@ -8,14 +8,14 @@ type DragScrollState = {
 }
 
 /** Hide scrollbar; pan horizontally by click-drag / touch-drag. */
-export function useDragScroll<T extends HTMLElement = HTMLDivElement>(): {
-  ref: RefObject<T | null>
+export function useDragScroll<T extends HTMLElement = HTMLDivElement>(
+  ref: RefObject<T | null>,
+): {
   onPointerDown: (event: ReactPointerEvent<T>) => void
   onPointerMove: (event: ReactPointerEvent<T>) => void
   onPointerUp: (event: ReactPointerEvent<T>) => void
   onPointerCancel: (event: ReactPointerEvent<T>) => void
 } {
-  const ref = useRef<T | null>(null)
   const state = useRef<DragScrollState>({
     dragging: false,
     startX: 0,
@@ -31,7 +31,7 @@ export function useDragScroll<T extends HTMLElement = HTMLDivElement>(): {
     if (el.hasPointerCapture(event.pointerId)) {
       el.releasePointerCapture(event.pointerId)
     }
-  }, [])
+  }, [ref])
 
   const onPointerDown = useCallback((event: ReactPointerEvent<T>) => {
     const el = ref.current
@@ -44,17 +44,16 @@ export function useDragScroll<T extends HTMLElement = HTMLDivElement>(): {
     }
     el.setPointerCapture(event.pointerId)
     el.classList.add('is-dragging')
-  }, [])
+  }, [ref])
 
   const onPointerMove = useCallback((event: ReactPointerEvent<T>) => {
     const el = ref.current
     if (!el || !state.current.dragging) return
     const dx = event.clientX - state.current.startX
     el.scrollLeft = state.current.scrollLeft - dx
-  }, [])
+  }, [ref])
 
   return {
-    ref,
     onPointerDown,
     onPointerMove,
     onPointerUp: endDrag,

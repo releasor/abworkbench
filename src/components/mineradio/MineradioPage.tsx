@@ -1,7 +1,5 @@
 import { useCallback, useEffect, useRef, useState } from 'react'
 import { Music2, RefreshCw } from 'lucide-react'
-import { useStore } from '../../store'
-
 type MineradioStatus = {
   ok: boolean
   url?: string

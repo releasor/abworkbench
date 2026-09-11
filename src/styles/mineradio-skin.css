@@ -21,7 +21,7 @@
   /* Mineradio .glass-saved-panel / .glass-saved-button */
   --saved-panel-glass-bg: rgba(0, 0, 0, 0.1);
   --saved-panel-glass-filter: blur(12px) saturate(1.8) brightness(1.16);
-  --saved-panel-glass-svg-filter: url(#abwb-control-glass-filter) saturate(1);
+  --saved-panel-glass-svg-filter: none;
   --saved-panel-glass-shadow:
     inset 0 0 2px 1px rgba(255, 255, 255, 0.35),
     inset 0 0 10px 4px rgba(255, 255, 255, 0.15),
@@ -34,7 +34,7 @@
   --saved-panel-glass-radius: var(--radius-frame);
   --saved-button-glass-bg: rgba(0, 0, 0, 0.1);
   --saved-button-glass-filter: blur(12px) saturate(1.8) brightness(1.16);
-  --saved-button-glass-svg-filter: url(#abwb-control-glass-filter) saturate(1);
+  --saved-button-glass-svg-filter: none;
   --saved-button-glass-shadow:
     inset 0 0 2px 1px rgba(255, 255, 255, 0.34),
     inset 0 0 10px 4px rgba(255, 255, 255, 0.13),

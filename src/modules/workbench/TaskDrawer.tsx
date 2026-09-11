@@ -18,18 +18,21 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
   const connection = useWorkbenchStore((s) => s.connection)
   const updateTask = useWorkbenchStore((s) => s.updateTask)
   const updateRemoteMainlineTask = useWorkbenchStore((s) => s.updateRemoteMainlineTask)
-  const [title, setTitle] = useState('')
-  const [status, setStatus] = useState<TaskStatus>('todo')
-  const [dueDate, setDueDate] = useState('')
-  const [description, setDescription] = useState('')
-
-  useEffect(() => {
-    if (!task) return
-    setTitle(task.title)
-    setStatus(task.status)
-    setDueDate(task.dueDate ?? '')
-    setDescription(task.description ?? '')
-  }, [task])
+  const [title, setTitle] = useState(task?.title ?? '')
+  const [status, setStatus] = useState<TaskStatus>(task?.status ?? 'todo')
+  const [dueDate, setDueDate] = useState(task?.dueDate ?? '')
+  const [description, setDescription] = useState(task?.description ?? '')
+  const [seedTaskId, setSeedTaskId] = useState(task?.id ?? null)
+  const nextTaskId = task?.id ?? null
+  if (nextTaskId !== seedTaskId) {
+    setSeedTaskId(nextTaskId)
+    if (task) {
+      setTitle(task.title)
+      setStatus(task.status)
+      setDueDate(task.dueDate ?? '')
+      setDescription(task.description ?? '')
+    }
+  }
 
   useEffect(() => {
     if (!task) return

@@ -1,4 +1,4 @@
-import React, { useCallback, useLayoutEffect, useRef, useState } from 'react'
+import React, { useCallback, useLayoutEffect, useEffect, useRef, useState } from 'react'
 import { gsap } from 'gsap'
 import './StaggeredMenu.css'
 
@@ -60,7 +60,9 @@ export const StaggeredMenu: React.FC<StaggeredMenuProps> = ({
   const controlled = openProp !== undefined
   const open = controlled ? Boolean(openProp) : openInternal
   const openRef = useRef(open)
-  openRef.current = open
+  useEffect(() => {
+    openRef.current = open
+  }, [open])
 
   const setOpen = useCallback(
     (next: boolean) => {

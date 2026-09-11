@@ -1,4 +1,4 @@
-import type { Page } from '../layout/Sidebar'
+import type { Page } from '../../navigation/pages'
 import type { CommandMacroId } from './commandMacros'
 import { writeLocalValue } from '../../utils/localData.ts'
 

@@ -298,7 +298,8 @@ export default function WeatherWidget() {
   const [showCityPicker, setShowCityPicker] = useState(false)
   const [citySearch, setCitySearch] = useState('')
   const pickerRef = useRef<HTMLDivElement>(null)
-  const hourlyDrag = useDragScroll<HTMLDivElement>()
+  const hourlyRef = useRef<HTMLDivElement | null>(null)
+  const hourlyDrag = useDragScroll(hourlyRef)
 
   // Load weather when city or local hour changes (keep "现在" / forecast aligned)
   useEffect(() => {
@@ -720,7 +721,7 @@ export default function WeatherWidget() {
           </div>
         </div>
         <div
-          ref={hourlyDrag.ref}
+          ref={hourlyRef}
           className="drag-scroll-x -mx-1 flex flex-nowrap gap-3 px-1 pb-1"
           onPointerDown={hourlyDrag.onPointerDown}
           onPointerMove={hourlyDrag.onPointerMove}
