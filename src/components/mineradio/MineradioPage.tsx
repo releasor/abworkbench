@@ -52,8 +52,7 @@ function applyThemeScript(theme: EmbedTheme): string {
 }
 
 export default function MineradioPage() {
-  const themeMode = useStore((s) => s.themeMode)
-  const embedTheme: EmbedTheme = themeMode === 'light' ? 'light' : 'dark'
+  const embedTheme: EmbedTheme = 'dark'
   const [status, setStatus] = useState<MineradioStatus | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)

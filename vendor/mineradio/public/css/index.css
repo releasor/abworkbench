@@ -17924,22 +17924,7 @@ html.abwb-embedded body.desktop-shell #desktop-titlebar {
   display: none !important;
 }
 html.abwb-embedded #desktop-window-shell,
-body.abwb-embedded #desktop-window-shell,
-html.abwb-embedded body.desktop-shell #desktop-window-shell {
+body.abwb-embedded #desktop-window-shell {
   height: 100vh;
   min-height: 100vh;
-  border-radius: 0 !important;
-  clip-path: none !important;
-  -webkit-clip-path: none !important;
-  box-shadow: none !important;
-  border: 0 !important;
-  filter: none !important;
-  transform: none !important;
-}
-html.abwb-embedded body.desktop-shell #wallpaper-engine-layer,
-html.abwb-embedded body.desktop-shell #wallpaper-engine-image,
-html.abwb-embedded body.desktop-shell #wallpaper-engine-video,
-html.abwb-embedded body.desktop-shell #wallpaper-engine-freeze {
-  border-radius: 0 !important;
-  clip-path: none !important;
 }

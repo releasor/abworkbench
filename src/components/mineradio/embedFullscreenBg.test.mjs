@@ -53,3 +53,24 @@ test('host mineradio mount has light-theme shell background', () => {
     /\.mineradio-embed\[data-embed-theme="light"\]\s+\.mineradio-embed__mount[\s\S]*?background:\s*linear-gradient\(165deg,\s*#f8fafc/,
   )
 })
+
+test('host embed column is full-bleed under floating header', () => {
+  const skin = readFileSync(join(root, 'src/styles/mineradio-skin.css'), 'utf8')
+  const blockStart = skin.indexOf('/* === Embed tab:')
+  assert.ok(blockStart >= 0, 'missing embed tab block in mineradio-skin.css')
+  const block = skin.slice(blockStart, blockStart + 1800)
+  assert.match(block, /\.app-content-column--embed\s*\{[^}]*padding:\s*0\s*!important/s)
+  assert.match(block, /\.app-content-column--embed\s*\{[^}]*gap:\s*0\s*!important/s)
+  assert.match(block, /--embed-menu-clear:\s*calc\(var\(--embed-chrome-side\)\s*\+\s*5\.35rem\)/)
+  assert.match(block, /\.app-main-stage--embed\s*\{[^}]*position:\s*absolute/s)
+  assert.match(block, /\.app-main-stage--embed\s*\{[^}]*inset:\s*0/s)
+  assert.match(block, /\.header-float\s*\{[^}]*position:\s*absolute\s*!important/s)
+})
+
+test('embed MineRadio chrome uses host safe-top clearance', () => {
+  const css = embedCss()
+  assert.match(css, /--abwb-embed-safe-top:\s*6\.75rem/)
+  assert.match(css, /--abwb-embed-home-top:\s*calc\(var\(--abwb-embed-safe-top\)\s*\+\s*3\.5rem\)/)
+  assert.match(css, /#top-right[\s\S]*?top:\s*var\(--abwb-embed-safe-top\)/)
+  assert.match(css, /#empty-home[\s\S]*?top:\s*var\(--abwb-embed-home-top\)\s*!important/)
+})

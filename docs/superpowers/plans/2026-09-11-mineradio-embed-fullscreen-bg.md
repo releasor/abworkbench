@@ -38,7 +38,7 @@
 - Create: `src/components/mineradio/embedFullscreenBg.test.mjs`
 - Test runner already includes `src/components/**/*.test.mjs` via `npm test`
 
-- [ ] **Step 1: Write the failing test**
+- [x] **Step 1: Write the failing test**
 
 ```js
 import assert from 'node:assert/strict'

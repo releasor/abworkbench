@@ -154,14 +154,6 @@ window.addEventListener('DOMContentLoaded', () => {
       document.documentElement.classList.toggle('abwb-theme-light', theme === 'light');
       document.documentElement.classList.toggle('abwb-theme-dark', theme === 'dark');
       try { document.documentElement.style.colorScheme = theme; } catch (_) {}
-      try {
-        if (!document.getElementById('abwb-embed-flush-critical')) {
-          var st = document.createElement('style');
-          st.id = 'abwb-embed-flush-critical';
-          st.textContent = 'html.abwb-embedded #desktop-window-shell,html.abwb-embedded body.desktop-shell #desktop-window-shell{border-radius:0!important;box-shadow:none!important;clip-path:none!important;transform:none!important;}html.abwb-embedded #empty-home,html.abwb-embedded body.desktop-shell #empty-home,html.abwb-embedded body.empty-home-active #empty-home{left:0!important;right:0!important;width:100%!important;max-width:none!important;transform:none!important;margin:0!important;border-radius:0!important;box-shadow:none!important;}html.abwb-embedded body:not(.empty-home-active) #empty-home{opacity:0!important;pointer-events:none!important;visibility:hidden!important;}html.abwb-embedded body.empty-home-active #empty-home{opacity:1!important;pointer-events:auto!important;visibility:visible!important;}html.abwb-embedded[data-theme="light"] body.empty-home-active,html.abwb-embedded[data-theme="light"] body.empty-home-active #desktop-window-shell{background:linear-gradient(165deg,#f8fafc 0%,#f1f5f9 100%)!important;background-color:#f1f5f9!important;}html.abwb-embedded[data-theme="light"] body:not(.empty-home-active),html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #desktop-window-shell{background:#0b1220!important;background-color:#0b1220!important;}html.abwb-embedded[data-theme="light"] body:not(.empty-home-active) #canvas-container{opacity:1!important;visibility:visible!important;filter:none!important;}';
-          (document.head || document.documentElement).appendChild(st);
-        }
-      } catch (_) {}
     }
   } catch (_) {}
 });

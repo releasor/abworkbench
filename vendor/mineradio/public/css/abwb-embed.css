@@ -160,7 +160,14 @@ html.abwb-embedded #album-bg-next {
 }
 
 
-/* ---- Top chrome: search vs home/account must not collide ---- */
+/* ---- Top chrome: clear host floating header (Menu + title bar) ---- */
+html.abwb-embedded {
+  /* Host floating header clearance */
+  --abwb-embed-safe-top: 6.75rem;
+  /* Home cards sit below host header + peek search row (avoid overlap) */
+  --abwb-embed-home-top: calc(var(--abwb-embed-safe-top) + 3.5rem);
+}
+
 html.abwb-embedded #search-area {
   z-index: 20;
   /* Leave room on the right for home + account pills */
@@ -170,7 +177,7 @@ html.abwb-embedded #search-area {
 
 html.abwb-embedded #search-area.peek,
 html.abwb-embedded body.desktop-shell #search-area.peek {
-  top: 14px;
+  top: var(--abwb-embed-safe-top);
 }
 
 html.abwb-embedded #search-stack {
@@ -186,13 +193,20 @@ html.abwb-embedded #search-area.has-results {
 
 html.abwb-embedded #top-right,
 html.abwb-embedded body.desktop-shell #top-right {
-  top: 14px;
+  top: var(--abwb-embed-safe-top);
   right: 14px;
   z-index: 34;
   gap: 8px;
   align-items: center;
   flex-wrap: nowrap;
   max-width: min(220px, 38vw);
+}
+
+/* Splash wordmark clears host floating header */
+html.abwb-embedded #splash .splash-content {
+  box-sizing: border-box;
+  padding-top: var(--abwb-embed-safe-top);
+  padding-bottom: 1.5rem;
 }
 
 html.abwb-embedded #home-btn {
@@ -233,7 +247,7 @@ html.abwb-embedded body.empty-home-active.controls-visible #empty-home,
 html.abwb-embedded body.desktop-shell.empty-home-active.controls-visible #empty-home,
 html.abwb-embedded body.desktop-shell.desktop-fullscreen #empty-home,
 html.abwb-embedded html:fullscreen body.desktop-shell #empty-home {
-  top: 72px !important;
+  top: var(--abwb-embed-home-top) !important;
   bottom: 118px !important;
   left: 0 !important;
   right: 0 !important;
