@@ -7,6 +7,7 @@ import type { WeekGridDay } from './habitUtils'
 import { getStreakMilestone } from './habitUtils'
 import { getScheduleLabel } from './habitSchedule'
 import { MonthHabitCalendar, WeekHabitGrid } from './HabitCalendar'
+import { GlassCard } from '../common/GlassSurface'
 
 interface HabitProgress {
   count: number
@@ -76,11 +77,13 @@ export function HabitCard({
         : `打卡 0/${todayProgress.target}`
 
   return (
-    <article
+    <GlassCard
+      as="article"
       data-habit-id={habit.id}
+      borderRadius={28}
       className={clsx(
-        'group overflow-hidden rounded-[28px] border bg-surface/75 shadow-xl shadow-black/10 backdrop-blur-xl transition-all duration-300 hover:border-primary/35 active:scale-[0.995]',
-        isCompletedToday ? 'border-success/35' : streakAtRisk ? 'border-warning/35' : 'border-border',
+        'dashboard-panel group overflow-hidden transition-all duration-300 active:scale-[0.995]',
+        isCompletedToday ? 'ring-1 ring-success/40' : streakAtRisk ? 'ring-1 ring-warning/40' : '',
       )}
     >
       <div
@@ -202,7 +205,7 @@ export function HabitCard({
                   >
                     {monthNav.y - 1}
                   </button>
-                  <span className="min-w-[118px] rounded-2xl border border-border bg-background/50 px-4 py-2 text-center text-sm font-semibold text-text">
+                  <span className="interactive-glass min-w-[118px] rounded-2xl px-4 py-2 text-center text-sm font-semibold text-text">
                     {monthNav.y}年{String(monthNav.m + 1).padStart(2, '0')}月
                   </span>
                   <button
@@ -236,13 +239,13 @@ export function HabitCard({
           )}
         </div>
       </div>
-    </article>
+    </GlassCard>
   )
 }
 
 function MetaPill({ children, className }: { children: ReactNode; className?: string }) {
   return (
-    <span className={clsx('inline-flex items-center gap-1 rounded-full border border-border/70 bg-background/40 px-2.5 py-1', className)}>
+    <span className={clsx('interactive-glass inline-flex items-center gap-1 rounded-full px-2.5 py-1', className)}>
       {children}
     </span>
   )
@@ -272,8 +275,8 @@ function IconButton({
         active
           ? 'border-primary/35 bg-primary/10 text-primary'
           : danger
-            ? 'border-border bg-surface/70 text-text-muted hover:border-danger/35 hover:bg-danger/10 hover:text-danger'
-            : 'border-border bg-surface/70 text-text-muted hover:border-primary/30 hover:bg-primary/10 hover:text-primary',
+            ? 'interactive-glass text-text-muted hover:border-danger/35 hover:bg-danger/10 hover:text-danger'
+            : 'interactive-glass text-text-muted hover:border-primary/30 hover:bg-primary/10 hover:text-primary',
       )}
     >
       {children}

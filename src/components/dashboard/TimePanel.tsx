@@ -83,7 +83,7 @@ export default memo(function TimePanel() {
         </div>
 
         <div className="relative mt-6 text-center">
-          <div className="font-mono text-5xl font-black tabular-nums tracking-tight text-text md:text-6xl">
+          <div className="font-numeric text-5xl font-black tabular-nums tracking-tight text-text md:text-6xl">
             {timeStr}
           </div>
           <p className="mt-2 text-sm text-text-muted">{dateStr}</p>
@@ -92,7 +92,7 @@ export default memo(function TimePanel() {
         <div className="relative mt-6">
           <div className="mb-2 flex items-center justify-between text-[11px] text-text-muted">
             <span>今日进度</span>
-            <span className="font-mono tabular-nums">{Math.round(dayProgress)}%</span>
+            <span className="font-numeric tabular-nums">{Math.round(dayProgress)}%</span>
           </div>
           <div className="h-2 overflow-hidden rounded-full bg-background/55">
             <div
@@ -108,7 +108,7 @@ export default memo(function TimePanel() {
               <BriefcaseBusiness size={13} />
               {workPhaseLabel}
             </div>
-            <div className="font-mono text-xl font-black tabular-nums text-text">{workCountdown}</div>
+            <div className="font-numeric text-xl font-black tabular-nums text-text">{workCountdown}</div>
             <div className="mt-2 flex items-center justify-between text-[10px] text-text-muted">
               <span className="inline-flex items-center gap-1"><Sunrise size={11} />{workdaySettings.startTime}</span>
               <span className="inline-flex items-center gap-1"><Sunset size={11} />{workdaySettings.endTime}</span>
@@ -151,7 +151,7 @@ export default memo(function TimePanel() {
             {worldTimes.map((zone) => (
               <div key={zone.timeZone} className="rounded-xl border border-border bg-background/35 px-3 py-2.5 text-center">
                 <div className="text-[10px] text-text-muted">{zone.label}</div>
-                <div className="mt-1 font-mono text-sm font-bold tabular-nums text-text">{zone.time}</div>
+                <div className="mt-1 font-numeric text-sm font-bold tabular-nums text-text">{zone.time}</div>
               </div>
             ))}
           </div>

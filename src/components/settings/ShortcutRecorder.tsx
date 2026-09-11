@@ -53,10 +53,10 @@ export default function ShortcutRecorder({
       <button
         type="button"
         onClick={onStartRecording}
-        className={`flex min-w-[7.5rem] items-center justify-center gap-1 rounded-xl border px-2 py-1.5 transition-colors ${
+        className={`interactive-glass flex min-w-[7.5rem] items-center justify-center gap-1 rounded-xl px-2 py-1.5 transition-colors ${
           recording
-            ? 'border-primary bg-primary/15 text-primary ring-2 ring-primary/30'
-            : 'border-border bg-surface-lighter text-text hover:border-primary/40'
+            ? 'border-primary/50 bg-primary/20 text-primary ring-2 ring-primary/30'
+            : 'text-text'
         }`}
         title={recording ? '按下新快捷键，Esc 取消' : '点击后按下新快捷键'}
       >
@@ -66,7 +66,7 @@ export default function ShortcutRecorder({
           keys.map((key) => (
             <kbd
               key={key}
-              className="min-w-[28px] rounded-lg border border-border bg-background px-2 py-0.5 text-center font-mono text-xs text-text"
+              className="interactive-glass dashboard-chip min-w-[28px] px-2 py-0.5 text-center font-mono text-xs text-text"
             >
               {key}
             </kbd>

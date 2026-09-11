@@ -24,6 +24,8 @@ import { getRelativeTimeShort, WEEKDAY_NAMES, fmtMin, fmtHHmm } from '../../util
 import { useStore } from '../../store'
 import { useTranslation } from '../../i18n'
 import { useTick } from '../../hooks/useTick'
+import { useDragScroll } from '../../hooks/useDragScroll'
+import { GlassCard } from '../common/GlassSurface'
 
 interface WeatherData {
   city: string
@@ -296,6 +298,7 @@ export default function WeatherWidget() {
   const [showCityPicker, setShowCityPicker] = useState(false)
   const [citySearch, setCitySearch] = useState('')
   const pickerRef = useRef<HTMLDivElement>(null)
+  const hourlyDrag = useDragScroll<HTMLDivElement>()
 
   // Load weather when city or local hour changes (keep "现在" / forecast aligned)
   useEffect(() => {
@@ -457,7 +460,7 @@ export default function WeatherWidget() {
   if (loading || !weatherStats || !weather || !daylightInfo) {
     return (
       <div className="space-y-6 animate-fade-in">
-        <div className="glass-card p-6 md:p-8">
+        <GlassCard borderRadius={28} className="dashboard-panel p-6 md:p-8">
           <div className="flex items-center justify-between">
             <div className="space-y-3">
               <div className="skeleton h-4 w-20" />
@@ -466,13 +469,13 @@ export default function WeatherWidget() {
             </div>
             <div className="skeleton h-16 w-16 rounded-xl" />
           </div>
-        </div>
+        </GlassCard>
         <div className="grid grid-cols-2 md:grid-cols-4 gap-4">
           {SKELETON_KEYS.map((i) => (
-            <div key={i} className="glass-card p-4 space-y-2">
+            <GlassCard key={i} borderRadius={22} className="dashboard-panel space-y-2 p-4">
               <div className="skeleton h-3 w-12" />
               <div className="skeleton h-6 w-16" />
-            </div>
+            </GlassCard>
           ))}
         </div>
       </div>
@@ -489,15 +492,15 @@ export default function WeatherWidget() {
       {warnings.length > 0 && (
         <div className="grid gap-2">
           {warnings.map((w, i) => (
-            <div key={i} className={`flex items-center gap-3 rounded-2xl border px-4 py-3 shadow-lg shadow-black/10 ${w.bg}`}>
+            <GlassCard key={i} borderRadius={18} className={`dashboard-panel flex items-center gap-3 px-4 py-3 ${w.bg}`}>
               <span className="text-base">{w.icon}</span>
               <span className={`text-sm font-medium ${w.color}`}>{w.text}</span>
-            </div>
+            </GlassCard>
           ))}
         </div>
       )}
 
-      <section className="relative overflow-hidden rounded-[36px] border border-border bg-surface/80 shadow-2xl shadow-black/25 backdrop-blur-xl">
+      <GlassCard as="section" borderRadius={34} className="dashboard-panel relative overflow-hidden">
         <div className={`absolute inset-0 bg-gradient-to-br ${conditionPanels[weather.condition]}`} />
         <div className="absolute -right-16 -top-16 h-56 w-56 rounded-full bg-white/6 blur-3xl" />
         <div className="relative grid gap-6 p-5 md:grid-cols-[1.4fr_1fr] md:p-7">
@@ -506,14 +509,14 @@ export default function WeatherWidget() {
               <div className="relative">
                 <button
                   onClick={() => setShowCityPicker(prev => !prev)}
-                  className="inline-flex items-center gap-2 rounded-2xl border border-border bg-background/55 px-3 py-2 text-sm font-medium text-text transition-all hover:border-primary/40 hover:bg-surface-lighter"
+                  className="interactive-glass inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-sm font-medium text-text transition-all"
                 >
                   <MapPin size={16} className="text-primary" />
                   {weather.city}
                   <ChevronDown size={13} className={`transition-transform ${showCityPicker ? 'rotate-180' : ''}`} />
                 </button>
                 {showCityPicker && (
-                  <div className="absolute left-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-3xl border border-border bg-surface/95 shadow-2xl shadow-black/35 backdrop-blur-xl">
+                  <div className="interactive-glass absolute left-0 top-full z-50 mt-2 w-72 overflow-hidden rounded-3xl shadow-2xl shadow-black/35">
                     <div className="border-b border-border p-3">
                       <div className="relative">
                         <Search size={15} className="absolute left-3 top-1/2 -translate-y-1/2 text-text-muted" />
@@ -548,7 +551,7 @@ export default function WeatherWidget() {
                               setShowCityPicker(false)
                               setCitySearch('')
                             }}
-                            className={`rounded-2xl px-3 py-2 text-left text-sm transition-all hover:bg-surface-lighter ${
+                            className={`rounded-2xl px-3 py-2 text-left text-sm transition-all hover:bg-white/10 ${
                               city === weatherCity ? 'bg-primary/10 font-semibold text-primary' : 'text-text'
                             }`}
                           >
@@ -570,7 +573,7 @@ export default function WeatherWidget() {
                   setLocating(false)
                 }}
                 disabled={locating}
-                className="inline-flex h-10 w-10 items-center justify-center rounded-2xl border border-border bg-background/55 text-text-muted transition-all hover:border-primary/40 hover:text-text disabled:opacity-50"
+                className="interactive-glass inline-flex h-10 w-10 items-center justify-center rounded-2xl text-text-muted transition-all hover:text-text disabled:opacity-50"
                 aria-label={t('weather.autoLocate')}
                 title={t('weather.autoLocate')}
               >
@@ -587,7 +590,7 @@ export default function WeatherWidget() {
                   }, delay)
                 }}
                 disabled={refreshing}
-                className="inline-flex h-10 items-center gap-2 rounded-2xl border border-border bg-background/55 px-3 text-sm text-text-muted transition-all hover:border-primary/40 hover:text-text disabled:opacity-50 md:ml-2"
+                className="interactive-glass inline-flex h-10 items-center gap-2 rounded-2xl px-3 text-sm text-text-muted transition-all hover:text-text disabled:opacity-50 md:ml-2"
                 aria-label={t('weather.refresh')}
                 title={t('weather.refresh')}
               >
@@ -606,7 +609,7 @@ export default function WeatherWidget() {
                   <span>{t('weather.feels')} {weather.feelsLike}°C</span>
                   {weather.feelsLike > weather.temp && <span className="text-orange-400">{t('weather.hotterThanActual')}</span>}
                   {weather.feelsLike < weather.temp && <span className="text-blue-400">{t('weather.colderThanActual')}</span>}
-                  <span className={`rounded-full bg-background/50 px-2 py-1 ${comfortColor}`}>{comfort}</span>
+                  <span className={`interactive-glass rounded-full px-2 py-1 ${comfortColor}`}>{comfort}</span>
                 </div>
               </div>
             </div>
@@ -623,41 +626,41 @@ export default function WeatherWidget() {
             </div>
           </div>
 
-          <div className="flex flex-col justify-between rounded-[30px] border border-white/10 bg-background/35 p-5 shadow-inner shadow-white/5">
+          <GlassCard borderRadius={30} className="dashboard-panel flex flex-col justify-between p-5">
             <div className="flex justify-end">
               <MainIcon className={`h-28 w-28 md:h-36 md:w-36 ${conditionColors[weather.condition]} ${conditionAnimations[weather.condition]} opacity-90 drop-shadow-2xl`} />
             </div>
             <div className="mt-6 space-y-3">
               {advice.slice(0, 3).map((item, i) => (
-                <div key={i} className="flex items-start gap-3 rounded-2xl border border-border/70 bg-surface/55 p-3">
+                <GlassCard key={i} borderRadius={18} className="dashboard-panel flex items-start gap-3 p-3">
                   <div className="text-xl">{item.icon}</div>
                   <div className="text-sm leading-5 text-text">{item.text}</div>
-                </div>
+                </GlassCard>
               ))}
             </div>
-          </div>
+          </GlassCard>
         </div>
-      </section>
+      </GlassCard>
 
       <div className="grid grid-cols-2 gap-3 md:grid-cols-4">
         {detailItems.map((detail) => {
           const Icon = detail.icon
           return (
-            <div key={detail.label} className="rounded-[26px] border border-border bg-surface/75 p-4 shadow-xl shadow-black/10 transition-all hover:border-primary/30">
+            <GlassCard key={detail.label} borderRadius={26} className="dashboard-panel p-4 transition-all">
               <div className="mb-4 flex items-center justify-between gap-3">
-                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-surface-lighter ${detail.color}`}>
+                <div className={`flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-white/10 ${detail.color}`}>
                   <Icon size={18} />
                 </div>
                 {'sub' in detail && detail.sub && <span className={`min-w-0 truncate text-right text-[11px] font-medium ${detail.color}`} title={detail.sub}>{detail.sub}</span>}
               </div>
               <div className="text-xs text-text-muted">{detail.label}</div>
               <div className="mt-1 text-2xl font-semibold text-text">{detail.value}</div>
-            </div>
+            </GlassCard>
           )
         })}
       </div>
 
-      <section className="rounded-[30px] border border-border bg-surface/75 p-5 shadow-xl shadow-black/10">
+      <GlassCard as="section" borderRadius={30} className="dashboard-panel p-5">
         <div className="mb-4 flex items-center justify-between">
           <div className="flex items-center gap-3">
             <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-orange-500/12 text-orange-400">
@@ -675,7 +678,7 @@ export default function WeatherWidget() {
             <Sunset size={17} className="text-orange-500" />
           </div>
         </div>
-        <div className="relative h-4 overflow-hidden rounded-full bg-surface-lighter">
+        <div className="relative h-4 overflow-hidden rounded-full bg-white/10">
           <div
             className="h-full rounded-full transition-all duration-1000"
             style={{
@@ -700,9 +703,9 @@ export default function WeatherWidget() {
             {isDaytime ? tWith('weather.remainingDaylight', dlRemainingH, dlRemainingM) : (dlNowMin > sunsetMin ? t('weather.afterSunset') : t('weather.beforeDawn'))}
           </span>
         </div>
-      </section>
+      </GlassCard>
 
-      <section className="rounded-[30px] border border-border bg-surface/75 p-5 shadow-xl shadow-black/10">
+      <GlassCard as="section" borderRadius={30} className="dashboard-panel p-5">
         <div className="mb-4 flex items-center justify-between gap-3">
           <div>
             <h3 className="text-base font-semibold text-text">逐小时预报</h3>
@@ -711,26 +714,36 @@ export default function WeatherWidget() {
               {nextRainHour && <span className="ml-2 text-blue-400">预计 {nextRainHour} 降雨概率升高</span>}
             </p>
           </div>
-          <div className="hidden items-center gap-3 rounded-full border border-border bg-background/45 px-3 py-1.5 text-xs text-text-muted sm:flex">
+          <div className="interactive-glass hidden items-center gap-3 rounded-full px-3 py-1.5 text-xs text-text-muted sm:flex">
             <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-yellow-400" />晴</span>
             <span className="flex items-center gap-1"><span className="h-2 w-2 rounded-full bg-blue-400" />雨</span>
           </div>
         </div>
-        <div className="-mx-1 flex gap-3 overflow-x-auto px-1 pb-2">
+        <div
+          ref={hourlyDrag.ref}
+          className="drag-scroll-x -mx-1 flex flex-nowrap gap-3 px-1 pb-1"
+          onPointerDown={hourlyDrag.onPointerDown}
+          onPointerMove={hourlyDrag.onPointerMove}
+          onPointerUp={hourlyDrag.onPointerUp}
+          onPointerCancel={hourlyDrag.onPointerCancel}
+        >
           {weather.hourlyForecast.map((item, index) => {
             const Icon = conditionIcons[item.condition]
             const isNow = index === 0
             const isRainLikely = item.precipitation >= 50
             const tempPosition = ((item.temp - hourlyForecastLow) / Math.max(hourlyForecastHigh - hourlyForecastLow, 1)) * 46
             return (
-              <div
+              <GlassCard
                 key={`${item.time}-${index}`}
-                className={`relative min-w-[112px] overflow-hidden rounded-[24px] border p-3 transition-all  ${
+                borderRadius={24}
+                width={120}
+                style={{ minWidth: 120, flex: '0 0 120px' }}
+                className={`dashboard-panel relative overflow-hidden p-3 transition-all ${
                   isNow
                     ? 'border-primary/45 bg-primary/10 shadow-lg shadow-primary/10'
                     : isRainLikely
                       ? 'border-blue-500/30 bg-blue-500/10'
-                      : 'border-border/70 bg-background/45 hover:border-primary/25'
+                      : ''
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -739,7 +752,7 @@ export default function WeatherWidget() {
                 </div>
                 <div className="mt-4 h-16">
                   <div
-                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-surface-lighter transition-all"
+                    className="flex h-10 w-10 items-center justify-center rounded-2xl bg-white/10 transition-all"
                     style={{ transform: `translateY(${46 - tempPosition}px)` }}
                   >
                     <Icon size={22} className={conditionColors[item.condition]} />
@@ -752,21 +765,21 @@ export default function WeatherWidget() {
                     <span className="text-text-muted">降雨</span>
                     <span className={isRainLikely ? 'font-semibold text-blue-400' : 'text-text-muted'}>{item.precipitation}%</span>
                   </div>
-                  <div className="h-1.5 overflow-hidden rounded-full bg-surface">
+                  <div className="h-1.5 overflow-hidden rounded-full bg-white/10">
                     <div
                       className={`h-full rounded-full ${isRainLikely ? 'bg-blue-400' : 'bg-primary/70'}`}
                       style={{ width: `${item.precipitation}%` }}
                     />
                   </div>
                 </div>
-              </div>
+              </GlassCard>
             )
           })}
         </div>
-      </section>
+      </GlassCard>
 
       <div className="grid gap-6 xl:grid-cols-[0.9fr_1.1fr]">
-        <section className="rounded-[30px] border border-border bg-surface/75 p-5 shadow-xl shadow-black/10">
+        <GlassCard as="section" borderRadius={30} className="dashboard-panel p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-text">{t('weather.todayTemp')}</h3>
@@ -781,18 +794,22 @@ export default function WeatherWidget() {
               const diff = prevTemp !== null ? h.temp - prevTemp : 0
               const isCurrentPeriod = i === currentPeriodIdx
               return (
-                <div key={h.label} className={`rounded-3xl border p-3 text-center transition-all ${isCurrentPeriod ? 'border-primary/40 bg-primary/10' : isHighest ? 'border-orange-500/25 bg-orange-500/10' : isLowest ? 'border-blue-500/25 bg-blue-500/10' : 'border-border bg-background/45'}`}>
+                <GlassCard
+                  key={h.label}
+                  borderRadius={22}
+                  className={`dashboard-panel p-3 text-center transition-all ${isCurrentPeriod ? 'border-primary/40 bg-primary/10' : isHighest ? 'border-orange-500/25 bg-orange-500/10' : isLowest ? 'border-blue-500/25 bg-blue-500/10' : ''}`}
+                >
                   <div className="mb-2 text-2xl">{h.icon}</div>
                   <div className="mb-1 text-[11px] text-text-muted">{h.label}</div>
                   <div className={`text-lg font-semibold ${isHighest ? 'text-orange-400' : isLowest ? 'text-blue-400' : 'text-text'}`}>{h.temp}°</div>
                   {diff !== 0 && <div className={`text-[11px] ${diff > 0 ? 'text-orange-400' : 'text-blue-400'}`}>{diff > 0 ? '↑' : '↓'}{Math.abs(diff)}°</div>}
-                </div>
+                </GlassCard>
               )
             })}
           </div>
-        </section>
+        </GlassCard>
 
-        <section className="rounded-[30px] border border-border bg-surface/75 p-5 shadow-xl shadow-black/10">
+        <GlassCard as="section" borderRadius={30} className="dashboard-panel p-5">
           <div className="mb-4 flex items-start justify-between gap-3">
             <div>
               <h3 className="text-base font-semibold text-text">{t('weather.weeklyForecast')}</h3>
@@ -817,18 +834,19 @@ export default function WeatherWidget() {
               const barLeft = ((day.low - globalMin) / forecastRange) * 100
               const barWidth = ((day.high - day.low) / forecastRange) * 100
               return (
-                <div
+                <GlassCard
                   key={day.day}
-                  className={`grid grid-cols-[4.5rem_2.5rem_1fr_4.5rem] items-center gap-3 rounded-2xl border px-3 py-2 transition-all ${
+                  borderRadius={18}
+                  className={`dashboard-panel grid grid-cols-[4.5rem_2.5rem_1fr_4.5rem] items-center gap-3 px-3 py-2 transition-all ${
                     isToday ? 'border-primary/35 bg-primary/10' :
                     isBestDay ? 'border-yellow-500/25 bg-yellow-500/10' :
-                    'border-border/70 bg-background/40 hover:border-primary/25'
+                    ''
                   }`}
                 >
                   <div className={`text-sm font-medium ${isToday ? 'text-primary' : 'text-text'}`}>{day.day === '今天' ? t('weather.today') : day.day}</div>
                   <Icon size={22} className={`${conditionColors[day.condition]} ${isToday ? conditionAnimations[day.condition] : ''}`} />
                   <div>
-                    <div className="relative h-2 rounded-full bg-surface-lighter">
+                    <div className="relative h-2 rounded-full bg-white/10">
                       <div
                         className="absolute h-full rounded-full bg-gradient-to-r from-blue-400 via-cyan-400 to-orange-400"
                         style={{ left: `${barLeft}%`, width: `${Math.max(barWidth, 8)}%` }}
@@ -843,11 +861,11 @@ export default function WeatherWidget() {
                     <span className="text-text-muted">/</span>
                     <span className="text-orange-400">{day.high}°</span>
                   </div>
-                </div>
+                </GlassCard>
               )
             })}
           </div>
-        </section>
+        </GlassCard>
       </div>
     </div>
   )
@@ -865,12 +883,12 @@ function MiniMetric({
   valueClassName?: string
 }) {
   return (
-    <div className="rounded-3xl border border-border bg-background/45 p-3 shadow-inner shadow-white/5">
-      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-2xl bg-surface-lighter text-primary">
+    <GlassCard borderRadius={22} className="dashboard-panel p-3">
+      <div className="mb-3 flex h-8 w-8 items-center justify-center rounded-2xl bg-white/10 text-primary">
         {icon}
       </div>
       <div className="text-[11px] text-text-muted">{label}</div>
       <div className={`mt-1 truncate text-sm font-semibold ${valueClassName}`}>{value}</div>
-    </div>
+    </GlassCard>
   )
 }

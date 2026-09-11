@@ -1,6 +1,7 @@
 import { useCallback, useEffect, useState } from 'react'
 import { Keyboard, Languages, FileSearch, Plus, Trash2, RefreshCw, Info } from 'lucide-react'
 import ShortcutRecorder from './ShortcutRecorder'
+import SettingsGlassCard from './SettingsGlassCard'
 import { SHORTCUT_BY_ID, useShortcutStore } from '../../shortcuts'
 
 interface TranslateProviderConfig {
@@ -134,7 +135,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
   }, [checkEverything])
 
   if (!settings) {
-    return <div className="rounded-[30px] border border-border bg-surface/80 p-6 text-sm text-text-muted">正在读取启动器配置…</div>
+    return <SettingsGlassCard className="dashboard-panel p-6 text-sm text-text-muted">正在读取启动器配置…</SettingsGlassCard>
   }
 
   const conflictIds = findConflicts('launcher', launcherHotkey)
@@ -142,7 +143,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+      <SettingsGlassCard className="dashboard-panel p-6">
         <div className="flex items-center gap-2 mb-4">
           <Keyboard size={20} className="text-primary" />
           <h2 className="text-lg font-semibold text-text">全局召唤</h2>
@@ -167,9 +168,9 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
         <p className="mt-2 text-[11px] text-text-muted/70">
           点击后按下新组合键。启动器默认 Alt+Space；主程序窗口请用 Ctrl+Alt+Space（可在「快捷键」页修改）。若被其他软件占用会回退到默认键。
         </p>
-      </div>
+      </SettingsGlassCard>
 
-      <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+      <SettingsGlassCard className="dashboard-panel p-6">
         <div className="flex items-center gap-2 mb-4">
           <Languages size={20} className="text-cyan-400" />
           <h2 className="text-lg font-semibold text-text">翻译引擎</h2>
@@ -179,7 +180,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
         </p>
         <div className="space-y-2">
           {settings.providers.map((provider) => (
-            <div key={provider.id} className="flex items-center gap-3 rounded-2xl border border-border bg-background/50 p-3">
+            <div key={provider.id} className="interactive-glass settings-glass-row flex items-center gap-3 rounded-2xl p-3">
               <input
                 type="radio"
                 name="default-provider"
@@ -194,7 +195,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
                 value={provider.urlTemplate}
                 onChange={(e) => updateProviderUrl(provider.id, e.target.value)}
                 onBlur={() => void saveProviderUrl(provider.id)}
-                className="flex-1 min-w-0 rounded-lg border border-border bg-surface-lighter px-2.5 py-1.5 text-xs text-text-muted outline-none focus:border-primary"
+                className="settings-glass-input flex-1 min-w-0 px-2.5 py-1.5 text-xs text-text-muted outline-none"
               />
               {settings.providers.length > 1 && (
                 <button
@@ -214,22 +215,22 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
             value={newName}
             onChange={(e) => setNewName(e.target.value)}
             placeholder="引擎名称"
-            className="w-32 rounded-lg border border-border bg-surface-lighter px-2.5 py-1.5 text-xs text-text outline-none focus:border-primary"
+            className="settings-glass-input w-32 px-2.5 py-1.5 text-xs text-text outline-none"
           />
           <input
             type="text"
             value={newUrl}
             onChange={(e) => setNewUrl(e.target.value)}
             placeholder="https://…（用 {q} 表示翻译内容）"
-            className="flex-1 rounded-lg border border-border bg-surface-lighter px-2.5 py-1.5 text-xs text-text outline-none focus:border-primary"
+            className="settings-glass-input flex-1 px-2.5 py-1.5 text-xs text-text outline-none"
           />
           <button onClick={() => void addProvider()} className="btn-secondary flex items-center gap-1 px-3 py-1.5 text-xs">
             <Plus size={14} /> 添加
           </button>
         </div>
-      </div>
+      </SettingsGlassCard>
 
-      <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+      <SettingsGlassCard className="dashboard-panel p-6">
         <div className="flex items-center gap-2 mb-4">
           <FileSearch size={20} className="text-emerald-400" />
           <h2 className="text-lg font-semibold text-text">Everything 全局搜索</h2>
@@ -245,7 +246,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
               value={esPathDraft}
               onChange={(e) => setEsPathDraft(e.target.value)}
               placeholder="自动检测（如 C:\Program Files\Everything\es.exe）"
-              className="flex-1 rounded-xl border border-border bg-surface-lighter px-3 py-2 text-sm text-text outline-none focus:border-primary"
+              className="settings-glass-input flex-1 px-3 py-2 text-sm text-text outline-none"
             />
           </div>
           <div className="flex items-center gap-3">
@@ -255,7 +256,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
               value={httpUrlDraft}
               onChange={(e) => setHttpUrlDraft(e.target.value)}
               placeholder="http://127.0.0.1:23581"
-              className="flex-1 rounded-xl border border-border bg-surface-lighter px-3 py-2 text-sm text-text outline-none focus:border-primary"
+              className="settings-glass-input flex-1 px-3 py-2 text-sm text-text outline-none"
             />
           </div>
         </div>
@@ -275,7 +276,7 @@ export default function LauncherSettings({ onToast }: LauncherSettingsProps) {
             <span className="text-text-muted">{status.detail}</span>
           </div>
         )}
-      </div>
+      </SettingsGlassCard>
     </div>
   )
 }

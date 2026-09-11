@@ -101,6 +101,16 @@ html[data-theme='dark'] .settings-glass-surface.glass-card.settings-glass-tablis
   border-radius: 1rem;
 }
 
+/* Secondary settings tiles — same frosted language as dashboard interactive-glass */
+.settings-glass-row.interactive-glass {
+  border-radius: 1rem !important;
+}
+
+.settings-page .interactive-glass.dashboard-chip,
+.dashboard-panel .interactive-glass.dashboard-chip {
+  border-radius: 0.75rem !important;
+}
+
 .settings-glass-input {
   border-radius: 1rem;
   border: 1px solid color-mix(in srgb, #fff 16%, var(--glass-border-soft, var(--color-border)));

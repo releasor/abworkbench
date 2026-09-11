@@ -27,6 +27,8 @@ import clsx from 'clsx'
 import type { Page } from '../layout/Sidebar'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
+import { useWorkbenchStore } from '../../modules/workbench/hooks/useWorkbenchStore'
+import { buildWorkbenchProjectOverview } from './projectOverview'
 import { useToday } from '../../hooks/useToday'
 import { prevDateStr, nextDateStr } from '../../modules/taskflow/dateUtils'
 import { useCurrentHour } from '../../hooks/useCurrentHour'
@@ -117,9 +119,10 @@ function DashboardCardHeader({
 
 export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDatePanel }: DashboardPageProps) {
   const taskFlowTasks = useTaskStore((s) => s.tasks)
-  const categories = useTaskStore((s) => s.categories)
   const fetchTasks = useTaskStore((s) => s.fetchTasks)
-  const fetchCategories = useTaskStore((s) => s.fetchCategories)
+  const workbenchProjects = useWorkbenchStore((s) => s.projects)
+  const workbenchTasks = useWorkbenchStore((s) => s.tasks)
+  const hydrateWorkbench = useWorkbenchStore((s) => s.hydrate)
   const notes = useStore((s) => s.notes)
   const pomodoroSessions = useStore((s) => s.pomodoroSessions)
   const habits = useStore((s) => s.habits)
@@ -155,11 +158,11 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
       console.error('Failed to fetch tasks:', err)
       showToast('加载任务失败', 'error')
     })
-    fetchCategories().catch((err) => {
-      console.error('Failed to fetch categories:', err)
-      showToast('加载分类失败', 'error')
+    void hydrateWorkbench().catch((err) => {
+      console.error('Failed to hydrate workbench:', err)
+      showToast('加载工作台项目失败', 'error')
     })
-  }, [fetchTasks, fetchCategories])
+  }, [fetchTasks, hydrateWorkbench])
 
   const { todayStr, todayMidnightMs, tomorrowMidnightMs, yesterdayStr } = useToday()
   const [selectedDate, setSelectedDate] = useState(todayStr)
@@ -513,29 +516,10 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
     return top.map((n) => ({ ...n, preview: n.content ? stripMarkdown(n.content) : '空白笔记', relativeTime: getRelativeTime(n.updatedAt) }))
   }, [notes])
 
-  const projectOverview = useMemo(() => {
-    const rows = categories.map((category) => {
-      const projectTasks: typeof taskFlowTasks = []
-      let doneCount = 0
-      for (const t of taskFlowTasks) {
-        if ((t.category || 'uncategorized') === category.id && !t.archived) {
-          projectTasks.push(t)
-          if (t.status === 'done') doneCount++
-        }
-      }
-      const active = projectTasks.filter((t) => t.status !== 'done')
-      const progress = projectTasks.length > 0 ? Math.round((doneCount / projectTasks.length) * 100) : 0
-      const next = active.slice().sort((a, b) => {
-        if (a.pinned !== b.pinned) return a.pinned ? -1 : 1
-        if (a.dueDate && b.dueDate) return a.dueDate.localeCompare(b.dueDate)
-        if (a.dueDate) return -1
-        if (b.dueDate) return 1
-        return 0
-      })[0]
-      return { category, total: projectTasks.length, active: active.length, progress, nextTitle: next?.title || null }
-    }).filter((r) => r.total > 0).sort((a, b) => b.active - a.active).slice(0, 4)
-    return rows
-  }, [categories, taskFlowTasks])
+  const projectOverview = useMemo(
+    () => buildWorkbenchProjectOverview(workbenchProjects, workbenchTasks, 4),
+    [workbenchProjects, workbenchTasks],
+  )
 
   const weeklyChartData = useMemo(() => {
     // Build day labels and date strings for this week + last week using timestamps
@@ -650,13 +634,14 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
   return (
     <ErrorBoundary>
     <div className="dashboard-page flex flex-col gap-4 motion-stagger">
-      {/* Greeting — cinematic hero */}
+      {/* Today's overview + workday side-by-side */}
+      <div className="grid gap-4 lg:grid-cols-[minmax(0,1fr)_minmax(260px,340px)] lg:items-stretch">
       <BorderGlow
         {...glowTheme}
         borderRadius={34}
         backgroundColor={surfaceColor}
         glowMaskColor={surfaceColor}
-        className="w-full border-glow-card--glass"
+        className="w-full min-w-0 border-glow-card--glass"
         innerClassName="dashboard-hero relative overflow-hidden p-4 md:p-5"
       >
         <div className="relative z-[2] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
@@ -677,7 +662,7 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
                   {todayDisplay}
                 </button>
                 <span>·</span>
-                <button onClick={() => onOpenClockPanel?.()} className="rounded-lg font-mono tabular-nums text-text transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开时钟面板">
+                <button onClick={() => onOpenClockPanel?.()} className="rounded-lg font-numeric tabular-nums text-text transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30" aria-label="打开时钟面板">
                   {currentTimeDisplay}
                 </button>
               </div>
@@ -703,77 +688,37 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
               ))}
             </div>
           </div>
-          <div className="grid gap-2 sm:grid-cols-[minmax(220px,300px)_auto] sm:items-center">
-            <div className="rounded-[22px] border border-primary/20 bg-background/55 px-3 py-2.5 shadow-xl shadow-black/10">
-              <div className="flex items-center justify-between gap-2">
-                <div className="flex min-w-0 items-center gap-2">
-                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
-                    <BriefcaseBusiness size={14} />
-                  </span>
-                  <div className="min-w-0">
-                    <div className="text-[10px] leading-none text-text-muted">{workdayPhaseLabel}</div>
-                    <button onClick={() => onOpenClockPanel?.()} className="font-mono text-xl font-black tabular-nums leading-tight text-text transition hover:text-primary" aria-label={`下班倒计时: ${offWorkCountdown}`}>
-                      {offWorkCountdown}
-                    </button>
-                  </div>
-                </div>
-                <button onClick={() => {
-                  if (!showWorkdaySettings) setDraftWorkdaySettings(workdaySettings)
-                  setShowWorkdaySettings((value) => !value)
-                }} className="interactive-glass shrink-0 rounded-xl p-1.5 text-text-muted" aria-label="设置上下班和工资">
-                  <Settings2 size={14} />
-                </button>
-              </div>
-              <div className="mt-2 grid grid-cols-2 gap-1.5">
-                <button onClick={() => onOpenClockPanel?.()} className="interactive-glass rounded-xl px-2.5 py-1.5 text-left" aria-label="打开时钟面板">
-                  <div className="text-[10px] leading-none text-text-muted">当前时间</div>
-                  <div className="mt-0.5 font-mono text-xs font-bold tabular-nums text-text">{currentTimeDisplay}</div>
-                </button>
-                <button onClick={() => { setDraftWorkdaySettings(workdaySettings); setShowWorkdaySettings(true) }} className="interactive-glass rounded-xl px-2.5 py-1.5 text-left" aria-label="打开工资设置">
-                  <div className="text-[10px] leading-none text-text-muted">今日已赚</div>
-                  <div className="mt-0.5 text-xs font-bold text-success">{formatCurrency(workdayStatus.todayEarned)}</div>
-                </button>
-              </div>
-              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-lighter">
-                <div className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-all duration-500" style={{ width: `${workdayStatus.progress}%` }} />
-              </div>
-              <div className="mt-1 flex items-center justify-between text-[10px] text-text-muted">
-                <span>{workdaySettings.startTime} 上班</span>
-                <span>{workdaySettings.endTime} 下班</span>
-              </div>
-            </div>
-            <div className="flex flex-row items-stretch gap-2">
+          <div className="flex shrink-0 flex-row items-stretch gap-2 self-center">
               <button
                 type="button"
                 onClick={() => onNavigate('taskflow')}
-                className="interactive-glass dashboard-hero-score relative grid h-[5.25rem] w-[5.25rem] place-items-center rounded-[22px] card-float-soft"
+                className="interactive-glass dashboard-hero-score relative grid h-[6.5rem] w-[6.5rem] place-items-center rounded-[26px] card-float-soft"
                 aria-label={`效率分: ${totalScore}分，点击查看任务流`}
               >
-                <svg viewBox="0 0 96 96" className="pointer-events-none absolute inset-2.5 -rotate-90">
+                <svg viewBox="0 0 96 96" className="pointer-events-none absolute inset-3 -rotate-90">
                   <circle cx="48" cy="48" r="36" fill="none" stroke="var(--color-border)" strokeWidth="7" />
                   <circle cx="48" cy="48" r="36" fill="none" stroke={scoreColor} strokeWidth="7" strokeLinecap="round" strokeDasharray={circumference} strokeDashoffset={ringOffset} className="transition-all duration-700" />
                 </svg>
                 <span className="relative text-center">
-                  <span className="block text-2xl font-black text-text">{totalScore}</span>
-                  <span className="block text-[10px] text-text-muted">效率分</span>
+                  <span className="block text-3xl font-black text-text">{totalScore}</span>
+                  <span className="block text-[11px] text-text-muted">效率分</span>
                 </span>
               </button>
               <button
                 type="button"
                 onClick={() => onNavigate('weather')}
-                className="interactive-glass dashboard-hero-weather no-motion relative flex h-[5.25rem] w-[5.25rem] flex-col items-center justify-center gap-0.5 rounded-[22px] px-1.5 py-2 text-center card-float-soft"
+                className="interactive-glass dashboard-hero-weather no-motion relative flex h-[6.5rem] w-[6.5rem] flex-col items-center justify-center gap-1 rounded-[26px] px-2 py-2.5 text-center card-float-soft"
                 aria-label={`天气：${weather.city} ${weather.temp}度 ${weather.description}`}
               >
                 {(() => {
                   const Icon = CONDITION_ICONS[weather.condition]
-                  return <Icon className={`h-5 w-5 shrink-0 ${CONDITION_COLORS[weather.condition]} opacity-90`} />
+                  return <Icon className={`h-6 w-6 shrink-0 ${CONDITION_COLORS[weather.condition]} opacity-90`} />
                 })()}
-                <div className="text-xl font-black leading-none text-text">{weather.temp}°</div>
+                <div className="text-2xl font-black leading-none text-text">{weather.temp}°</div>
                 <div className="text-[10px] leading-tight text-text-muted">{weather.description}</div>
                 <div className="max-w-full truncate px-0.5 text-[9px] leading-tight text-text-muted">{weather.city}</div>
               </button>
             </div>
-          </div>
         </div>
         {/* Quick Stats */}
         <div className="relative z-[3] mt-3 grid grid-cols-2 gap-2 border-t border-border pt-3 md:grid-cols-5">
@@ -803,8 +748,55 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
             <span className="text-xs text-text-muted">{tWith('dashboard.notesCount', notes.length)}{todayNewNotes > 0 && <span className="ml-0.5">· {tWith('dashboard.todayNotes', todayNewNotes)}</span>}</span>
           </button>
         </div>
+        </BorderGlow>
+      <BorderGlow
+        {...glowTheme}
+        borderRadius={34}
+        backgroundColor={surfaceColor}
+        glowMaskColor={surfaceColor}
+        className="w-full border-glow-card--glass"
+        innerClassName="dashboard-workday relative flex h-full flex-col overflow-hidden p-4"
+      >
+        <div className="flex h-full flex-col justify-between gap-3">
+              <div className="flex items-center justify-between gap-2">
+                <div className="flex min-w-0 items-center gap-2">
+                  <span className="grid h-8 w-8 shrink-0 place-items-center rounded-xl bg-primary/10 text-primary">
+                    <BriefcaseBusiness size={14} />
+                  </span>
+                  <div className="min-w-0">
+                    <div className="text-[10px] leading-none text-text-muted">{workdayPhaseLabel}</div>
+                    <button onClick={() => onOpenClockPanel?.()} className="font-numeric text-xl font-black tabular-nums leading-tight text-text transition hover:text-primary" aria-label={`下班倒计时: ${offWorkCountdown}`}>
+                      {offWorkCountdown}
+                    </button>
+                  </div>
+                </div>
+                <button onClick={() => {
+                  if (!showWorkdaySettings) setDraftWorkdaySettings(workdaySettings)
+                  setShowWorkdaySettings((value) => !value)
+                }} className="interactive-glass shrink-0 rounded-xl p-1.5 text-text-muted" aria-label="设置上下班和工资">
+                  <Settings2 size={14} />
+                </button>
+              </div>
+              <div className="mt-2 grid grid-cols-2 gap-1.5">
+                <button onClick={() => onOpenClockPanel?.()} className="interactive-glass rounded-xl px-2.5 py-1.5 text-left" aria-label="打开时钟面板">
+                  <div className="text-[10px] leading-none text-text-muted">当前时间</div>
+                  <div className="mt-0.5 font-numeric text-xs font-bold tabular-nums text-text">{currentTimeDisplay}</div>
+                </button>
+                <button onClick={() => { setDraftWorkdaySettings(workdaySettings); setShowWorkdaySettings(true) }} className="interactive-glass rounded-xl px-2.5 py-1.5 text-left" aria-label="打开工资设置">
+                  <div className="text-[10px] leading-none text-text-muted">今日已赚</div>
+                  <div className="mt-0.5 text-xs font-bold text-success">{formatCurrency(workdayStatus.todayEarned)}</div>
+                </button>
+              </div>
+              <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-surface-lighter">
+                <div className="h-full rounded-full bg-gradient-to-r from-primary to-success transition-all duration-500" style={{ width: `${workdayStatus.progress}%` }} />
+              </div>
+              <div className="mt-1 flex items-center justify-between text-[10px] text-text-muted">
+                <span>{workdaySettings.startTime} 上班</span>
+                <span>{workdaySettings.endTime} 下班</span>
+              </div>
+            </div>
         {showWorkdaySettings && (
-          <div className="relative mt-4 rounded-3xl border border-border bg-background/80 p-4">
+          <div className="relative mt-3 rounded-2xl border border-border bg-background/80 p-3">
             <div className="mb-3 flex items-center justify-between gap-3">
               <div className="flex items-center gap-2 text-sm font-semibold text-text">
                 <Banknote size={16} className="text-success" />
@@ -814,7 +806,7 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
                 <X size={16} />
               </button>
             </div>
-            <div className="grid gap-3 md:grid-cols-4">
+            <div className="grid gap-3 grid-cols-1 sm:grid-cols-2">
               <label className="text-xs text-text-muted">
                 上班时间
                 <input type="time" value={draftWorkdaySettings.startTime} onChange={(event) => setDraftWorkdaySettings((value) => ({ ...value, startTime: event.target.value }))} className="mt-1 h-10 w-full rounded-xl border border-border bg-surface px-3 text-sm text-text" />
@@ -841,6 +833,9 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
         </div>
       )}
       </BorderGlow>
+      </div>
+
+
 
       <DashboardReminders />
 
@@ -939,23 +934,23 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
         <div className="dashboard-panel__body flex min-h-0 flex-1 flex-col gap-2.5 isolate">
           {projectOverview.length === 0 ? (
             <p className="dashboard-panel__empty py-6 text-center">
-              还没有项目分类，去任务流建一个吧
+              还没有工作台项目，去工作台建一个吧
             </p>
           ) : (
             projectOverview.map((row) => (
               <div
-                key={row.category.id}
+                key={row.id}
                 className="interactive-glass rounded-xl p-2.5"
               >
                 <div className="mb-1.5 flex items-center gap-2">
-                  <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: row.category.color }} />
-                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-text">{row.category.name}</span>
+                  <div className="h-2 w-2 shrink-0 rounded-full" style={{ backgroundColor: row.color }} />
+                  <span className="min-w-0 flex-1 truncate text-xs font-semibold text-text">{row.name}</span>
                   <span className="shrink-0 whitespace-nowrap text-[10px] text-text-muted">{row.active} 活跃</span>
                 </div>
                 <div className="mb-1.5 h-1 overflow-hidden rounded-full bg-surface-lighter">
                   <div
                     className="h-full rounded-full transition-all duration-500"
-                    style={{ width: `${row.progress}%`, backgroundColor: row.category.color }}
+                    style={{ width: `${row.progress}%`, backgroundColor: row.color }}
                   />
                 </div>
                 <p className="truncate text-[10px] text-text-muted">
@@ -1074,38 +1069,46 @@ export default function DashboardPage({ onNavigate, onOpenClockPanel, onOpenDate
           </GlassCard>
 
       {/* Achievements */}
-      <GlassCard className="dashboard-panel p-4">
+      <GlassCard className="dashboard-panel dashboard-achievements p-4">
         <DashboardCardHeader
           icon={Award}
           iconClassName="text-warning"
           title="连续记录"
           trailing={(
-            <span className="whitespace-nowrap text-[11px] text-text-muted">
+            <span className="whitespace-nowrap text-[11px] font-medium text-text-muted">
               {achievements.badges.filter((badge) => badge.unlocked).length}/{achievements.badges.length} 已达成
             </span>
           )}
         />
-        <div className="grid grid-cols-2 gap-2 lg:grid-cols-4">
+        <div className="grid grid-cols-1 gap-2.5 sm:grid-cols-2 xl:grid-cols-4">
           {achievements.badges.map((badge) => (
-            <div
+            <GlassCard
               key={badge.id}
-              className={`rounded-xl border p-2.5 transition-colors ${
+              borderRadius={18}
+              className={`dashboard-panel dashboard-achievement-card flex min-h-[6.5rem] flex-col p-3 transition-colors ${
                 badge.unlocked
-                  ? 'border-warning/30 bg-warning/10'
-                  : 'border-border bg-background/35'
+                  ? 'border-warning/35 bg-warning/10'
+                  : ''
               }`}
             >
-              <div className="mb-1 flex items-center justify-between gap-2">
-                <span className="truncate text-[11px] font-semibold text-text">{badge.title}</span>
-                <span className={`h-1.5 w-1.5 shrink-0 rounded-full ${badge.unlocked ? 'bg-warning' : 'bg-text-muted/30'}`} />
+              <div className="mb-2 flex items-center justify-between gap-2">
+                <span className="text-xs font-semibold tracking-tight text-text">{badge.title}</span>
+                <span
+                  className={`h-1.5 w-1.5 shrink-0 rounded-full ${badge.unlocked ? 'bg-warning shadow-[0_0_8px_rgba(245,158,11,0.55)]' : 'bg-text-muted/35'}`}
+                  aria-hidden
+                />
               </div>
-              <div className="flex items-baseline justify-between gap-2">
-                <span className={badge.unlocked ? 'text-base font-black text-warning' : 'text-base font-black text-text-muted'}>
-                  {badge.value}
-                </span>
-                <p className="min-w-0 truncate text-[10px] text-text-muted">{badge.description}</p>
+              <div
+                className={`whitespace-nowrap text-xl font-black tabular-nums leading-none ${
+                  badge.unlocked ? 'text-warning' : 'text-text'
+                }`}
+              >
+                {badge.value}
               </div>
-            </div>
+              <p className="mt-2 text-[11px] leading-snug text-text-muted">
+                {badge.description}
+              </p>
+            </GlassCard>
           ))}
         </div>
       </GlassCard>

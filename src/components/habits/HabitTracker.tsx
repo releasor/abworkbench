@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState, lazy, Suspense } from 'react'
+import { createPortal } from 'react-dom'
 import { Plus, Sparkles, Target, BarChart3 } from 'lucide-react'
 import type { Habit, HabitSchedule } from '../../store'
 import { useStore } from '../../store'
@@ -20,6 +21,7 @@ import {
 import { dayNumToDateStr } from '../../utils/format'
 import PanelSwitch from '../common/PanelSwitch'
 import { smoothNavigate } from '../../utils/smoothNavigate'
+import { GlassCard } from '../common/GlassSurface'
 
 const HabitAnalytics = lazy(() => import('./HabitAnalytics'))
 
@@ -72,6 +74,7 @@ export default function HabitTracker() {
   }
 
   const startEdit = (habit: Habit) => {
+    setShowAddForm(false)
     setEditingId(habit.id)
     setNewName(habit.name)
     setNewIcon(habit.icon)
@@ -199,26 +202,54 @@ export default function HabitTracker() {
     resetForm()
   }
 
+  useEffect(() => {
+    if (!showAddForm) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') {
+        event.preventDefault()
+        closeAddForm()
+      }
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [showAddForm])
+
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Analytics toggle */}
-      <div className="flex items-center gap-2" role="tablist" aria-label="习惯视图">
+      {/* Analytics toggle + add */}
+      <div className="flex items-center justify-between gap-3">
+        <div className="flex items-center gap-2" role="tablist" aria-label="习惯视图">
+          <button
+            role="tab"
+            aria-selected={!showAnalytics}
+            onClick={() => smoothNavigate(() => setShowAnalytics(false))}
+            className={`segment-tab rounded-xl px-3 py-1.5 text-xs font-medium ${!showAnalytics ? 'bg-primary text-on-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            打卡
+          </button>
+          <button
+            role="tab"
+            aria-selected={showAnalytics}
+            onClick={() => smoothNavigate(() => setShowAnalytics(true))}
+            className={`segment-tab inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium ${showAnalytics ? 'bg-primary text-on-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          >
+            <BarChart3 size={12} />
+            分析
+          </button>
+        </div>
         <button
-          role="tab"
-          aria-selected={!showAnalytics}
-          onClick={() => smoothNavigate(() => setShowAnalytics(false))}
-          className={`segment-tab rounded-xl px-3 py-1.5 text-xs font-medium ${!showAnalytics ? 'bg-primary text-on-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+          type="button"
+          onClick={() => {
+            setEditingId(null)
+            resetForm()
+            if (showAnalytics) smoothNavigate(() => setShowAnalytics(false))
+            setShowAddForm(true)
+          }}
+          className="btn-primary inline-flex h-9 items-center gap-1.5 rounded-xl px-3 text-xs font-medium"
+          aria-label="新增每日打卡"
         >
-          打卡
-        </button>
-        <button
-          role="tab"
-          aria-selected={showAnalytics}
-          onClick={() => smoothNavigate(() => setShowAnalytics(true))}
-          className={`segment-tab inline-flex items-center gap-1 rounded-xl px-3 py-1.5 text-xs font-medium ${showAnalytics ? 'bg-primary text-on-primary' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
-        >
-          <BarChart3 size={12} />
-          分析
+          <Plus size={15} />
+          新增
         </button>
       </div>
 
@@ -237,43 +268,8 @@ export default function HabitTracker() {
             weekCompletions={weekCompletions}
           />
 
-      {showAddForm ? (
-        <HabitForm
-          title="新增每日打卡"
-          submitLabel="添加打卡项"
-          name={newName}
-          icon={newIcon}
-          color={newColor}
-          schedule={newSchedule}
-          inputRef={nameInputRef}
-          onNameChange={setNewName}
-          onIconChange={setNewIcon}
-          onColorChange={setNewColor}
-          onScheduleChange={setNewSchedule}
-          onSubmit={handleAdd}
-          onClose={closeAddForm}
-        />
-      ) : (
-        <button
-          type="button"
-          onClick={() => setShowAddForm(true)}
-          className="group flex w-full items-center justify-between rounded-[26px] border border-dashed border-primary/45 bg-primary/10 px-5 py-4 text-left transition-all hover:border-primary hover:bg-primary/20"
-        >
-          <span className="flex items-center gap-3">
-            <span className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-on-primary shadow-lg shadow-primary/25">
-              <Plus size={20} />
-            </span>
-            <span>
-              <span className="block text-base font-semibold text-text">新增每日打卡</span>
-              <span className="text-sm text-text-muted">按下 N 快速创建，坚持从一个小动作开始。</span>
-            </span>
-          </span>
-          <kbd className="hidden rounded-xl border border-border bg-background/60 px-2.5 py-1 text-xs font-mono text-text-muted sm:block">N</kbd>
-        </button>
-      )}
-
       {habits.length === 0 ? (
-        <div className="overflow-hidden rounded-[32px] border border-border bg-surface/75 p-7 text-center shadow-xl shadow-black/10">
+        <GlassCard borderRadius={32} className="dashboard-panel overflow-hidden p-7 text-center">
           <div className="mx-auto mb-4 flex h-16 w-16 items-center justify-center rounded-3xl bg-primary/10 text-primary">
             <Target size={34} />
           </div>
@@ -288,7 +284,7 @@ export default function HabitTracker() {
                 type="button"
                 onClick={() => addHabit(template.name, template.icon, template.color, template.schedule)}
                 aria-label={`创建习惯: ${template.name}`}
-                className="flex items-center gap-3 rounded-2xl border border-border bg-background/50 px-4 py-3 text-sm text-text-muted transition-all hover:border-primary/40 hover:text-text"
+                className="interactive-glass flex items-center gap-3 rounded-2xl px-4 py-3 text-sm text-text-muted transition-all hover:text-text"
               >
                 <span
                   className="flex h-9 w-9 items-center justify-center rounded-xl text-lg"
@@ -300,7 +296,7 @@ export default function HabitTracker() {
               </button>
             ))}
           </div>
-        </div>
+        </GlassCard>
       ) : (
         <div className="flex flex-col gap-4">
           <div className="flex items-center gap-2 text-sm font-medium text-text-muted">
@@ -363,6 +359,43 @@ export default function HabitTracker() {
         </div>
       )}
       </PanelSwitch>
+
+      {showAddForm && createPortal(
+        <div
+          className="fixed inset-0 z-[100] flex items-start justify-center overflow-y-auto px-4 py-8 sm:py-12"
+          role="dialog"
+          aria-modal="true"
+          aria-label="新增每日打卡"
+        >
+          <button
+            type="button"
+            className="absolute inset-0 modal-veil animate-fade-in"
+            onClick={closeAddForm}
+            aria-label="关闭新增弹窗"
+          />
+          <div
+            className="relative z-10 w-full max-w-xl animate-bounce-in"
+            onClick={(event) => event.stopPropagation()}
+          >
+            <HabitForm
+              title="新增每日打卡"
+              submitLabel="添加打卡项"
+              name={newName}
+              icon={newIcon}
+              color={newColor}
+              schedule={newSchedule}
+              inputRef={nameInputRef}
+              onNameChange={setNewName}
+              onIconChange={setNewIcon}
+              onColorChange={setNewColor}
+              onScheduleChange={setNewSchedule}
+              onSubmit={handleAdd}
+              onClose={closeAddForm}
+            />
+          </div>
+        </div>,
+        document.body,
+      )}
     </div>
   )
 }

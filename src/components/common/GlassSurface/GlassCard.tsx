@@ -64,12 +64,12 @@ export default function GlassCard<T extends ElementType = 'div'>({
       backgroundColor={surface}
       glowMaskColor={surface}
       borderRadius={borderRadius}
-      className={`glass-card-glow border-glow-card--glass w-full min-w-0${isInteractive ? ' interactive-glass-card' : ''}`}
+      className={`glass-card-glow border-glow-card--glass ${width === undefined ? 'w-full min-w-0' : 'shrink-0'}${isInteractive ? ' interactive-glass-card' : ''}`}
       innerClassName="glass-card-shell"
       style={outerStyle}
     >
       <Component
-        className={`h-full w-full min-w-0 ${className} ${contentClassName}`.trim()}
+        className={`w-full min-w-0 min-h-0 ${className} ${contentClassName}`.trim()}
         {...props}
       >
         {children}

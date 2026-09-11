@@ -19,7 +19,6 @@ import {
   Wallet,
   HeartPulse,
   Bell,
-  Palette,
   FileText,
   BookOpen,
   PictureInPicture2,
@@ -126,8 +125,6 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
   const setActiveNote = useStore((s) => s.setActiveNote)
   const notes = useStore((s) => s.notes)
   const habits = useStore((s) => s.habits)
-  const toggleThemeMode = useStore((s) => s.toggleThemeMode)
-  const themeMode = useStore((s) => s.themeMode)
   const workspaceMode = useStore((s) => s.workspaceMode)
   const tasks = useTaskStore((s) => s.tasks)
   const categories = useTaskStore((s) => s.categories)
@@ -363,17 +360,6 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       category: t('command.action'),
     },
     {
-      id: 'toggle-theme',
-      label: themeMode === 'dark' ? '???????' : '???????',
-      description: '??????????',
-      icon: Palette,
-      action: () => {
-        toggleThemeMode()
-        onClose()
-      },
-      category: t('command.interface'),
-    },
-    {
       id: 'quick-expense-template',
       label: '??????',
       description: '??????? ?? 36',
@@ -423,9 +409,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
           userName: state.userName,
           accentColor: state.accentColor,
           themeMode: state.themeMode,
-          glassOpacity: state.glassOpacity,
           glowCursor: state.glowCursor,
-          visualNoise: state.visualNoise,
           visualParticles: state.visualParticles,
           dailyPomodoroGoal: state.dailyPomodoroGoal,
           pomodoroWorkDuration: state.pomodoroWorkDuration,
@@ -530,7 +514,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
       action: () => onNavigate('settings'),
       category: t('command.help'),
     },
-  ], [pages, pageTitles, onNavigate, onClose, addNote, toggleSidebar, sidebarCollapsed, clearCompletedTodos, completedCount, t, tWith, themeMode, toggleThemeMode])
+  ], [pages, pageTitles, onNavigate, onClose, addNote, toggleSidebar, sidebarCollapsed, clearCompletedTodos, completedCount, t, tWith])
 
   const dynamicCommands: Command[] = useMemo(() => {
     const macroCommands = buildCommandMacroSuggestions(query).map((macro) => ({
@@ -674,7 +658,7 @@ export default function CommandPalette({ isOpen, onClose, pages, pageTitles, onN
         {activeQuote && (
           <div className="px-4 py-3 border-b border-border bg-primary/5">
             <p className="text-sm text-text italic leading-relaxed">"{activeQuote.text}"</p>
-            <p className="text-xs text-text-muted mt-1.5 text-right">ù {activeQuote.author}</p>
+            <p className="text-xs text-text-muted mt-1.5 text-right">? {activeQuote.author}</p>
           </div>
         )}
 

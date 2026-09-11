@@ -3,6 +3,7 @@ import { Plus, Sparkles, X } from 'lucide-react'
 import type { HabitSchedule } from '../../store'
 import { IconSelector, ColorSelector } from './HabitSelectors'
 import { HabitScheduleSelector } from './HabitScheduleSelector'
+import { GlassCard } from '../common/GlassSurface'
 
 interface HabitFormProps {
   title: string
@@ -36,7 +37,7 @@ export function HabitForm({
   onClose,
 }: HabitFormProps) {
   return (
-    <div className="overflow-visible rounded-[28px] border border-border bg-surface/85 shadow-2xl shadow-black/20 backdrop-blur-xl">
+    <GlassCard borderRadius={28} className="dashboard-panel overflow-visible">
       <div
         className="border-b border-border/70 p-5"
         style={{ background: `linear-gradient(135deg, ${color}22, transparent 62%)` }}
@@ -97,6 +98,6 @@ export function HabitForm({
           {submitLabel}
         </button>
       </div>
-    </div>
+    </GlassCard>
   )
 }

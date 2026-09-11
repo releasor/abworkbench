@@ -94,35 +94,35 @@ export default function PomodoroStats({ sessions, dailyGoal }: PomodoroStatsProp
       </div>
 
       <div className="grid grid-cols-1 gap-4 lg:grid-cols-2">
-        <div className="glass-card p-4">
+        <div className="interactive-glass rounded-2xl p-4">
           <div className="mb-4 flex items-center gap-2">
             <BarChart3 size={16} className="text-primary" />
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">近 7 天专注</h3>
+            <h3 className="text-sm font-semibold text-text">近 7 天专注</h3>
           </div>
           <div className="flex h-32 items-end gap-2">
             {stats.weekData.map((day) => (
               <div key={day.key} className="flex flex-1 flex-col items-center gap-1">
                 <div className="flex w-full flex-col items-center">
-                  <span className="mb-1 text-[10px] text-gray-400">{day.count > 0 ? day.count : ''}</span>
+                  <span className="mb-1 text-[10px] text-text-muted">{day.count > 0 ? day.count : ''}</span>
                   <div
                     className="w-full rounded-t-lg bg-gradient-to-t from-primary to-primary-light transition-all duration-300"
                     style={{ height: `${Math.max((day.count / stats.maxWeekCount) * 80, day.count > 0 ? 8 : 0)}px` }}
                   />
                 </div>
-                <span className="text-[10px] text-gray-400">{day.label}</span>
+                <span className="text-[10px] text-text-muted">{day.label}</span>
               </div>
             ))}
           </div>
-          <div className="mt-2 flex justify-between text-[10px] text-gray-400">
+          <div className="mt-2 flex justify-between text-[10px] text-text-muted">
             <span>目标: {dailyGoal}/天</span>
             <span>本周: {stats.weekData.reduce((s, d) => s + d.count, 0)} 个</span>
           </div>
         </div>
 
-        <div className="glass-card p-4">
+        <div className="interactive-glass rounded-2xl p-4">
           <div className="mb-4 flex items-center gap-2">
             <Flame size={16} className="text-orange-400" />
-            <h3 className="text-sm font-semibold text-gray-700 dark:text-gray-300">近 30 天热力图</h3>
+            <h3 className="text-sm font-semibold text-text">近 30 天热力图</h3>
           </div>
           <div className="grid grid-cols-10 gap-1">
             {stats.monthData.map((day) => {
@@ -141,7 +141,7 @@ export default function PomodoroStats({ sessions, dailyGoal }: PomodoroStatsProp
               )
             })}
           </div>
-          <div className="mt-2 flex items-center gap-2 text-[10px] text-gray-400">
+          <div className="mt-2 flex items-center gap-2 text-[10px] text-text-muted">
             <span>少</span>
             <div className="flex gap-0.5">
               {[0, 0.25, 0.5, 0.75, 1].map((v) => (
@@ -166,10 +166,10 @@ export default function PomodoroStats({ sessions, dailyGoal }: PomodoroStatsProp
 
 function StatCard({ icon, label, value, sub }: { icon: React.ReactNode; label: string; value: string; sub: string }) {
   return (
-    <div className="glass-card p-3">
-      <div className="flex items-center gap-2 mb-1">{icon}<span className="text-xs text-gray-500">{label}</span></div>
-      <div className="text-lg font-bold text-gray-800 dark:text-gray-200">{value}</div>
-      {sub && <div className="text-[10px] text-gray-400 mt-0.5">{sub}</div>}
+    <div className="interactive-glass rounded-2xl p-3">
+      <div className="mb-1 flex items-center gap-2">{icon}<span className="text-xs text-text-muted">{label}</span></div>
+      <div className="text-lg font-bold text-text">{value}</div>
+      {sub && <div className="mt-0.5 text-[10px] text-text-muted">{sub}</div>}
     </div>
   )
 }

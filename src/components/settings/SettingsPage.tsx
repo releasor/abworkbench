@@ -39,6 +39,9 @@ import LauncherSettings from './LauncherSettings'
 import ReaderSettings from './ReaderSettings'
 import ShortcutRecorder from './ShortcutRecorder'
 import PanelSwitch from '../common/PanelSwitch'
+import SettingsGlassCard from './SettingsGlassCard'
+import BorderGlow from '../common/BorderGlow/BorderGlow'
+import { useBorderGlowSurfaceColor, useBorderGlowTheme } from '../common/BorderGlow/borderGlowTheme'
 import { smoothNavigate } from '../../utils/smoothNavigate'
 import { SHORTCUT_BY_ID, SHORTCUT_GROUPS, useShortcutStore } from '../../shortcuts'
 
@@ -76,6 +79,8 @@ const SETTINGS_TABS = [
 type SettingsTabId = (typeof SETTINGS_TABS)[number]['id']
 
 export default function SettingsPage() {
+  const glowTheme = useBorderGlowTheme()
+  const surfaceColor = useBorderGlowSurfaceColor()
   const todos = useStore((s) => s.todos)
   const notes = useStore((s) => s.notes)
   const pomodoroSessions = useStore((s) => s.pomodoroSessions)
@@ -84,18 +89,12 @@ export default function SettingsPage() {
   const setUserName = useStore((s) => s.setUserName)
   const accentColor = useStore((s) => s.accentColor)
   const setAccentColor = useStore((s) => s.setAccentColor)
-  const themeMode = useStore((s) => s.themeMode)
-  const setThemeMode = useStore((s) => s.setThemeMode)
   const workspaceMode = useStore((s) => s.workspaceMode)
   const setWorkspaceMode = useStore((s) => s.setWorkspaceMode)
-  const visualNoise = useStore((s) => s.visualNoise)
-  const setVisualNoise = useStore((s) => s.setVisualNoise)
   const visualParticles = useStore((s) => s.visualParticles)
   const setVisualParticles = useStore((s) => s.setVisualParticles)
   const glowCursor = useStore((s) => s.glowCursor)
   const setGlowCursor = useStore((s) => s.setGlowCursor)
-  const glassOpacity = useStore((s) => s.glassOpacity)
-  const setGlassOpacity = useStore((s) => s.setGlassOpacity)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
   const setDailyPomodoroGoal = useStore((s) => s.setDailyPomodoroGoal)
   const pomodoroWorkDuration = useStore((s) => s.pomodoroWorkDuration)
@@ -201,11 +200,8 @@ export default function SettingsPage() {
       habits,
       userName,
       accentColor,
-      themeMode,
       workspaceMode,
-      glassOpacity,
       glowCursor,
-      visualNoise,
       visualParticles,
       dailyPomodoroGoal,
       pomodoroWorkDuration,
@@ -249,11 +245,8 @@ export default function SettingsPage() {
           if (Array.isArray(d.habits)) patch.habits = d.habits
           if (typeof d.userName === 'string') patch.userName = d.userName
           if (typeof d.accentColor === 'string') patch.accentColor = d.accentColor
-          if (d.themeMode === 'dark' || d.themeMode === 'light' || d.themeMode === 'system') patch.themeMode = d.themeMode
           if (d.workspaceMode === 'focus' || d.workspaceMode === 'deep' || d.workspaceMode === 'night' || d.workspaceMode === 'minimal' || d.workspaceMode === 'dashboard') patch.workspaceMode = d.workspaceMode
-          if (typeof d.glassOpacity === 'number' && d.glassOpacity >= 40 && d.glassOpacity <= 100) patch.glassOpacity = Math.round(d.glassOpacity)
           if (typeof d.glowCursor === 'boolean') patch.glowCursor = d.glowCursor
-          if (typeof d.visualNoise === 'boolean') patch.visualNoise = d.visualNoise
           if (typeof d.visualParticles === 'boolean') patch.visualParticles = d.visualParticles
           if (typeof d.dailyPomodoroGoal === 'number' && d.dailyPomodoroGoal > 0) patch.dailyPomodoroGoal = d.dailyPomodoroGoal
           if (typeof d.pomodoroWorkDuration === 'number' && d.pomodoroWorkDuration > 0) {
@@ -368,41 +361,46 @@ export default function SettingsPage() {
 
   return (
     <div className="space-y-6 animate-fade-in">
-      {/* Hero Banner */}
-      <section className="relative overflow-hidden rounded-[36px] border border-border bg-surface/85 p-6 shadow-2xl shadow-black/10 backdrop-blur-xl">
-        <div className="pointer-events-none absolute -right-20 -top-24 h-72 w-72 rounded-full bg-primary/20 blur-3xl" />
-        <div className="pointer-events-none absolute -bottom-28 left-1/3 h-64 w-64 rounded-full bg-cyan-500/10 blur-3xl" />
-        <div className="relative flex flex-col gap-6 lg:flex-row lg:items-center lg:justify-between">
-          <div>
-            <div className="mb-3 inline-flex items-center gap-2 rounded-full border border-primary/20 bg-primary/10 px-3 py-1 text-xs font-semibold text-primary">
-              <SlidersHorizontal size={14} />
-              设置中枢
+      {/* Hero: match dashboard overview glass */}
+      <BorderGlow
+        {...glowTheme}
+        borderRadius={34}
+        backgroundColor={surfaceColor}
+        glowMaskColor={surfaceColor}
+        className="w-full min-w-0 border-glow-card--glass"
+        innerClassName="dashboard-hero relative overflow-hidden p-4 md:p-5"
+      >
+        <div className="relative z-[2] flex flex-col gap-4 lg:flex-row lg:items-center lg:justify-between">
+          <div className="max-w-2xl min-w-0 flex-1">
+            <div className="home-kicker mb-2 inline-flex items-center gap-2">
+              <SlidersHorizontal size={12} />
+              <span>设置中枢</span>
             </div>
-            <h2 className="text-3xl font-black tracking-tight text-text">把工作台调成你的节奏</h2>
+            <h2 className="text-3xl font-black tracking-tight text-text md:text-4xl">把工作台调成你的节奏</h2>
             <p className="mt-2 text-sm text-text-muted">管理外观、专注参数、天气定位、数据备份与快捷键。</p>
           </div>
-          <div className="grid grid-cols-3 gap-2 sm:min-w-[420px]">
-            <div className="rounded-2xl border border-primary/20 bg-primary/10 p-3">
-              <Sparkles size={16} className="mb-2 text-primary" />
-              <div className="text-lg font-black text-text">{themeMode === 'dark' ? '深色' : themeMode === 'light' ? '浅色' : '跟随系统'}</div>
-              <div className="text-[11px] text-text-muted">当前主题</div>
-            </div>
-            <div className="rounded-2xl border border-success/20 bg-success/10 p-3">
-              <Timer size={16} className="mb-2 text-success" />
+          <div className="grid grid-cols-2 gap-2 sm:min-w-[280px]">
+            <div className="interactive-glass dashboard-quick-stat flex flex-col gap-1 rounded-2xl p-3 text-left">
+              <Timer size={16} className="text-success" />
               <div className="text-lg font-black text-text">{dailyPomodoroGoal}</div>
               <div className="text-[11px] text-text-muted">每日目标</div>
             </div>
-            <div className="rounded-2xl border border-cyan-500/20 bg-cyan-500/10 p-3">
-              <HardDrive size={16} className="mb-2 text-cyan-400" />
+            <div className="interactive-glass dashboard-quick-stat flex flex-col gap-1 rounded-2xl p-3 text-left">
+              <HardDrive size={16} className="text-cyan-400" />
               <div className="text-lg font-black text-text">{stats.storageKB}KB</div>
               <div className="text-[11px] text-text-muted">本地数据</div>
             </div>
           </div>
         </div>
-      </section>
+      </BorderGlow>
 
-      {/* Tab Navigation */}
-      <div className="flex gap-1 rounded-2xl border border-border bg-surface/80 p-1.5" role="tablist" aria-label="设置分类">
+      {/* Tab Navigation — liquid glass chips like dashboard */}
+      <SettingsGlassCard
+        borderRadius={22}
+        className="settings-glass-tablist flex p-1.5"
+        role="tablist"
+        aria-label="设置分类"
+      >
         {SETTINGS_TABS.map((tab) => {
           const Icon = tab.icon
           const isActive = activeTab === tab.id
@@ -413,10 +411,8 @@ export default function SettingsPage() {
               aria-selected={isActive}
               aria-controls={`tab-panel-${tab.id}`}
               onClick={() => smoothNavigate(() => setActiveTab(tab.id))}
-              className={`segment-tab flex flex-1 items-center justify-center gap-2 rounded-xl px-3 py-2.5 text-sm font-semibold ${
-                isActive
-                  ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                  : 'text-text-muted hover:bg-surface-lighter hover:text-text'
+              className={`settings-glass-tab liquid-glass-chip flex flex-1 items-center justify-center gap-2 px-3 py-2.5 text-sm font-semibold ${
+                isActive ? 'settings-glass-tab--active' : ''
               }`}
             >
               <Icon size={16} />
@@ -424,14 +420,14 @@ export default function SettingsPage() {
             </button>
           )
         })}
-      </div>
+      </SettingsGlassCard>
 
       {/* Tab panels */}
       <PanelSwitch panelKey={activeTab} className="space-y-6">
       {activeTab === 'general' && (
         <div className="space-y-6">
           {/* User Profile */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="flex items-center gap-2 mb-4">
               <Target size={20} className="text-primary" />
               <h2 className="text-lg font-semibold text-text">{t('settings.personal')}</h2>
@@ -444,44 +440,38 @@ export default function SettingsPage() {
                   value={userName}
                   onChange={(e) => setUserName(e.target.value)}
                   placeholder={t('settings.nicknamePlaceholder')}
-                  className="h-12 w-full rounded-2xl border border-border bg-background/60 px-4 text-sm text-text outline-none transition-all placeholder:text-text-muted focus:border-primary/50 focus:ring-4 focus:ring-primary/10"
+                  className="settings-glass-input h-12 w-full px-4 text-sm text-text outline-none transition-all placeholder:text-text-muted"
                 />
                 <p className="text-xs text-text-muted mt-1">{t('settings.nicknameDesc')}</p>
               </div>
             </div>
-          </div>
+          </SettingsGlassCard>
 
           {/* Weather Settings */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="flex items-center gap-2 mb-4">
               <MapPin size={20} className="text-primary" />
               <h2 className="text-lg font-semibold text-text">{t('settings.weatherSettings')}</h2>
             </div>
-            <div className="flex items-center justify-between rounded-2xl border border-border bg-background/50 p-4">
+            <div className="interactive-glass settings-glass-row flex items-center justify-between rounded-2xl p-4">
               <div>
                 <label className="text-sm text-text">{t('settings.autoLocate')}</label>
                 <p className="text-xs text-text-muted mt-0.5">{t('settings.autoLocateDesc')}</p>
               </div>
               <button
                 onClick={() => setWeatherAutoLocate(!weatherAutoLocate)}
-                className={`relative h-8 w-14 rounded-full transition-colors ${
-                  weatherAutoLocate ? 'bg-primary shadow-lg shadow-primary/20' : 'bg-surface-lighter'
-                }`}
+                className="liquid-glass-toggle"
                 role="switch"
                 aria-checked={weatherAutoLocate}
                 aria-label={t('settings.autoLocate')}
               >
-                <div
-                  className={`absolute top-1 h-6 w-6 rounded-full bg-white shadow transition-transform ${
-                    weatherAutoLocate ? 'translate-x-[30px]' : 'translate-x-1'
-                  }`}
-                />
+                <span className="liquid-glass-toggle__thumb" />
               </button>
             </div>
-          </div>
+          </SettingsGlassCard>
 
           {/* About */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="mb-3 flex items-center gap-2">
               <Info size={20} className="text-cyan-400" />
               <h2 className="text-lg font-semibold text-text">{t('settings.about')}</h2>
@@ -491,7 +481,7 @@ export default function SettingsPage() {
             </p>
             <div className="flex flex-wrap gap-2 mt-3">
               {FEATURE_LIST.map((feature) => (
-                <span key={feature} className="text-[10px] px-2 py-1 rounded-full bg-surface-lighter text-text-muted">
+                <span key={feature} className="interactive-glass dashboard-chip px-2 py-1 text-[10px] text-text-muted">
                   {feature}
                 </span>
               ))}
@@ -499,46 +489,15 @@ export default function SettingsPage() {
             <div className="mt-3 text-xs text-text-muted">
               {tWith('settings.version', '1.0.0')} · React 19 + TypeScript + Tailwind CSS v4 + Zustand
             </div>
-          </div>
+          </SettingsGlassCard>
         </div>
       )}
 
       {/* Tab: Appearance */}
       {activeTab === 'appearance' && (
         <div className="space-y-6">
-          {/* Appearance Mode */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
-            <div className="mb-4 flex items-center gap-2">
-              <Sparkles size={20} className="text-primary" />
-              <h2 className="text-lg font-semibold text-text">外观模式</h2>
-            </div>
-            <div className="grid grid-cols-1 gap-3 sm:grid-cols-2">
-              {[
-                { mode: 'dark' as const, title: '深色模式', desc: '默认黑色工作台，适合长时间专注。' },
-                { mode: 'light' as const, title: '浅色模式', desc: '更明亮的阅读和整理环境。' },
-              ].map((option) => (
-                <button
-                  key={option.mode}
-                  onClick={() => setThemeMode(option.mode)}
-                  aria-pressed={themeMode === option.mode}
-                  className={`rounded-2xl border p-4 text-left transition-all ${
-                    themeMode === option.mode
-                      ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
-                      : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
-                  }`}
-                >
-                  <div className="flex items-center justify-between">
-                    <span className="text-sm font-bold text-text">{option.title}</span>
-                    <span className={`h-3 w-3 rounded-full ${themeMode === option.mode ? 'bg-primary' : 'bg-text-muted/30'}`} />
-                  </div>
-                  <p className="mt-1 text-xs text-text-muted">{option.desc}</p>
-                </button>
-              ))}
-            </div>
-          </div>
-
           {/* Workspace Mode */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="mb-4 flex items-center gap-2">
               <Palette size={20} className="text-primary" />
               <h2 className="text-lg font-semibold text-text">工作台个性化</h2>
@@ -551,8 +510,8 @@ export default function SettingsPage() {
                   aria-pressed={workspaceMode === option.mode}
                   className={`rounded-2xl border p-4 text-left transition-all ${
                     workspaceMode === option.mode
-                      ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
-                      : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
+                      ? 'interactive-glass settings-glass-row border-primary/40 bg-primary/15 shadow-lg shadow-primary/10'
+                      : 'interactive-glass settings-glass-row hover:border-primary/30'
                   }`}
                 >
                   <div className="flex items-center justify-between">
@@ -563,76 +522,26 @@ export default function SettingsPage() {
                 </button>
               ))}
             </div>
-          </div>
-
-          {/* Window glass opacity */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
-            <div className="mb-4 flex items-center gap-2">
-              <Sparkles size={20} className="text-primary" />
-              <h2 className="text-lg font-semibold text-text">窗口玻璃透明度</h2>
-            </div>
-            <p className="mb-4 text-xs text-text-muted">
-              调节主窗口外壳的磨砂不透明度。数值越高越不透、越接近实色；越低越能透出桌面。
-            </p>
-            <div className="flex items-center gap-4">
-              <span className="w-10 shrink-0 text-xs text-text-muted">透</span>
-              <input
-                type="range"
-                min={40}
-                max={100}
-                step={1}
-                value={glassOpacity}
-                onChange={(e) => setGlassOpacity(Number(e.target.value))}
-                aria-label="窗口玻璃不透明度"
-                className="h-2 w-full flex-1 cursor-pointer appearance-none rounded-full bg-surface-lighter accent-[var(--color-primary)]"
-              />
-              <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums text-text">{glassOpacity}%</span>
-            </div>
-            <div className="mt-3 flex justify-end">
-              <button
-                type="button"
-                onClick={() => setGlassOpacity(90)}
-                className="rounded-xl px-3 py-1.5 text-xs font-semibold text-text-muted transition hover:bg-surface-lighter hover:text-text"
-              >
-                恢复默认 90%
-              </button>
-            </div>
-          </div>
+          </SettingsGlassCard>
 
           {/* Cinematic FX */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="mb-4 flex items-center gap-2">
               <Sparkles size={20} className="text-primary" />
-              <h2 className="text-lg font-semibold text-text">电影感视觉</h2>
+              <h2 className="text-lg font-semibold text-text">氛围特效</h2>
             </div>
             <p className="mb-4 text-xs text-text-muted">
-              参考 Mineradio 的玻璃质感与氛围层；可按机器性能单独关闭噪点或粒子。系统「减少动态效果」开启时会自动停用。
+              轻量氛围层；可按机器性能关闭粒子或光标光迹。系统「减少动态效果」开启时会自动停用。
             </p>
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <button
-                type="button"
-                onClick={() => setVisualNoise(!visualNoise)}
-                aria-pressed={visualNoise}
-                className={`rounded-2xl border p-4 text-left transition-all ${
-                  visualNoise
-                    ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
-                    : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
-                }`}
-              >
-                <div className="flex items-center justify-between">
-                  <span className="text-sm font-bold text-text">胶片噪点</span>
-                  <span className={`h-3 w-3 rounded-full ${visualNoise ? 'bg-primary' : 'bg-text-muted/30'}`} />
-                </div>
-                <p className="mt-1 text-xs text-text-muted">全屏轻噪点，提升暗场层次</p>
-              </button>
               <button
                 type="button"
                 onClick={() => setVisualParticles(!visualParticles)}
                 aria-pressed={visualParticles}
                 className={`rounded-2xl border p-4 text-left transition-all ${
                   visualParticles
-                    ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
-                    : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
+                    ? 'interactive-glass settings-glass-row border-primary/40 bg-primary/15 shadow-lg shadow-primary/10'
+                    : 'interactive-glass settings-glass-row hover:border-primary/30'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -647,8 +556,8 @@ export default function SettingsPage() {
                 aria-pressed={glowCursor}
                 className={`rounded-2xl border p-4 text-left transition-all md:col-span-2 ${
                   glowCursor
-                    ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
-                    : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter/60'
+                    ? 'interactive-glass settings-glass-row border-primary/40 bg-primary/15 shadow-lg shadow-primary/10'
+                    : 'interactive-glass settings-glass-row hover:border-primary/30'
                 }`}
               >
                 <div className="flex items-center justify-between">
@@ -658,10 +567,10 @@ export default function SettingsPage() {
                 <p className="mt-1 text-xs text-text-muted">跟随指针的发光拖尾（WebGL，可关以省 GPU）</p>
               </button>
             </div>
-          </div>
+          </SettingsGlassCard>
 
           {/* Accent Color */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="flex items-center gap-2 mb-4">
               <Palette size={20} className="text-primary" />
               <h2 className="text-lg font-semibold text-text">{t('settings.themeColor')}</h2>
@@ -675,8 +584,8 @@ export default function SettingsPage() {
                   aria-label={`主题色：${item.name}`}
                   className={`flex items-center gap-2 rounded-2xl border px-3 py-3 transition-all ${
                     accentColor === item.color
-                      ? 'border-primary/50 bg-primary/10 shadow-lg shadow-primary/10'
-                      : 'border-border bg-background/50 hover:border-primary/25 hover:bg-surface-lighter'
+                      ? 'interactive-glass settings-glass-row border-primary/40 bg-primary/15 shadow-lg shadow-primary/10'
+                      : 'interactive-glass settings-glass-row hover:border-primary/30'
                   }`}
                 >
                   <div
@@ -686,7 +595,7 @@ export default function SettingsPage() {
                   <span className="text-sm text-text">{item.name}</span>
                 </button>
               ))}
-              <label className="flex cursor-pointer items-center gap-2 rounded-2xl border border-border bg-background/50 px-3 py-3 transition-all hover:border-primary/25 hover:bg-surface-lighter">
+              <label className="interactive-glass settings-glass-row flex cursor-pointer items-center gap-2 rounded-2xl px-3 py-3 transition-all">
                 <input
                   type="color"
                   value={accentColor}
@@ -699,14 +608,14 @@ export default function SettingsPage() {
               {accentColor !== '#3b82f6' && (
                 <button
                   onClick={() => setAccentColor('#3b82f6')}
-                  className="flex items-center gap-2 rounded-2xl border border-border bg-background/50 px-3 py-3 text-text-muted transition-all hover:border-primary/25 hover:bg-surface-lighter hover:text-text"
+                  className="interactive-glass settings-glass-row flex items-center gap-2 rounded-2xl px-3 py-3 text-text-muted transition-all hover:text-text"
                 >
                   <RotateCcw size={14} />
                   <span className="text-sm">{t('settings.resetDefault')}</span>
                 </button>
               )}
             </div>
-          </div>
+          </SettingsGlassCard>
         </div>
       )}
 
@@ -714,7 +623,7 @@ export default function SettingsPage() {
       {activeTab === 'pomodoro' && (
         <div className="space-y-6">
           {/* Pomodoro Goal */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="flex items-center gap-2 mb-4">
               <Timer size={20} className="text-primary" />
               <h2 className="text-lg font-semibold text-text">{t('settings.pomodoroGoal')}</h2>
@@ -729,10 +638,10 @@ export default function SettingsPage() {
                       onClick={() => setDailyPomodoroGoal(goal)}
                       aria-pressed={dailyPomodoroGoal === goal}
                       aria-label={`每日目标 ${goal} 个番茄钟`}
-                      className={`h-12 rounded-2xl text-sm font-black transition-all ${
+                      className={`interactive-glass dashboard-chip h-12 text-sm font-black transition-all ${
                         dailyPomodoroGoal === goal
-                          ? 'bg-primary text-white shadow-lg shadow-primary/25'
-                          : 'bg-background/60 text-text-muted ring-1 ring-border hover:text-text hover:ring-primary/30'
+                          ? 'bg-primary/85 text-white shadow-lg shadow-primary/25'
+                          : 'text-text-muted hover:text-text'
                       }`}
                     >
                       {goal}
@@ -742,10 +651,10 @@ export default function SettingsPage() {
                 <p className="text-xs text-text-muted mt-2">{tWith('settings.currentGoal', dailyPomodoroGoal)}</p>
               </div>
             </div>
-          </div>
+          </SettingsGlassCard>
 
           {/* Pomodoro Durations */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="flex items-center gap-2 mb-4">
               <Timer size={20} className="text-success" />
               <h2 className="text-lg font-semibold text-text">{t('settings.pomodoroDuration')}</h2>
@@ -754,7 +663,7 @@ export default function SettingsPage() {
               {TIMER_DURATION_KEYS.map((item) => {
                 const value = item.key === 'work' ? pomodoroWorkDuration : item.key === 'shortBreak' ? pomodoroShortBreakDuration : pomodoroLongBreakDuration
                 return (
-                <div key={item.key} className="rounded-2xl border border-border bg-background/50 p-4">
+                <div key={item.key} className="interactive-glass settings-glass-row rounded-2xl p-4">
                   <div className="mb-3 flex items-center justify-between">
                     <label className="text-sm font-semibold text-text">{t(item.labelKey)}</label>
                     <span className={`text-xs font-bold ${item.color}`}>{value} {t('settings.minutes')}</span>
@@ -772,10 +681,10 @@ export default function SettingsPage() {
                         }}
                         aria-pressed={value === min}
                         aria-label={`${t(item.labelKey)} ${min} 分钟`}
-                        className={`rounded-xl px-3 py-2 text-xs font-bold transition-all ${
+                        className={`interactive-glass dashboard-chip rounded-xl px-3 py-2 text-xs font-bold transition-all ${
                           value === min
-                            ? 'bg-primary text-white shadow-lg shadow-primary/20'
-                            : 'bg-surface-lighter text-text-muted hover:text-text hover:bg-surface-lighter/80'
+                            ? 'bg-primary/85 text-white shadow-lg shadow-primary/20'
+                            : 'text-text-muted hover:text-text'
                         }`}
                       >
                         {min}
@@ -797,7 +706,7 @@ export default function SettingsPage() {
                 )}
               </div>
             </div>
-          </div>
+          </SettingsGlassCard>
         </div>
       )}
 
@@ -805,7 +714,7 @@ export default function SettingsPage() {
       {activeTab === 'data' && (
         <div className="space-y-6">
           {/* Statistics */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="flex items-center gap-2 mb-4">
               <BarChart3 size={20} className="text-primary" />
               <h2 className="text-lg font-semibold text-text">{t('settings.dataStats')}</h2>
@@ -816,7 +725,7 @@ export default function SettingsPage() {
                 const pct = 'storagePct' in stat ? stat.storagePct : undefined
                 const barColor = pct !== undefined ? (pct >= 80 ? 'var(--color-danger)' : pct >= 50 ? 'var(--color-warning)' : 'var(--color-success)') : ''
                 return (
-                  <div key={stat.label} className={`rounded-2xl border border-border bg-background/50 p-4 ${pct !== undefined ? 'space-y-2 lg:col-span-2' : ''}`}>
+                  <div key={stat.label} className={`interactive-glass settings-glass-row rounded-2xl p-4 ${pct !== undefined ? 'space-y-2 lg:col-span-2' : ''}`}>
                     <div className="flex items-center justify-between">
                       <div className="flex items-center gap-3">
                         <Icon size={18} className={stat.color} />
@@ -867,23 +776,23 @@ export default function SettingsPage() {
                 </div>
               )}
             </div>
-          </div>
+          </SettingsGlassCard>
 
           {/* Data Management */}
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="flex items-center gap-2 mb-4">
               <ShieldCheck size={20} className="text-success" />
               <h2 className="text-lg font-semibold text-text">{t('settings.dataManagement')}</h2>
             </div>
 
-            <div className="mb-4 rounded-2xl border border-success/20 bg-success/10 p-4 text-xs text-text-muted">
+            <div className="interactive-glass settings-glass-row mb-4 rounded-2xl p-4 text-xs text-text-muted">
               备份文件只保存在本地导出的 JSON 中，导入前会校验格式；清空数据不可撤销。
             </div>
 
-            <div className="mb-4 rounded-[26px] border border-cyan-500/20 bg-cyan-500/5 p-4">
+            <div className="interactive-glass settings-glass-row mb-4 rounded-[26px] p-4">
               <div className="mb-3 flex items-center justify-between gap-3">
                 <div className="flex items-center gap-3">
-                  <div className="rounded-2xl bg-cyan-500/15 p-2 text-cyan-300">
+                  <div className="interactive-glass dashboard-chip rounded-2xl p-2 text-cyan-300">
                     <HardDrive size={18} />
                   </div>
                   <div>
@@ -891,22 +800,22 @@ export default function SettingsPage() {
                     <p className="text-xs text-text-muted">本地数据大小、备份状态和异常数据检测。</p>
                   </div>
                 </div>
-                <span className="rounded-full bg-background/60 px-3 py-1 text-xs text-text-muted">{dataHealth.totalSizeLabel}</span>
+                <span className="interactive-glass dashboard-chip px-3 py-1 text-xs text-text-muted">{dataHealth.totalSizeLabel}</span>
               </div>
               <div className="grid grid-cols-2 gap-3 lg:grid-cols-4">
-                <div className="rounded-2xl border border-border bg-background/45 p-3">
+                <div className="interactive-glass settings-glass-row rounded-2xl p-3">
                   <div className="text-xs text-text-muted">备份状态</div>
                   <div className={dataHealth.backupStatus === 'ok' ? 'mt-1 text-sm font-bold text-success' : 'mt-1 text-sm font-bold text-warning'}>
                     {dataHealth.backupStatus === 'ok' ? '正常' : '暂无备份'}
                   </div>
                   <div className="mt-1 truncate text-[10px] text-text-muted">{dataHealth.lastBackupLabel}</div>
                 </div>
-                <div className="rounded-2xl border border-border bg-background/45 p-3">
+                <div className="interactive-glass settings-glass-row rounded-2xl p-3">
                   <div className="text-xs text-text-muted">重复任务</div>
                   <div className="mt-1 text-sm font-bold text-text">{dataHealth.duplicateTaskCount} 组</div>
                   <div className="mt-1 text-[10px] text-text-muted">按标题检测</div>
                 </div>
-                <div className="rounded-2xl border border-border bg-background/45 p-3">
+                <div className="interactive-glass settings-glass-row rounded-2xl p-3">
                   <div className="text-xs text-text-muted">空笔记</div>
                   <div className="mt-1 text-sm font-bold text-text">{dataHealth.emptyNoteCount} 篇</div>
                   <button
@@ -917,7 +826,7 @@ export default function SettingsPage() {
                     清理
                   </button>
                 </div>
-                <div className="rounded-2xl border border-border bg-background/45 p-3">
+                <div className="interactive-glass settings-glass-row rounded-2xl p-3">
                   <div className="text-xs text-text-muted">异常项</div>
                   <div className="mt-1 text-sm font-bold text-text">{dataHealth.issues.length} 项</div>
                   <div className="mt-1 text-[10px] text-text-muted">建议定期检查</div>
@@ -926,7 +835,7 @@ export default function SettingsPage() {
               {dataHealth.issues.length > 0 && (
                 <div className="mt-3 space-y-2">
                   {dataHealth.issues.map((issue) => (
-                    <div key={issue.id} className="flex items-center justify-between gap-3 rounded-2xl border border-border bg-background/35 px-3 py-2 text-xs">
+                    <div key={issue.id} className="flex items-center justify-between gap-3 interactive-glass settings-glass-row rounded-2xl px-3 py-2 text-xs">
                       <span className={issue.severity === 'danger' ? 'text-danger' : issue.severity === 'warning' ? 'text-warning' : 'text-text'}>
                         {issue.title}
                       </span>
@@ -938,12 +847,12 @@ export default function SettingsPage() {
             </div>
 
             <div className="grid grid-cols-1 gap-3 md:grid-cols-2">
-              <button onClick={handleExport} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background/60 text-sm font-semibold text-text-muted transition-all hover:border-primary/30 hover:bg-surface-lighter hover:text-text">
+              <button onClick={handleExport} className="interactive-glass flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-text-muted transition-all hover:text-text">
                 <Download size={16} />
                 {t('settings.exportBackup')}
               </button>
 
-              <button onClick={() => fileInputRef.current?.click()} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background/60 text-sm font-semibold text-text-muted transition-all hover:border-primary/30 hover:bg-surface-lighter hover:text-text">
+              <button onClick={() => fileInputRef.current?.click()} className="interactive-glass flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-text-muted transition-all hover:text-text">
                 <Upload size={16} />
                 {t('settings.importBackup')}
               </button>
@@ -960,11 +869,11 @@ export default function SettingsPage() {
               </div>
 
               {/* Report exports */}
-              <button onClick={handleExportWeeklyReport} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background/60 text-sm font-semibold text-text-muted transition-all hover:border-primary/30 hover:bg-surface-lighter hover:text-text">
+              <button onClick={handleExportWeeklyReport} className="interactive-glass flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-text-muted transition-all hover:text-text">
                 <FileText size={16} />
                 导出周报
               </button>
-              <button onClick={handleExportMonthlyReport} className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl border border-border bg-background/60 text-sm font-semibold text-text-muted transition-all hover:border-primary/30 hover:bg-surface-lighter hover:text-text">
+              <button onClick={handleExportMonthlyReport} className="interactive-glass flex h-12 w-full items-center justify-center gap-2 rounded-2xl text-sm font-semibold text-text-muted transition-all hover:text-text">
                 <FileText size={16} />
                 导出月报
               </button>
@@ -972,21 +881,21 @@ export default function SettingsPage() {
               <div className="border-t border-border pt-3 md:col-span-2">
                 <button
                   onClick={() => setShowConfirmClear(true)}
-                  className="flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-danger/15 text-sm font-semibold text-danger transition-all hover:bg-danger/25"
+                  className="interactive-glass flex h-12 w-full items-center justify-center gap-2 rounded-2xl bg-danger/15 text-sm font-semibold text-danger transition-all hover:bg-danger/25"
                 >
                   <Trash2 size={16} />
                   {t('settings.clearAll')}
                 </button>
               </div>
             </div>
-          </div>
+          </SettingsGlassCard>
         </div>
       )}
 
       {/* Tab: Shortcuts */}
       {activeTab === 'shortcuts' && (
         <div className="space-y-6">
-          <div className="rounded-[30px] border border-border bg-surface/80 p-6 shadow-xl shadow-black/5">
+          <SettingsGlassCard className="dashboard-panel p-6">
             <div className="mb-4 flex flex-wrap items-center justify-between gap-3">
               <div className="flex items-center gap-2">
                 <Keyboard size={20} className="text-cyan-400" />
@@ -1010,7 +919,7 @@ export default function SettingsPage() {
             </div>
             <div className="grid grid-cols-1 gap-3 xl:grid-cols-2">
               {SHORTCUT_GROUPS.map((group) => (
-                <div key={group.label} className="rounded-2xl border border-border bg-background/50 p-3">
+                <div key={group.label} className="interactive-glass settings-glass-row rounded-2xl p-3">
                   <div className="mb-2 px-1 text-xs font-bold text-text">{group.label}</div>
                   {group.shortcuts.map((shortcut) => {
                     const value = getAccelerator(shortcut.id)
@@ -1022,7 +931,7 @@ export default function SettingsPage() {
                     return (
                       <div
                         key={shortcut.id}
-                        className="flex items-center justify-between gap-3 rounded-xl p-2 transition-colors hover:bg-surface-lighter/50"
+                        className="interactive-glass flex items-center justify-between gap-3 rounded-xl p-2 transition-colors"
                       >
                         <span className="text-sm text-text-muted">{shortcut.label}</span>
                         <ShortcutRecorder
@@ -1043,7 +952,7 @@ export default function SettingsPage() {
                 </div>
               ))}
             </div>
-          </div>
+          </SettingsGlassCard>
         </div>
       )}
 

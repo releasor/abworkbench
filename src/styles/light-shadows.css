@@ -64,7 +64,7 @@ html[data-theme='light'] {
  --shadow-chrome-hover: var(--shadow-soft-sm-hover), var(--shadow-soft-md-hover);
 }
 
-html[data-theme='light'] .wb-stage {
+html[data-theme='light'] .wb-page {
   --wb-ambient: var(--shadow-elevation-1);
   --wb-lift: var(--shadow-elevation-2);
 }
@@ -167,11 +167,11 @@ html[data-theme='light'] .header-notif-menu {
 }
 
 html[data-theme='light'] .note-list-item--active {
-  box-shadow: var(--shadow-primary-soft), var(--shadow-inset-highlight) !important;
+  box-shadow: inset 3px 0 0 var(--note-accent, var(--color-primary)) !important;
 }
 
 html[data-theme='light'] .note-list-item:hover:not(.note-list-item--active) {
- box-shadow: var(--shadow-inset-subtle) !important;
+  box-shadow: none !important;
 }
 
 html[data-theme='light'] .btn-primary:hover {
@@ -224,13 +224,13 @@ html[data-theme='light'] .dashboard-stat-grid {
 }
 
 /* Workbench panels — tile shadow, no ring */
-html[data-theme='light'] .wb-stage .wb-panel,
-html[data-theme='light'] .wb-stage .wb-panel--hero,
-html[data-theme='light'] .wb-stage .wb-project-card {
+html[data-theme='light'] .wb-page .wb-panel,
+html[data-theme='light'] .wb-page .wb-panel--hero,
+html[data-theme='light'] .wb-page .wb-project-card {
  box-shadow: var(--shadow-card-tile) !important;
 }
 
-html[data-theme='light'] .wb-content-scroll {
+html[data-theme='light'] .wb-page-list {
   padding-inline: 0;
   padding-block: 8px;
 }
@@ -239,7 +239,6 @@ html[data-theme='light'] .app-main-stage.page-stack:not(.app-main-stage--embed) 
   /* Match header chrome outer edges (same as dark): no extra side inset */
   padding-inline: 0 !important;
   overflow-x: clip;
-  overflow-y: auto;
 }
 
 html[data-theme='light'] .sidebar-glass,
@@ -252,7 +251,7 @@ html[data-theme='light'] .sidebar-stack:not(.sidebar-stack--animating) .sidebar-
 }
 
 html[data-theme='light'] .app-shell--float {
-  overflow: visible;
+  overflow: hidden;
 }
 
 html[data-theme='light'] .app-main-stage:not(.app-main-stage--embed)::before {

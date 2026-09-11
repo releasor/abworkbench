@@ -5,6 +5,7 @@ import type { WeekGridDay } from './habitUtils'
 import { getMonthGridDays } from './habitUtils'
 import { getEffectiveCheckIns } from './habitSchedule'
 import { WEEKDAY_SHORT_LABELS } from './habitConstants'
+import { GlassCard } from '../common/GlassSurface'
 
 interface WeekHabitGridProps {
   days: WeekGridDay[]
@@ -35,28 +36,29 @@ export function WeekHabitGrid({ days, dateSet, color, habit }: WeekHabitGridProp
         const count = getDayCount(habit, day.dateStr)
         const showCount = count > 1 || (habit?.schedule.mode !== 'once' && count > 0)
         return (
-          <div
+          <GlassCard
             key={day.dateStr}
+            borderRadius={16}
             className={clsx(
-              'relative min-h-[72px] rounded-2xl border p-2 transition-all duration-200',
+              'dashboard-panel relative min-h-[72px] p-2 transition-all duration-200',
               isCompleted
                 ? 'border-transparent shadow-lg'
                 : day.isToday
-                  ? 'border-primary/50 bg-primary/5'
-                  : 'border-border/70 bg-surface/55 hover:border-border',
+                  ? 'border-primary/50 bg-primary/10'
+                  : '',
             )}
-            style={isCompleted ? { background: `linear-gradient(145deg, ${color}, color-mix(in srgb, ${color} 58%, #050505))` } : {}}
+            style={isCompleted ? { background: `linear-gradient(145deg, ${color}, color-mix(in srgb, ${color} 58%, #050505))` } : undefined}
           >
-            <div className={clsx('text-[11px] font-medium', isCompleted ? 'text-white/80' : day.isToday ? 'text-primary' : 'text-text-muted')}>
+            <div className={clsx('text-[11px] font-medium', isCompleted ? 'text-white/80' : day.isToday ? 'text-primary' : 'text-text')}>
               {day.weekday}
             </div>
-            <div className={clsx('mt-2 text-lg font-semibold', isCompleted ? 'text-white' : 'text-text')}>
+            <div className={clsx('mt-2 font-numeric text-lg font-semibold tabular-nums', isCompleted ? 'text-white' : 'text-text')}>
               {day.day}
             </div>
-            <div className={clsx('absolute bottom-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 text-[11px]', isCompleted ? 'bg-white/20 text-white' : 'bg-surface-lighter text-text-muted')}>
+            <div className={clsx('absolute bottom-2 right-2 flex h-5 min-w-5 items-center justify-center rounded-full px-1 font-numeric text-[11px] tabular-nums', isCompleted ? 'bg-white/20 text-white' : 'bg-white/15 text-text')}>
               {showCount ? count : isCompleted ? '✓' : ''}
             </div>
-          </div>
+          </GlassCard>
         )
       })}
     </div>
@@ -65,10 +67,10 @@ export function WeekHabitGrid({ days, dateSet, color, habit }: WeekHabitGridProp
 
 export function MonthHabitCalendar({ year, month, dateSet, todayStr, color, habit }: MonthHabitCalendarProps) {
   return (
-    <div className="rounded-3xl border border-border/70 bg-background/40 p-3">
+    <div className="interactive-glass rounded-3xl p-3">
       <div className="mb-2 grid grid-cols-7 gap-1.5">
         {WEEKDAY_SHORT_LABELS.map((weekday) => (
-          <div key={weekday} className="py-1 text-center text-[11px] font-medium text-text-muted">{weekday}</div>
+          <div key={weekday} className="py-1 text-center text-[11px] font-medium text-text">{weekday}</div>
         ))}
       </div>
       <div className="grid grid-cols-7 gap-1.5">
@@ -87,13 +89,13 @@ export function MonthHabitCalendar({ year, month, dateSet, todayStr, color, habi
             <div
               key={`${day.dateStr}-${index}`}
               className={clsx(
-                'flex aspect-square items-center justify-center rounded-2xl border text-sm font-semibold transition-all duration-200',
+                'flex aspect-square items-center justify-center rounded-2xl border font-numeric text-sm font-semibold tabular-nums transition-all duration-200',
                 !day.isCurrentMonth && 'opacity-25',
                 isCompleted && day.isCurrentMonth
                   ? 'border-transparent text-white shadow-md'
                   : isToday
-                    ? 'bg-surface/80'
-                    : 'border-border/60 bg-surface/55 text-text-muted hover:bg-surface-lighter',
+                    ? 'bg-white/12'
+                    : 'interactive-glass border-transparent text-text',
               )}
               style={style}
               title={day.dateStr}

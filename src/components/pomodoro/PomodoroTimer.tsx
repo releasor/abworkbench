@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import { useState, useEffect, useCallback, useRef, useMemo, memo } from 'react'
 import { Play, Pause, RotateCcw, Coffee, Moon, Zap, Bell, BellOff, Volume2, History, Clock, SkipForward, FastForward, ChevronDown, Target, Flame, Gauge, CalendarDays, ListTodo } from 'lucide-react'
 import { useStore } from '../../store'
@@ -578,8 +578,9 @@ export default function PomodoroTimer() {
 
   return (
     <ErrorBoundary>
-    <div className="pomo-stage grid min-w-0 gap-5 xl:grid-cols-[minmax(0,1fr)_minmax(260px,320px)] animate-fade-in">
-      <section className="relative min-w-0 rounded-[38px] border border-border bg-surface/85 shadow-2xl shadow-black/25 backdrop-blur-xl">
+    <div className="pomo-stage flex min-w-0 flex-col gap-4 xl:gap-5 animate-fade-in">
+    <div className="grid min-w-0 items-stretch gap-4 xl:grid-cols-[minmax(0,1fr)_280px] xl:gap-5">
+      <section className="pomo-light-panel dashboard-panel relative flex min-h-0 min-w-0 flex-col overflow-hidden rounded-[38px]">
         <div className="pointer-events-none absolute inset-0 overflow-hidden rounded-[inherit]">
           <div className="absolute inset-0 bg-[radial-gradient(circle_at_18%_0%,rgba(59,130,246,0.22),transparent_36%),radial-gradient(circle_at_100%_18%,rgba(245,158,11,0.16),transparent_32%)]" />
         </div>
@@ -608,7 +609,7 @@ export default function PomodoroTimer() {
                       'pomo-btn pomo-mode-tab flex items-center gap-2 rounded-2xl border px-3 py-2 text-sm font-medium',
                       mode === m
                         ? 'pomo-mode-tab--active'
-                        : 'border-border bg-background/45 text-text-muted hover:border-primary/40 hover:text-text',
+                        : 'interactive-glass text-text-muted hover:text-text',
                     )}
                   >
                     <Icon size={16} />
@@ -617,7 +618,7 @@ export default function PomodoroTimer() {
                     {count > 0 && (
                       <span className={clsx(
                         'rounded-full px-1.5 py-0.5 text-[9px]',
-                        mode === m ? 'bg-primary/15' : 'bg-surface-lighter',
+                        mode === m ? 'bg-primary/15' : 'bg-white/10',
                       )}
                       >
                         {count}
@@ -630,7 +631,7 @@ export default function PomodoroTimer() {
           </div>
 
           <PanelSwitch panelKey={mode} className="pomo-mode-panel min-w-0">
-          <div className="grid min-w-0 items-start gap-5 lg:grid-cols-[minmax(140px,200px)_minmax(0,1fr)] 2xl:grid-cols-[minmax(160px,220px)_minmax(0,1fr)_minmax(200px,260px)]">
+          <div className="grid min-w-0 items-stretch gap-5 lg:grid-cols-[minmax(0,1fr)_minmax(0,1.6fr)] 2xl:grid-cols-[minmax(0,1fr)_minmax(0,1.5fr)_minmax(0,1fr)]">
             <div className="order-2 min-w-0 space-y-3 lg:order-1">
               <FocusCard icon={<Target size={18} />} label="今日目标" value={`${todayWorkSessions.length}/${dailyPomodoroGoal}`} sub={`${fmtMin(totalFocusMinutes)} 专注`} />
               <FocusCard icon={<Flame size={18} />} label="连续专注" value={`${pomodoroStreak} 天`} sub={`7日均 ${week7Avg} 个`} tone="text-orange-400" />
@@ -662,10 +663,10 @@ export default function PomodoroTimer() {
                   </defs>
                 </svg>
                 <div className="absolute inset-0 flex flex-col items-center justify-center" aria-live="polite" aria-atomic="true">
-                  <div className="mb-3 rounded-full border border-border bg-background/55 px-3 py-1 text-xs font-medium text-text-muted">{currentConfig.label}</div>
+                  <div className="interactive-glass mb-3 rounded-full px-3 py-1 text-xs font-medium text-text-muted">{currentConfig.label}</div>
                   <div
                     className={clsx(
-                      'font-mono text-5xl font-black tracking-[-0.06em] text-text transition-colors md:text-6xl',
+                      'font-numeric text-5xl font-black tabular-nums tracking-[-0.06em] text-text transition-colors md:text-6xl',
                       isRunning && timeLeft <= 10 && timeLeft > 0 && 'text-warning animate-pulse',
                     )}
                     aria-label={`${minutes}分${seconds}秒`}
@@ -699,8 +700,8 @@ export default function PomodoroTimer() {
 
               {/* Task selector */}
               {mode === 'work' && (
-                <div className="mt-4 flex justify-center">
-                  <div className="relative">
+                <div className="mt-4 flex w-full justify-center px-2">
+                  <div className="relative w-full max-w-[280px]">
                     <button
                       ref={taskPickerRef}
                       type="button"
@@ -710,21 +711,23 @@ export default function PomodoroTimer() {
                       aria-expanded={showTaskPicker}
                       aria-label={selectedTaskId ? `已选任务: ${activeTasks.find((t) => t.id === selectedTaskId)?.title || ''}` : '关联任务（可选）'}
                       className={clsx(
-                        'pomo-btn inline-flex items-center gap-2 rounded-2xl border px-3 py-2 text-xs font-medium',
+                        'pomo-btn inline-flex w-full min-w-[220px] max-w-[280px] items-center justify-between gap-3 rounded-2xl border px-3 py-2 text-xs font-medium',
                         selectedTaskId
                           ? 'border-blue-200 dark:border-blue-800 bg-blue-50 dark:bg-blue-900/20 text-blue-600 dark:text-blue-400'
-                          : 'border-border bg-background/60 text-text-muted hover:border-primary/30 hover:text-text',
+                          : 'interactive-glass text-text-muted hover:text-text',
                         isRunning && 'opacity-50 cursor-not-allowed'
                       )}
                     >
-                      <ListTodo size={14} />
-                      <span className="max-w-[160px] truncate">
-                        {selectedTaskId
-                          ? activeTasks.find((t) => t.id === selectedTaskId)?.title || '已选任务'
-                          : '关联任务（可选）'
-                        }
+                      <span className="flex min-w-0 items-center gap-2">
+                        <ListTodo size={14} className="shrink-0" />
+                        <span className="truncate">
+                          {selectedTaskId
+                            ? activeTasks.find((t) => t.id === selectedTaskId)?.title || '已选任务'
+                            : '关联任务（可选）'
+                          }
+                        </span>
                       </span>
-                      <ChevronDown size={12} className={clsx('transition-transform', showTaskPicker && 'rotate-180')} />
+                      <ChevronDown size={12} className={clsx('shrink-0 transition-transform', showTaskPicker && 'rotate-180')} />
                     </button>
 
                     {showTaskPicker && !isRunning && (
@@ -784,12 +787,12 @@ export default function PomodoroTimer() {
                   {isRunning ? '暂停' : '开始'}
                   <Kbd>Space</Kbd>
                 </button>
-                <button type="button" onClick={resetTimer} aria-label="重置计时器" className="pomo-btn flex h-14 items-center gap-2 rounded-2xl border border-border bg-background/50 px-4 text-text-muted hover:border-primary/30 hover:text-text" title="重置 (R)">
+                <button type="button" onClick={resetTimer} aria-label="重置计时器" className="pomo-btn interactive-glass flex h-14 items-center gap-2 rounded-2xl px-4 text-text-muted hover:text-text" title="重置 (R)">
                   <RotateCcw size={20} />
                   <Kbd>R</Kbd>
                 </button>
                 {mode !== 'work' && (
-                  <button type="button" onClick={() => switchMode('work')} className="pomo-btn flex h-14 items-center gap-2 rounded-2xl border border-border bg-background/50 px-4 text-text-muted hover:border-primary/30 hover:text-primary" title="跳过休息 (S)">
+                  <button type="button" onClick={() => switchMode('work')} className="pomo-btn interactive-glass flex h-14 items-center gap-2 rounded-2xl px-4 text-text-muted hover:text-primary" title="跳过休息 (S)">
                     <SkipForward size={18} />
                     <span className="hidden text-sm sm:inline">跳过</span>
                     <Kbd>S</Kbd>
@@ -798,7 +801,7 @@ export default function PomodoroTimer() {
               </div>
             </div>
 
-            <div className="order-3 min-w-0 space-y-3 lg:col-span-2 lg:grid lg:grid-cols-3 lg:gap-3 lg:space-y-0 2xl:col-span-1 2xl:block 2xl:space-y-3">
+            <div className="order-3 grid min-w-0 grid-cols-1 gap-3 sm:grid-cols-3 sm:[grid-template-columns:repeat(3,minmax(0,1fr))] lg:col-span-2 2xl:col-span-1 2xl:grid-cols-1">
               <ToggleCard active={soundEnabled} icon={soundEnabled ? <Bell size={17} /> : <BellOff size={17} />} label="提示音" sub={soundEnabled ? '完成后响铃' : '保持静音'} onClick={toggleSound} />
               <ToggleCard active={autoStartBreaks} icon={<FastForward size={17} />} label="自动休息" sub={autoStartBreaks ? '专注后自动开始' : '手动开始休息'} onClick={toggleAutoStartBreaks} />
               <ToggleCard active={autoStartWork} icon={<Play size={17} />} label="自动专注" sub={autoStartWork ? '休息后自动继续' : '手动恢复专注'} onClick={toggleAutoStartWork} activeClassName="text-success border-success/35 bg-success/10" />
@@ -806,7 +809,7 @@ export default function PomodoroTimer() {
           </div>
 
           {!isRunning && timeLeft === durationSecondsByMode[mode] && (
-            <div className="mt-7 rounded-[26px] border border-border bg-background/35 p-4">
+            <div className="interactive-glass mt-7 rounded-[26px] p-4">
               <div className="mb-3 text-xs font-medium text-text-muted">快速设置 {MODE_STYLES[mode].label} 时长</div>
               <div className="flex flex-wrap gap-2">
                 {QUICK_DURATIONS[mode].map((min) => {
@@ -827,7 +830,7 @@ export default function PomodoroTimer() {
                       aria-pressed={isActive}
                       className={clsx(
                         'pomo-btn relative rounded-2xl border px-3 py-2 text-sm',
-                        isActive ? 'border-primary/35 bg-primary/15 text-primary' : 'border-border bg-surface/70 text-text-muted hover:border-primary/30 hover:text-text',
+                        isActive ? 'border-primary/35 bg-primary/15 text-primary' : 'interactive-glass text-text-muted hover:text-text',
                       )}
                     >
                       {min} 分
@@ -840,14 +843,11 @@ export default function PomodoroTimer() {
           )}
           </PanelSwitch>
 
-          <div className="mt-7 rounded-[26px] border border-border bg-background/35 p-4 md:p-5">
-            <PomodoroStats sessions={pomodoroSessions} dailyGoal={dailyPomodoroGoal} />
-          </div>
         </div>
       </section>
 
-      <aside className="space-y-5">
-        <section className="rounded-[32px] border border-border bg-surface/80 p-5 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <aside className="grid min-h-0 self-stretch grid-rows-[auto_auto_auto_minmax(0,1fr)] gap-4 xl:gap-5">
+        <section className="pomo-light-panel dashboard-panel rounded-[32px] p-5">
           <div className="mb-4 flex items-center justify-between">
             <div>
               <h3 className="text-base font-semibold text-text">今日目标</h3>
@@ -857,7 +857,7 @@ export default function PomodoroTimer() {
               {Math.min(Math.round((todayWorkSessions.length / dailyPomodoroGoal) * 100), 100)}%
             </span>
           </div>
-          <div className="relative h-3 overflow-hidden rounded-full bg-surface-lighter">
+          <div className="relative h-3 overflow-hidden rounded-full bg-white/10">
             <div
               className="h-full rounded-full transition-all duration-500"
               style={{
@@ -875,10 +875,13 @@ export default function PomodoroTimer() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-border bg-surface/80 p-5 shadow-xl shadow-black/10">
-          <div className="mb-4 flex items-center gap-2">
-            <CalendarDays size={17} className="text-primary" />
-            <h3 className="text-base font-semibold text-text">专注概览</h3>
+        <section className="pomo-light-panel dashboard-panel rounded-[32px] p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <CalendarDays size={17} className="shrink-0 text-primary" />
+              <h3 className="text-base font-semibold text-text">专注概览</h3>
+            </div>
+            <span className="shrink-0 text-xs text-text-muted">{todayWorkSessions.length} 个番茄</span>
           </div>
           <div className="grid grid-cols-2 gap-3">
             <MiniStat label="今日番茄" value={todayWorkSessions.length} sub={`${todayWorkSessions.length}/${dailyPomodoroGoal} 目标`} />
@@ -888,29 +891,35 @@ export default function PomodoroTimer() {
           </div>
         </section>
 
-        <section className="rounded-[32px] border border-border bg-surface/80 p-5 shadow-xl shadow-black/10">
-          <button type="button" onClick={() => setAmbientExpanded(!ambientExpanded)} className="pomo-btn flex w-full items-center gap-3 rounded-2xl p-1 text-left hover:bg-white/5" aria-expanded={ambientExpanded} aria-controls="ambient-sounds-panel">
-            <div className="flex h-10 w-10 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Volume2 size={18} /></div>
-            <div>
-              <div className="text-sm font-semibold text-text">环境音</div>
-              <div className="text-xs text-text-muted">专注时可播放 · <Kbd>A</Kbd></div>
+        <section className="pomo-light-panel dashboard-panel rounded-[32px] p-5">
+          <button type="button" onClick={() => setAmbientExpanded(!ambientExpanded)} className="pomo-btn flex w-full items-center justify-between gap-3 rounded-2xl p-1 text-left hover:bg-white/5" aria-expanded={ambientExpanded} aria-controls="ambient-sounds-panel">
+            <div className="flex min-w-0 items-center gap-3">
+              <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-2xl bg-primary/10 text-primary"><Volume2 size={18} /></div>
+              <div className="min-w-0">
+                <div className="text-sm font-semibold text-text">环境音</div>
+                <div className="text-xs text-text-muted">专注时可播放</div>
+              </div>
             </div>
-            <ChevronDown size={16} className={`ml-auto text-text-muted transition-transform duration-300 ${ambientExpanded ? 'rotate-180' : ''}`} />
+            <ChevronDown size={16} className={`shrink-0 text-text-muted transition-transform duration-300 ${ambientExpanded ? 'rotate-180' : ''}`} />
           </button>
           {ambientExpanded && <div className="mt-4 panel-switch" id="ambient-sounds-panel"><AmbientSounds compact /></div>}
         </section>
 
-        <section className="rounded-[32px] border border-border bg-surface/80 p-5 shadow-xl shadow-black/10">
-          <div className="mb-4 flex items-center gap-2">
-            <History size={17} className="text-text-muted" />
-            <h3 className="text-base font-semibold text-text">最近记录</h3>
-            <span className="ml-auto text-xs text-text-muted">{recentSessions.length} 条</span>
+        <section className="pomo-light-panel dashboard-panel flex min-h-0 flex-col rounded-[32px] p-5">
+          <div className="mb-4 flex items-center justify-between gap-3">
+            <div className="flex min-w-0 items-center gap-2">
+              <History size={17} className="shrink-0 text-text-muted" />
+              <h3 className="text-base font-semibold text-text">最近记录</h3>
+            </div>
+            <span className="shrink-0 text-xs text-text-muted">{recentSessions.length} 条</span>
           </div>
           {recentSessions.length === 0 ? (
-            <div className="rounded-3xl border border-dashed border-border bg-background/35 p-6 text-center">
-              <History size={28} className="mx-auto mb-2 text-text-muted opacity-35" />
-              <p className="text-sm text-text-muted">还没有专注记录</p>
-              <p className="mt-1 text-xs text-text-muted">完成一个番茄钟后，记录会显示在这里。</p>
+                        <div className="px-2 py-8 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <History size={22} />
+              </div>
+              <p className="text-sm font-semibold text-text">还没有专注记录</p>
+              <p className="mt-1 text-xs text-text-muted">完成一个番茄钟后，记录会出现在这里。</p>
             </div>
           ) : (
             <>
@@ -920,7 +929,7 @@ export default function PomodoroTimer() {
                     <span>专注 {recentSessionStats.workMin}分</span>
                     <span>休息 {recentSessionStats.breakMin}分</span>
                   </div>
-                  <div className="flex h-2 overflow-hidden rounded-full bg-surface-lighter">
+                  <div className="flex h-2 overflow-hidden rounded-full bg-white/10">
                     <div className="h-full bg-primary" style={{ width: `${(recentSessionStats.workMin / (recentSessionStats.workMin + recentSessionStats.breakMin)) * 100}%` }} />
                     <div className="h-full bg-success" style={{ width: `${(recentSessionStats.breakMin / (recentSessionStats.workMin + recentSessionStats.breakMin)) * 100}%` }} />
                   </div>
@@ -933,7 +942,7 @@ export default function PomodoroTimer() {
                   const metGoal = session.type === 'work' && session.completed && goalRatio >= 0.9
                   const cumulativeMin = (session.type === 'work' && session.completed && isToday) ? (recentSessionStats.cumulativeMinMap.get(session.id) ?? 0) : 0
                   return (
-                    <div key={session.id} className={clsx('flex items-center gap-3 rounded-2xl border border-border/70 bg-background/40 p-3', !session.completed && 'opacity-60')}>
+                    <div key={session.id} className={clsx('interactive-glass flex items-center gap-3 rounded-[18px] p-3', !session.completed && 'opacity-60')}>
                       <div className={clsx('flex h-9 w-9 items-center justify-center rounded-2xl text-sm', session.type === 'work' ? 'bg-primary/15 text-primary' : 'bg-success/15 text-success')}>
                         {session.type === 'work' ? '🍅' : '☕'}
                       </div>
@@ -959,13 +968,12 @@ export default function PomodoroTimer() {
           )}
         </section>
 
-        <div className="hidden items-center justify-center gap-3 text-[10px] text-text-muted/60 xl:flex">
-          <span><Kbd>Space</Kbd>开始/暂停</span>
-          <span><Kbd>R</Kbd>重置</span>
-          <span><Kbd>S</Kbd>跳过休息</span>
-          <span><Kbd>A</Kbd>环境音</span>
-        </div>
       </aside>
+    </div>
+
+    <section className="pomo-light-panel dashboard-panel min-w-0 rounded-[26px] p-4 md:p-5" aria-label="专注统计">
+      <PomodoroStats sessions={pomodoroSessions} dailyGoal={dailyPomodoroGoal} />
+    </section>
     </div>
     </ErrorBoundary>
   )
@@ -985,13 +993,15 @@ const FocusCard = memo(function FocusCard({
   tone?: string
 }) {
   return (
-    <div className="min-w-0 rounded-[26px] border border-border bg-background/45 p-4 shadow-inner shadow-white/5">
-      <div className="mb-3 flex items-center justify-between gap-2">
-        <div className={clsx('flex h-10 w-10 flex-shrink-0 items-center justify-center rounded-2xl bg-surface-lighter', tone)}>{icon}</div>
-        <span className="truncate text-[11px] text-text-muted">{label}</span>
+    <div className="interactive-glass min-w-0 rounded-[26px] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <div className="flex min-w-0 items-center gap-2">
+          <div className={clsx('flex h-9 w-9 shrink-0 items-center justify-center rounded-xl bg-white/10', tone)}>{icon}</div>
+          <span className="truncate text-xs font-medium text-text-muted">{label}</span>
+        </div>
+        <span className="shrink-0 text-xl font-semibold text-text">{value}</span>
       </div>
-      <div className="truncate text-2xl font-semibold text-text">{value}</div>
-      <div className="mt-1 truncate text-xs text-text-muted">{sub}</div>
+      <div className="mt-2 truncate text-[11px] text-text-muted">{sub}</div>
     </div>
   )
 })
@@ -1017,15 +1027,15 @@ const ToggleCard = memo(function ToggleCard({
       onClick={onClick}
       aria-pressed={active}
       className={clsx(
-        'pomo-btn flex w-full min-w-0 items-center gap-2.5 rounded-[24px] border p-3 text-left sm:gap-3 sm:p-4',
-        active ? activeClassName : 'border-border bg-background/45 text-text-muted hover:border-primary/25 hover:text-text',
+        'pomo-btn flex h-full w-full min-w-0 items-center justify-between gap-3 rounded-[24px] border p-3 text-left sm:p-4',
+        active ? activeClassName : 'interactive-glass text-text-muted hover:text-text',
       )}
     >
-      <div className="flex h-9 w-9 flex-shrink-0 items-center justify-center rounded-2xl bg-surface-lighter sm:h-10 sm:w-10">{icon}</div>
       <div className="min-w-0">
         <div className="truncate text-sm font-semibold">{label}</div>
         <div className="mt-0.5 truncate text-xs opacity-70">{sub}</div>
       </div>
+      <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-2xl bg-white/10 sm:h-10 sm:w-10">{icon}</div>
     </button>
   )
 })
@@ -1042,10 +1052,12 @@ const MiniStat = memo(function MiniStat({
   tone?: string
 }) {
   return (
-    <div className="rounded-3xl border border-border/70 bg-background/45 p-4">
-      <div className="text-[11px] text-text-muted">{label}</div>
-      <div className={clsx('mt-2 text-xl font-semibold', tone)}>{value}</div>
-      <div className="mt-1 text-[11px] text-text-muted">{sub}</div>
+    <div className="interactive-glass rounded-[22px] p-4">
+      <div className="flex items-center justify-between gap-2">
+        <span className="truncate text-[11px] text-text-muted">{label}</span>
+        <span className={clsx('shrink-0 text-lg font-semibold', tone)}>{value}</span>
+      </div>
+      <div className="mt-2 text-[11px] text-text-muted">{sub}</div>
     </div>
   )
 })

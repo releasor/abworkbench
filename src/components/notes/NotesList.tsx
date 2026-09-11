@@ -9,6 +9,7 @@ import { getRelativeTime, dayNumToYMD } from '../../utils/format'
 import { findRelatedTasksForNote } from './noteTaskLinks'
 import { NoteListItem } from './NoteListItem'
 import clsx from 'clsx'
+import { GlassCard } from '../common/GlassSurface'
 
 const COLORS = ['#6366f1', '#ec4899', '#f59e0b', '#10b981', '#3b82f6', '#8b5cf6', '#ef4444', '#06b6d4']
 
@@ -525,7 +526,7 @@ export default function NotesList() {
 
   return (
     <div className="grid gap-3 xl:grid-cols-[240px_minmax(0,1fr)] xl:h-[calc(100vh-128px)] animate-fade-in">
-      <aside className="flex min-h-0 flex-col overflow-hidden rounded-[20px] border border-border bg-surface/80 shadow-2xl shadow-black/20 backdrop-blur-xl">
+      <GlassCard as="aside" borderRadius={22} borderGlow={false} className="dashboard-panel flex min-h-0 flex-col overflow-hidden">
         <div className="border-b border-border px-2.5 py-2">
           <div className="flex items-center justify-between gap-2">
             <div className="min-w-0">
@@ -546,7 +547,7 @@ export default function NotesList() {
           <div className="flex flex-wrap gap-1 px-2.5 pb-1">
             <button
               onClick={() => setSelectedFolderId('')}
-              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${!selectedFolderId ? 'bg-primary text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+              className={`rounded-lg px-2.5 py-1 text-xs font-medium transition ${!selectedFolderId ? 'bg-primary text-white' : 'interactive-glass text-text-muted hover:text-text'}`}
             >
               全部
             </button>
@@ -554,7 +555,7 @@ export default function NotesList() {
               <button
                 key={folder.id}
                 onClick={() => setSelectedFolderId(folder.id === selectedFolderId ? '' : folder.id)}
-                className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition ${selectedFolderId === folder.id ? 'text-white' : 'bg-gray-100 dark:bg-gray-800 text-gray-500 hover:text-gray-700 dark:hover:text-gray-300'}`}
+                className={`inline-flex items-center gap-1 rounded-lg px-2.5 py-1 text-xs font-medium transition ${selectedFolderId === folder.id ? 'text-white' : 'interactive-glass text-text-muted hover:text-text'}`}
                 style={selectedFolderId === folder.id ? { backgroundColor: folder.color } : undefined}
               >
                 <span className="h-2 w-2 rounded-full" style={{ backgroundColor: folder.color }} />
@@ -588,7 +589,7 @@ export default function NotesList() {
             )}
           </div>
           {searchQuery && (
-            <div className="rounded-lg border border-border bg-background/45 px-2 py-1 text-[10px] text-text-muted">
+            <div className="interactive-glass rounded-lg px-2 py-1 text-[10px] text-text-muted">
               找到 <span className="font-semibold text-primary">{filteredNotes.length}</span> 个结果
             </div>
           )}
@@ -598,7 +599,7 @@ export default function NotesList() {
           <select
             value={sortBy}
             onChange={(e) => setSortBy(e.target.value as typeof sortBy)}
-            className="min-w-0 flex-1 rounded-lg border border-border bg-background/60 px-1.5 py-1 text-[10px] text-text-muted focus:border-primary focus:outline-none"
+            className="interactive-glass min-w-0 flex-1 rounded-lg px-1.5 py-1 text-[10px] text-text-muted outline-none focus:border-primary"
           >
             <option value="updatedAt">最近编辑</option>
             <option value="createdAt">创建时间</option>
@@ -609,7 +610,7 @@ export default function NotesList() {
             <select
               value={selectedTag}
               onChange={(e) => setSelectedTag(e.target.value)}
-              className="min-w-0 flex-1 rounded-lg border border-border bg-background/60 px-1.5 py-1 text-[10px] text-text-muted focus:border-primary focus:outline-none"
+              className="interactive-glass min-w-0 flex-1 rounded-lg px-1.5 py-1 text-[10px] text-text-muted outline-none focus:border-primary"
             >
               <option value="">全部标签</option>
               {allNoteTags.map((tag) => (
@@ -621,11 +622,13 @@ export default function NotesList() {
 
         <div className="min-h-0 flex-1 space-y-0.5 overflow-y-auto px-1.5 pb-1.5">
           {filteredNotes.length === 0 ? (
-            <div className="rounded-[28px] border border-dashed border-border bg-background/45 p-8 text-center">
-              <FileText size={40} className="mx-auto mb-3 text-text-muted opacity-50" />
-              <p className="text-sm text-text-muted">{searchQuery ? '没有找到匹配的笔记' : '还没有笔记'}</p>
+            <div className="px-4 py-10 text-center">
+              <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
+                <FileText size={22} />
+              </div>
+              <p className="text-sm font-semibold text-text">{searchQuery ? '没有找到匹配的笔记' : '还没有笔记'}</p>
               {!searchQuery && (
-                <p className="mt-3 text-xs text-text-muted">
+                <p className="mt-2 text-xs text-text-muted">
                   点击右上角新建第一篇
                 </p>
               )}
@@ -652,7 +655,7 @@ export default function NotesList() {
           )}
         </div>
 
-        <div className="border-t border-border bg-background/30 px-2.5 py-1 text-[9px] text-text-muted">
+        <div className="border-t border-white/10 px-2.5 py-1 text-[9px] text-text-muted">
           <div className="flex flex-wrap items-center justify-center gap-x-2 gap-y-1">
             <span>{searchQuery && filteredNotes.length !== notes.length ? `${filteredNotes.length} / ${notes.length}` : notes.length} 篇笔记</span>
             {noteStats.todayNew > 0 && <span className="text-success">今日 {noteStats.todayNew} 篇</span>}
@@ -661,9 +664,9 @@ export default function NotesList() {
             {notes.length > 0 && <span>约 {noteStats.readingMin} 分钟阅读</span>}
           </div>
         </div>
-      </aside>
+      </GlassCard>
 
-      <main className="min-h-[520px] overflow-hidden rounded-[24px] border border-border bg-surface/80 shadow-2xl shadow-black/20 backdrop-blur-xl xl:min-h-0">
+      <GlassCard as="main" borderRadius={24} borderGlow={false} className="dashboard-panel min-h-[520px] overflow-hidden xl:min-h-0">
         {activeNote ? (
           <div className="flex h-full min-h-0 flex-col">
             <header
@@ -683,7 +686,7 @@ export default function NotesList() {
                       <Palette size={16} />
                     </button>
                     {showColorPicker === activeNote.id && (
-                      <div className="absolute left-0 top-14 z-20">
+                      <div className="absolute left-0 top-10 z-30">
                         <ColorPalette
                           selected={activeNote.color}
                           onPick={(color) => {
@@ -721,7 +724,7 @@ export default function NotesList() {
 
                     {/* Version history panel */}
                     {showVersions && (activeNote.versions || []).length > 0 && (
-                      <div className="mt-3 rounded-2xl border border-border bg-background/50 p-3">
+                      <div className="interactive-glass mt-3 rounded-2xl p-3">
                         <div className="mb-2 flex items-center justify-between">
                           <span className="text-xs font-semibold text-text">历史版本</span>
                           <button onClick={() => setShowVersions(false)} className="text-xs text-text-muted hover:text-text">关闭</button>
@@ -730,7 +733,7 @@ export default function NotesList() {
                           {[...(activeNote.versions || [])].reverse().map((v, i) => {
                             const idx = (activeNote.versions || []).length - 1 - i
                             return (
-                              <div key={idx} className="flex items-center gap-2 rounded-xl bg-surface/50 px-3 py-2">
+                              <div key={idx} className="interactive-glass flex items-center gap-2 rounded-xl px-3 py-2">
                                 <div className="min-w-0 flex-1">
                                   <div className="text-[11px] text-text-muted">{new Date(v.savedAt).toLocaleString('zh-CN')}</div>
                                   <div className="mt-0.5 truncate text-xs text-text">{v.content.slice(0, 60) || '空白'}</div>
@@ -787,7 +790,7 @@ export default function NotesList() {
                       <select
                         value={activeNote.folderId || ''}
                         onChange={(e) => updateNote(activeNote.id, { folderId: e.target.value || undefined })}
-                        className="rounded-lg border border-border bg-background/60 px-2 py-1 text-xs text-text-muted focus:border-primary focus:outline-none"
+                        className="interactive-glass rounded-lg px-2 py-1 text-xs text-text-muted outline-none focus:border-primary"
                       >
                         <option value="">未分类</option>
                         {noteFolders.map((f) => (
@@ -814,7 +817,7 @@ export default function NotesList() {
                             }
                           }}
                           placeholder="文件夹名"
-                          className="w-20 rounded-lg border border-border bg-background/60 px-2 py-1 text-xs outline-none"
+                          className="interactive-glass w-20 rounded-lg px-2 py-1 text-xs outline-none"
                           autoFocus
                         />
                       )}
@@ -834,7 +837,7 @@ export default function NotesList() {
                           </span>
                         ))}
                         {activeRelatedTasks.length > 5 && (
-                          <span className="rounded-full bg-surface-lighter px-2.5 py-1 text-[11px] text-text-muted">
+                          <span className="interactive-glass rounded-full px-2.5 py-1 text-[11px] text-text-muted">
                             +{activeRelatedTasks.length - 5}
                           </span>
                         )}
@@ -843,23 +846,45 @@ export default function NotesList() {
                   </div>
                 </div>
 
-                <div className="flex flex-wrap items-center gap-1.5">
-                  <MetricPill label="字符" value={localContent.length} />
-                  <MetricPill label="词" value={editorStats.wordCount} />
-                  <MetricPill label="行" value={editorStats.lineCount} />
-                  {editorStats.readingMin > 0 && <MetricPill label="阅读" value={`${editorStats.readingMin} 分钟`} />}
+                <div
+                  className="flex shrink-0 flex-wrap items-center gap-x-3 gap-y-1 rounded-full border border-white/15 bg-white/10 px-3 py-1.5 text-[11px] tabular-nums text-text-muted"
+                  aria-label="笔记统计"
+                >
+                  <span className="inline-flex items-baseline gap-1">
+                    <span className="text-sm font-semibold text-text">{localContent.length}</span>
+                    <span>字符</span>
+                  </span>
+                  <span className="h-3 w-px bg-white/20" aria-hidden />
+                  <span className="inline-flex items-baseline gap-1">
+                    <span className="text-sm font-semibold text-text">{editorStats.wordCount}</span>
+                    <span>词</span>
+                  </span>
+                  <span className="h-3 w-px bg-white/20" aria-hidden />
+                  <span className="inline-flex items-baseline gap-1">
+                    <span className="text-sm font-semibold text-text">{editorStats.lineCount}</span>
+                    <span>行</span>
+                  </span>
+                  {editorStats.readingMin > 0 && (
+                    <>
+                      <span className="h-3 w-px bg-white/20" aria-hidden />
+                      <span className="inline-flex items-baseline gap-1">
+                        <span className="text-sm font-semibold text-text">{editorStats.readingMin}</span>
+                        <span>分钟</span>
+                      </span>
+                    </>
+                  )}
                 </div>
               </div>
             </header>
 
-            <div className="flex items-center gap-1 overflow-x-auto border-b border-border bg-background/30 px-3 py-2">
+            <div className="flex items-center gap-1 overflow-x-auto border-b border-white/10 px-3 py-2">
               {MD_TOOLBAR.map((tool) => (
                 <button
                   key={tool.label}
                   title={tool.title}
                   aria-label={tool.title}
                   onClick={() => applyVisualCommand(tool)}
-                  className="rounded-xl border border-border bg-surface/70 px-2.5 py-1.5 text-[11px] font-mono text-text-muted transition-all hover:border-primary/35 hover:bg-primary/10 hover:text-primary"
+                  className="interactive-glass rounded-xl px-2.5 py-1.5 text-[11px] font-mono text-text-muted transition-all hover:bg-primary/10 hover:text-primary"
                 >
                   {tool.label}
                 </button>
@@ -870,7 +895,7 @@ export default function NotesList() {
                 aria-label={showPreview ? '切换到编辑模式' : '切换到预览模式'}
                 className={clsx(
                   'ml-auto rounded-xl border px-3 py-1.5 text-[11px] font-semibold transition-all',
-                  showPreview ? 'border-primary/35 bg-primary/15 text-primary' : 'border-border bg-surface/70 text-text-muted hover:text-text',
+                  showPreview ? 'border-primary/35 bg-primary/15 text-primary' : 'interactive-glass text-text-muted hover:text-text',
                 )}
                 title={showPreview ? '编辑模式' : '预览模式'}
               >
@@ -881,7 +906,7 @@ export default function NotesList() {
             <div className="flex min-h-0 flex-1 flex-col p-3 md:p-4">
               {showPreview ? (
                 <div
-                  className="min-h-0 flex-1 overflow-auto rounded-2xl border border-border bg-background/45 p-5 text-sm leading-7 text-text"
+                  className="min-h-0 flex-1 overflow-auto p-2 text-sm leading-7 text-text md:p-3"
                   dangerouslySetInnerHTML={{ __html: renderedMarkdown }}
                 />
               ) : (
@@ -905,7 +930,7 @@ export default function NotesList() {
                       requestAnimationFrame(syncVisualEditor)
                     }
                   }}
-                  className="note-visual-editor min-h-0 flex-1 w-full overflow-auto rounded-2xl border border-border bg-surface-light/45 p-5 text-base leading-8 text-text outline-none transition-all focus:border-primary/40"
+                  className="note-visual-editor min-h-0 w-full flex-1 overflow-auto bg-transparent p-2 text-base leading-8 text-text outline-none md:p-3"
                   data-placeholder="开始写作..."
                 />
               )}
@@ -916,7 +941,7 @@ export default function NotesList() {
                 <div className="flex items-center gap-2">
                   {editorStats.wordCount >= 50 && (
                     <>
-                      <span className="h-1.5 w-24 overflow-hidden rounded-full bg-surface-lighter">
+                      <span className="h-1.5 w-24 overflow-hidden rounded-full bg-white/10">
                         <span
                           className="block h-full rounded-full bg-primary/70 transition-all duration-500"
                           style={{ width: `${editorStats.progress * 100}%` }}
@@ -937,16 +962,16 @@ export default function NotesList() {
               </div>
               <h2 className="text-2xl font-semibold text-text">选择一篇笔记开始编辑</h2>
               <p className="mt-2 text-sm text-text-muted">也可以点击左侧「新建」创建一篇新的灵感记录。</p>
-              <div className="mt-6 rounded-[28px] border border-border bg-background/45 p-5 text-left">
-                <div className="mb-4 flex items-center gap-2 text-sm font-semibold text-text">
-                  <Sparkles size={16} className="text-primary" />
+              <div className="mt-8 text-left">
+                <div className="mb-3 flex items-center justify-center gap-2 text-xs font-medium text-text-muted">
+                  <Sparkles size={14} className="text-primary" />
                   Markdown 语法参考
                 </div>
-                <div className="grid grid-cols-2 gap-2 text-xs sm:grid-cols-3">
+                <div className="grid grid-cols-2 gap-x-6 gap-y-2 text-xs sm:grid-cols-3">
                   {MARKDOWN_SYNTAX.map((item) => (
-                    <div key={item.syntax} className="rounded-2xl border border-border bg-surface/65 p-3">
+                    <div key={item.syntax} className="min-w-0">
                       <code className="font-mono text-primary">{item.syntax}</code>
-                      <div className="mt-1 text-[11px] text-text-muted">{item.desc}</div>
+                      <span className="ml-2 text-[11px] text-text-muted">{item.desc}</span>
                     </div>
                   ))}
                 </div>
@@ -954,7 +979,7 @@ export default function NotesList() {
             </div>
           </div>
         )}
-      </main>
+      </GlassCard>
     </div>
   )
 }
@@ -967,7 +992,11 @@ function ColorPalette({
   onPick: (color: string, event: MouseEvent<HTMLButtonElement>) => void
 }) {
   return (
-    <div className="mt-3 grid grid-cols-8 gap-2 rounded-2xl border border-border bg-surface/95 p-2 shadow-2xl shadow-black/25 backdrop-blur-xl">
+    <div
+      className="flex flex-wrap items-center gap-1.5 rounded-2xl border border-white/25 bg-white/15 p-2 shadow-xl backdrop-blur-md"
+      role="listbox"
+      aria-label="笔记颜色"
+    >
       {COLORS.map((color) => (
         <button
           key={color}
@@ -975,22 +1004,19 @@ function ColorPalette({
           onClick={(event) => onPick(color, event)}
           title={color}
           aria-label={`选择颜色 ${color}`}
+          aria-selected={selected === color}
           className={clsx(
-            'h-7 w-7 rounded-xl border transition-all ',
-            selected === color ? 'border-white/80 shadow-lg scale-105' : 'border-white/10',
+            'shrink-0 rounded-full border-2 transition-transform hover:scale-110',
+            selected === color ? 'border-white scale-110' : 'border-transparent',
           )}
-          style={{ background: `linear-gradient(135deg, ${color}, color-mix(in srgb, ${color} 55%, #000))` }}
+          style={{
+            width: 22,
+            height: 22,
+            backgroundColor: color,
+          }}
         />
       ))}
     </div>
   )
 }
 
-function MetricPill({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="rounded-xl border border-border bg-background/45 px-2 py-1 text-right">
-      <div className="text-[9px] text-text-muted">{label}</div>
-      <div className="text-xs font-semibold text-text">{value}</div>
-    </div>
-  )
-}

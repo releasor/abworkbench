@@ -285,7 +285,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
         {/* Timer display */}
         {isRunning && (
           <div className="mb-8">
-            <div className="text-6xl font-mono text-blue-400 animate-pulse">
+            <div className="text-6xl font-numeric text-blue-400 animate-pulse">
               {formatClock(elapsed)}
             </div>
             <p className="text-text-muted mt-2">计时中</p>
@@ -473,7 +473,7 @@ export function FocusMode({ taskId, onClose, onSuccess }: FocusModeProps) {
         {showPomodoro && (
           <div className="mt-4 p-4 bg-surface-light/50 rounded-xl max-w-xs mx-auto" role="group" aria-label="番茄钟计时器">
             <div className="text-center mb-3" aria-live="polite" aria-atomic="true">
-              <div className="text-3xl font-mono font-bold text-white" aria-label={`剩余时间 ${pomoMin}分${pomoSec}秒`}>
+              <div className="text-3xl font-numeric font-bold text-white" aria-label={`剩余时间 ${pomoMin}分${pomoSec}秒`}>
                 {String(pomoMin).padStart(2, '0')}:{String(pomoSec).padStart(2, '0')}
               </div>
               <div className={`text-xs mt-1 ${ pomoState === 'running' ? 'text-green-400' : pomoState === 'paused' ? 'text-yellow-400' : pomoState === 'break' ? 'text-blue-400' : 'text-text-muted' }`}>

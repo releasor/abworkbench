@@ -19,8 +19,8 @@ export default function EmptyState({
   className = '',
 }: EmptyStateProps) {
   return (
-    <div className={`rounded-panel border border-dashed border-border px-6 py-10 text-center ${className}`}>
-      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-surface-lighter text-text-muted">
+    <div className={`px-6 py-10 text-center ${className}`}>
+      <div className="mx-auto mb-3 flex h-12 w-12 items-center justify-center rounded-2xl bg-primary/10 text-primary">
         <Icon size={22} />
       </div>
       <p className="text-sm font-semibold text-text">{title}</p>

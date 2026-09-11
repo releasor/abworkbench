@@ -280,6 +280,7 @@ const GlowCursor = ({
     let lastFrameTime = performance.now()
     let raf = 0
     let destroyed = false
+    let running = false
 
     const resize = () => {
       width = Math.max(container.clientWidth, 1)
@@ -301,6 +302,22 @@ const GlowCursor = ({
       fade = 1
     }
 
+    const stopLoop = () => {
+      if (raf) {
+        cancelAnimationFrame(raf)
+        raf = 0
+      }
+      running = false
+    }
+
+    const startLoop = () => {
+      if (destroyed || running) return
+      if (document.visibilityState === 'hidden') return
+      running = true
+      lastFrameTime = performance.now()
+      raf = requestAnimationFrame(render)
+    }
+
     const updatePointer = (event: PointerEvent) => {
       const rect = container.getBoundingClientRect()
       const x = clamp(event.clientX - rect.left, 0, rect.width)
@@ -310,15 +327,27 @@ const GlowCursor = ({
       target.y = y
       pointerInside = true
       lastInputTime = performance.now()
+      startLoop()
     }
 
     const onPointerLeave = () => {
       pointerInside = false
       lastInputTime = performance.now()
+      startLoop()
+    }
+
+    const onVisibility = () => {
+      if (document.visibilityState === 'hidden') stopLoop()
+      else if (pointerInside || fade > 0.004) startLoop()
     }
 
     const render = (now: number) => {
       if (destroyed) return
+      if (document.visibilityState === 'hidden') {
+        stopLoop()
+        return
+      }
+
       const config = propsRef.current
       const delta = Math.min((now - lastFrameTime) / 16.667, 3)
       lastFrameTime = now
@@ -349,6 +378,16 @@ const GlowCursor = ({
       const fadeTarget = initialized && config.enabled && !shouldFade ? 1 : 0
       fade += (fadeTarget - fade) * Math.min(1, fadeStep * 7)
 
+      const fullyFaded = fade < 0.004 && fadeTarget === 0
+      if (fullyFaded) {
+        if (program.uniforms.uFade.value > 0) {
+          program.uniforms.uFade.value = 0
+          renderer.render({ scene: mesh })
+        }
+        stopLoop()
+        return
+      }
+
       program.uniforms.uPointCount.value = clamp(Math.round(config.trailLength), 2, MAX_POINTS)
       program.uniforms.uColor.value = hexToRgb(config.color)
       program.uniforms.uSecondaryColor.value = hexToRgb(config.secondaryColor)
@@ -374,16 +413,18 @@ const GlowCursor = ({
     container.addEventListener('pointermove', updatePointer)
     container.addEventListener('pointerenter', updatePointer)
     container.addEventListener('pointerleave', onPointerLeave)
+    document.addEventListener('visibilitychange', onVisibility)
     resize()
-    raf = requestAnimationFrame(render)
+    // Start only on pointer activity — avoid permanent WebGL RAF tax.
 
     return () => {
       destroyed = true
-      cancelAnimationFrame(raf)
+      stopLoop()
       resizeObserver.disconnect()
       container.removeEventListener('pointermove', updatePointer)
       container.removeEventListener('pointerenter', updatePointer)
       container.removeEventListener('pointerleave', onPointerLeave)
+      document.removeEventListener('visibilitychange', onVisibility)
       mesh.geometry.remove()
       program.remove()
     }

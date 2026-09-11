@@ -8,10 +8,9 @@ import { dayOfWeek, prevDateStrN, todayStr } from '../dateUtils';
 import Card from '../../../components/common/BorderGlow/Card';
 
 const HEATMAP_LIGHT = ['#ebedf0', '#9be9a8', '#40c463', '#30a14e', '#216e39'];
-const HEATMAP_DARK = ['#161b22', '#0e4429', '#006d32', '#26a641', '#39d353'];
 
-function getHeatColor(count: number, dark: boolean): string {
-  const palette = dark ? HEATMAP_DARK : HEATMAP_LIGHT;
+function getHeatColor(count: number): string {
+  const palette = HEATMAP_LIGHT;
   if (count === 0) return palette[0];
   if (count <= 2) return palette[1];
   if (count <= 5) return palette[2];
@@ -23,8 +22,6 @@ export function StatsChart() {
   const stats = useTaskStore((state) => state.stats);
   const tasks = useTaskStore((state) => state.tasks);
   const categories = useTaskStore((state) => state.categories);
-  const themeMode = useStore((s) => s.themeMode);
-  const isDark = themeMode === 'dark';
   const today = todayStr();
 
   // Precompute completion dates, creation dates, category counts, day-of-week stats, and time tracking — single pass
@@ -397,7 +394,7 @@ export function StatsChart() {
                   style={{
                     width: 14,
                     height: 14,
-                    backgroundColor: getHeatColor(day.count, isDark),
+                    backgroundColor: getHeatColor(day.count),
                   } as React.CSSProperties}
                   title={`${day.date}: ${day.count}个完成`}
                 />
@@ -408,7 +405,7 @@ export function StatsChart() {
         {/* Legend */}
         <div className="flex items-center gap-1 mt-2 justify-end">
           <span className="text-[10px] text-text-muted mr-1">少</span>
-          {(isDark ? HEATMAP_DARK : HEATMAP_LIGHT).map((color, i) => (
+          {HEATMAP_LIGHT.map((color, i) => (
             <div
               key={i}
               className="w-3 h-3 rounded-[2px]"

@@ -150,7 +150,7 @@ export function PomodoroTimer({ externalToggle, onToggle, taskId }: PomodoroTime
 
       {/* Timer Display */}
       <div className="text-center mb-4" aria-live="polite" aria-atomic="true">
-        <div className="text-4xl font-mono font-bold mb-1" aria-label={`剩余时间 ${minutes}分${seconds}秒`}>
+        <div className="text-4xl font-numeric font-bold mb-1" aria-label={`剩余时间 ${minutes}分${seconds}秒`}>
           {String(minutes).padStart(2, '0')}:{String(seconds).padStart(2, '0')}
         </div>
         <div className={`text-xs font-medium ${STATE_COLORS[state]}`}>

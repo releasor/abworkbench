@@ -74,7 +74,7 @@ export function TimeTracker({ taskId, timeEntries, estimatedMinutes, onUpdate }:
       {/* Timer Display */}
       <div className="flex items-center gap-4 p-4 bg-surface-lighter rounded-lg mb-3" aria-live="polite" aria-atomic="true">
         <div className="flex-1">
-          <div className="text-2xl font-mono font-bold text-text" aria-label={isRunning ? `计时中 ${formatClock(elapsed)}` : `总用时 ${formatClock(totalSeconds)}`}>
+          <div className="text-2xl font-numeric font-bold text-text" aria-label={isRunning ? `计时中 ${formatClock(elapsed)}` : `总用时 ${formatClock(totalSeconds)}`}>
             {isRunning ? formatClock(elapsed) : formatClock(totalSeconds)}
           </div>
           <div className="text-xs text-text-muted mt-1">

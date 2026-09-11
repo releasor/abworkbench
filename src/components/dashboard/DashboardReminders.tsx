@@ -53,7 +53,7 @@ export default function DashboardReminders() {
           return (
             <div
               key={reminder.id}
-              className="flex items-center gap-2 rounded-2xl border border-border bg-background/50 px-3 py-2"
+              className="interactive-glass flex items-center gap-2 rounded-2xl px-3 py-2"
             >
               <div className="min-w-0 flex-1">
                 <div className="truncate text-sm font-semibold text-text">{reminder.title}</div>

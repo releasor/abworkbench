@@ -27,7 +27,7 @@ export default memo(function ClockWidget() {
         <span className="rounded-full border border-border bg-background/60 px-3 py-1 text-xs font-semibold text-text-muted">{period}</span>
       </div>
       <div className="relative text-center">
-        <div className="text-6xl font-black tracking-tight text-text font-mono tabular-nums md:text-7xl">
+        <div className="text-6xl font-black tracking-tight text-text font-numeric tabular-nums md:text-7xl">
         {timeStr}
         </div>
         <div className="mt-3 flex items-center justify-center gap-2 text-sm text-text-muted">

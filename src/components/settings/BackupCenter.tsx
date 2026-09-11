@@ -54,10 +54,10 @@ export default function BackupCenter() {
   };
 
   return (
-    <section className="mt-4 rounded-[26px] border border-blue-500/20 bg-blue-500/5 p-4">
+    <section className="interactive-glass settings-glass-row mt-4 rounded-[26px] p-4">
       <div className="mb-4 flex items-center justify-between gap-3">
         <div className="flex items-center gap-3">
-          <div className="rounded-2xl bg-blue-500/15 p-2 text-blue-300">
+          <div className="interactive-glass dashboard-chip rounded-2xl p-2 text-blue-300">
             <DatabaseBackup size={18} />
           </div>
           <div>
@@ -68,7 +68,7 @@ export default function BackupCenter() {
         <button
           onClick={() => void loadBackups()}
           disabled={loading}
-          className="inline-flex items-center gap-2 rounded-2xl border border-border bg-background/60 px-3 py-2 text-xs font-semibold text-text-muted transition hover:bg-surface-lighter disabled:opacity-50"
+          className="interactive-glass inline-flex items-center gap-2 rounded-2xl px-3 py-2 text-xs font-semibold text-text-muted transition disabled:opacity-50"
         >
           <RefreshCw size={14} className={loading ? 'animate-spin' : ''} />
           刷新
@@ -76,14 +76,14 @@ export default function BackupCenter() {
       </div>
 
       {backups.length === 0 ? (
-        <div className="rounded-2xl border border-dashed border-border bg-background/40 p-4 text-center text-xs text-text-muted">
+        <div className="interactive-glass settings-glass-row rounded-2xl border-dashed p-4 text-center text-xs text-text-muted">
           暂无自动快照。创建、编辑或删除任务后会自动生成。
         </div>
       ) : (
         <div className="space-y-2">
           {backups.map((backup) => (
-            <div key={backup.index} className="flex items-center gap-3 rounded-2xl border border-border bg-background/55 p-3">
-              <div className="rounded-xl bg-surface-lighter p-2 text-text-muted">
+            <div key={backup.index} className="interactive-glass settings-glass-row flex items-center gap-3 rounded-2xl p-3">
+              <div className="interactive-glass dashboard-chip rounded-xl p-2 text-text-muted">
                 <Clock3 size={15} />
               </div>
               <div className="min-w-0 flex-1">
@@ -93,7 +93,7 @@ export default function BackupCenter() {
               <button
                 onClick={() => void restore(backup.index)}
                 disabled={restoring !== null}
-                className="inline-flex items-center gap-2 rounded-2xl bg-blue-500 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-blue-500/20 transition hover:bg-blue-400 disabled:opacity-50"
+                className="interactive-glass inline-flex items-center gap-2 rounded-2xl bg-primary/80 px-3 py-2 text-xs font-semibold text-white shadow-lg shadow-primary/20 transition hover:bg-primary disabled:opacity-50"
               >
                 <RotateCcw size={14} />
                 {restoring === backup.index ? '恢复中' : '恢复'}

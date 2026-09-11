@@ -68,7 +68,7 @@ const BarChart = memo(function BarChart({
           const today = isToday(i)
           return (
             <div key={i} className="flex-1 flex flex-col items-center gap-1 group/bar">
-              <span className={`text-xs font-mono transition-all group-hover/bar:scale-110 group-hover/bar:font-medium ${today ? 'text-primary font-medium' : 'text-text-muted'}`}>{value}</span>
+              <span className={`text-xs font-numeric transition-all group-hover/bar:scale-110 group-hover/bar:font-medium ${today ? 'text-primary font-medium' : 'text-text-muted'}`}>{value}</span>
               <div className="w-full relative" style={{ height: '100px' }}>
                 <div
                   className={`absolute bottom-0 w-full rounded-t-md transition-all duration-500 group-hover/bar:opacity-100 ${today ? 'ring-1 ring-white/20' : ''}`}
