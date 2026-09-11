@@ -8,9 +8,8 @@ interface ParticleStyle extends CSSProperties {
   ['--dy']?: string
 }
 
-/** Fixed noise + light drifting particles (Mineradio-inspired, optional). */
+/** Optional drifting particles (film grain removed). */
 export default function AmbientEffects() {
-  const visualNoise = useStore((s) => s.visualNoise)
   const visualParticles = useStore((s) => s.visualParticles)
 
   const particles = useMemo(
@@ -27,26 +26,21 @@ export default function AmbientEffects() {
     [],
   )
 
-  if (!visualNoise && !visualParticles) return null
+  if (!visualParticles) return null
 
   return (
-    <>
-      {visualNoise && <div className="ambient-noise" aria-hidden />}
-      {visualParticles && (
-        <div className="ambient-particles" aria-hidden>
-          {particles.map((p) => {
-            const style: ParticleStyle = {
-              left: `${p.left}%`,
-              top: `${p.top}%`,
-              animationDuration: `${p.duration}s`,
-              animationDelay: `${p.delay}s`,
-              '--dx': `${p.dx}px`,
-              '--dy': `${p.dy}px`,
-            }
-            return <span key={p.id} className="ambient-particle" style={style} />
-          })}
-        </div>
-      )}
-    </>
+    <div className="ambient-particles" aria-hidden>
+      {particles.map((p) => {
+        const style: ParticleStyle = {
+          left: `${p.left}%`,
+          top: `${p.top}%`,
+          animationDuration: `${p.duration}s`,
+          animationDelay: `${p.delay}s`,
+          '--dx': `${p.dx}px`,
+          '--dy': `${p.dy}px`,
+        }
+        return <span key={p.id} className="ambient-particle" style={style} />
+      })}
+    </div>
   )
 }

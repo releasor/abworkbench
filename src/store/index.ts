@@ -132,16 +132,11 @@ interface AppState {
   toggleThemeMode: () => void
   workspaceMode: WorkspaceMode
   setWorkspaceMode: (mode: WorkspaceMode) => void
-  visualNoise: boolean
-  setVisualNoise: (enabled: boolean) => void
   visualParticles: boolean
   setVisualParticles: (enabled: boolean) => void
   /** Soft luminous cursor trail over the app background */
   glowCursor: boolean
   setGlowCursor: (enabled: boolean) => void
-  /** Window chrome glass opacity, 40–100 (higher = less see-through) */
-  glassOpacity: number
-  setGlassOpacity: (opacity: number) => void
 
   // Weather
   weatherCity: string
@@ -299,8 +294,8 @@ export const useStore = create<AppState>()(
       accentColor: '#e8eef2',
       setAccentColor: (color) => set({ accentColor: color }),
       themeMode: 'dark',
-      setThemeMode: (mode) => set({ themeMode: mode }),
-      toggleThemeMode: () => set((s) => ({ themeMode: s.themeMode === 'dark' ? 'light' : 'dark' })),
+      setThemeMode: () => set({ themeMode: 'dark' }),
+      toggleThemeMode: () => set({ themeMode: 'dark' }),
       workspaceMode: 'focus',
       setWorkspaceMode: (mode) => {
         const prev = get().workspaceMode
@@ -308,15 +303,10 @@ export const useStore = create<AppState>()(
         set({ workspaceMode: mode })
         emitWorkspaceModeChange(prev, mode)
       },
-      visualNoise: true,
-      setVisualNoise: (enabled) => set({ visualNoise: enabled }),
       visualParticles: true,
       setVisualParticles: (enabled) => set({ visualParticles: enabled }),
       glowCursor: true,
       setGlowCursor: (enabled) => set({ glowCursor: enabled }),
-      glassOpacity: 90,
-      setGlassOpacity: (opacity) =>
-        set({ glassOpacity: Math.min(100, Math.max(40, Math.round(opacity))) }),
 
       // Weather
       weatherCity: '北京',
@@ -413,10 +403,8 @@ export const useStore = create<AppState>()(
         accentColor: state.accentColor,
         themeMode: state.themeMode,
         workspaceMode: state.workspaceMode,
-        visualNoise: state.visualNoise,
         visualParticles: state.visualParticles,
         glowCursor: state.glowCursor,
-        glassOpacity: state.glassOpacity,
         habits: state.habits,
         userName: state.userName,
         dailyPomodoroGoal: state.dailyPomodoroGoal,
@@ -431,11 +419,7 @@ export const useStore = create<AppState>()(
       }),
       onRehydrateStorage: () => (state) => {
         if (!state) return
-        if (typeof state.glassOpacity !== 'number' || Number.isNaN(state.glassOpacity)) {
-          state.glassOpacity = 90
-        } else {
-          state.glassOpacity = Math.min(100, Math.max(40, Math.round(state.glassOpacity)))
-        }
+        state.themeMode = 'dark'
         if (typeof state.glowCursor !== 'boolean') {
           state.glowCursor = true
         }

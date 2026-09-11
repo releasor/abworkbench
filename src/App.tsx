@@ -1,7 +1,7 @@
 import { useState, useCallback, useMemo, useRef, useEffect, lazy, Suspense } from 'react'
 import { useStore } from './store'
-import Sidebar from './components/layout/Sidebar'
 import type { Page } from './components/layout/Sidebar'
+import AppStaggeredNav from './components/layout/AppStaggeredNav'
 import { APP_PAGES, PAGE_TITLE_KEYS } from './navigation/pages'
 import Header from './components/layout/Header'
 import MiniWindow from './components/common/MiniWindow'
@@ -29,12 +29,12 @@ import type { DateTimePanelMode } from './components/dashboard/DateTimePanelModa
 import { showToast } from './modules/taskflow/utils/toastEvent'
 import AmbientEffects from './components/common/AmbientEffects'
 import DeepWorkTransition from './components/common/DeepWorkTransition'
-import GlassFilterSvg from './components/common/GlassFilterSvg'
 import BorderGlow from './components/common/BorderGlow/BorderGlow'
 import { useBorderGlowSurfaceColor, useBorderGlowTheme } from './components/common/BorderGlow/borderGlowTheme'
 import GlowCursor from './components/common/GlowCursor'
 import { smoothNavigate } from './utils/smoothNavigate'
 import { consumeLauncherWorkspaceIntent } from './launcher/workspaceSearch'
+import { ensureHotlistPrefetch } from './modules/hotlist/hotlistStore'
 import clsx from 'clsx'
 
 const DashboardPage = lazy(() => import('./components/dashboard/DashboardPage'))
@@ -63,13 +63,18 @@ function App() {
   const mainRef = useRef<HTMLElement>(null)
   const accentColor = useStore((s) => s.accentColor)
   const setAccentColor = useStore((s) => s.setAccentColor)
-  const themeMode = useStore((s) => s.themeMode)
   const workspaceMode = useStore((s) => s.workspaceMode)
-  const visualNoise = useStore((s) => s.visualNoise)
   const visualParticles = useStore((s) => s.visualParticles)
   const glowCursor = useStore((s) => s.glowCursor)
   const [reduceMotion, setReduceMotion] = useState(false)
-  const sidebarCollapsed = useStore((s) => s.sidebarCollapsed)
+  const [windowMaximized, setWindowMaximized] = useState(false)
+
+  useEffect(() => {
+    document.documentElement.dataset.nav = 'staggered'
+    return () => {
+      delete document.documentElement.dataset.nav
+    }
+  }, [])
   const glowTheme = useBorderGlowTheme()
   const surfaceColor = useBorderGlowSurfaceColor()
   const isMiniMode = useMemo(() => new URLSearchParams(window.location.search).get('mini') === '1', [])
@@ -103,20 +108,11 @@ function App() {
     const legacyBlueAccents = new Set(['#3b82f6', '#2563eb', '#60a5fa', '#1d4ed8'])
     const legacyCyanAccents = new Set(['#00f5d4', '#5ffbec', '#00c4aa', '#14b8a6', '#00a894'])
     const silverGlass = '#e8eef2'
-    const lightPrimary = '#2563eb'
     let hex = accentColor.toLowerCase()
     if (legacyPurpleAccents.has(hex)) hex = silverGlass
     if (legacyBlueAccents.has(hex)) hex = silverGlass
-    // Dark glass skin: map neon accents to silver
-    if (themeMode === 'dark' && legacyCyanAccents.has(hex)) hex = silverGlass
-    // Light theme: never paint near-white primary (selected states become invisible)
-    if (themeMode === 'light') {
-      const r0 = parseInt(hex.slice(1, 3), 16)
-      const g0 = parseInt(hex.slice(3, 5), 16)
-      const b0 = parseInt(hex.slice(5, 7), 16)
-      const luminance = (0.2126 * r0 + 0.7152 * g0 + 0.0722 * b0) / 255
-      if (luminance > 0.72 || hex === silverGlass) hex = lightPrimary
-    } else if (hex !== accentColor.toLowerCase()) {
+    if (legacyCyanAccents.has(hex)) hex = silverGlass
+    if (hex !== accentColor.toLowerCase()) {
       setAccentColor(hex)
     }
     const r = parseInt(hex.slice(1, 3), 16)
@@ -128,35 +124,28 @@ function App() {
     root.style.setProperty('--color-primary-dark', `color-mix(in srgb, ${hex} 80%, black)`)
     root.style.setProperty('--home-accent', hex)
     root.style.setProperty('--tw-ring-color', `rgb(${r} ${g} ${b} / 0.15)`)
-  }, [accentColor, setAccentColor, themeMode])
+  }, [accentColor, setAccentColor])
 
   useEffect(() => {
     const root = document.documentElement
-    root.dataset.theme = themeMode
-    root.classList.toggle('dark', themeMode === 'dark')
-    // Force readable ink tokens (inline beats any leftover dark glass defaults)
-    if (themeMode === 'light') {
-      root.style.setProperty('--color-text', '#0f172a')
-      root.style.setProperty('--color-text-muted', '#475569')
-      root.style.setProperty('--color-text-secondary', '#334155')
-      root.style.setProperty('--color-border', '#94a3b8')
-    } else {
-      root.style.removeProperty('--color-text')
-      root.style.removeProperty('--color-text-muted')
-      root.style.removeProperty('--color-text-secondary')
-      root.style.removeProperty('--color-border')
-    }
-  }, [themeMode])
+    // Dark-only: light theme toggle removed
+    root.dataset.theme = 'dark'
+    root.classList.add('dark')
+    root.style.removeProperty('--color-text')
+    root.style.removeProperty('--color-text-muted')
+    root.style.removeProperty('--color-text-secondary')
+    root.style.removeProperty('--color-border')
+  }, [])
 
   useEffect(() => {
     document.documentElement.dataset.workspaceMode = workspaceMode
   }, [workspaceMode])
 
   useEffect(() => {
-    document.documentElement.dataset.fxNoise = visualNoise ? '1' : '0'
+    document.documentElement.dataset.fxNoise = '0'
     document.documentElement.dataset.fxParticles = visualParticles ? '1' : '0'
     document.documentElement.dataset.fxGlowCursor = glowCursor ? '1' : '0'
-  }, [visualNoise, visualParticles, glowCursor])
+  }, [visualParticles, glowCursor])
 
   useEffect(() => {
     const mq = window.matchMedia('(prefers-reduced-motion: reduce)')
@@ -166,27 +155,28 @@ function App() {
     return () => mq.removeEventListener('change', sync)
   }, [])
 
-  const glassOpacity = useStore((s) => s.glassOpacity)
   useEffect(() => {
-    const value = Math.min(100, Math.max(40, Math.round(glassOpacity ?? 90)))
-    document.documentElement.style.setProperty('--app-glass-opacity', String(value))
-  }, [glassOpacity])
+    document.documentElement.style.setProperty('--app-glass-opacity', '100')
+    document.documentElement.classList.remove('control-glass-svg-ok')
+  }, [])
 
   useEffect(() => {
     const api = typeof window !== 'undefined' ? window.electronAPI : undefined
     if (!api?.isWindowMaximized) return
     const apply = (maximized: boolean) => {
+      setWindowMaximized(maximized)
       document.documentElement.dataset.windowMaximized = maximized ? '1' : '0'
     }
     void api.isWindowMaximized().then(apply)
     return api.onWindowMaximizedChanged?.(apply)
   }, [])
 
+
   useEffect(() => {
-    // Enable SVG backdrop-filter path when browser supports filter URLs.
-    const ok = typeof CSS !== 'undefined' && CSS.supports?.('backdrop-filter', 'url(#abwb-control-glass-filter)')
-    document.documentElement.classList.toggle('control-glass-svg-ok', !!ok)
-  }, [])
+    if (isMiniMode || isLauncherMode || isReaderMode) return
+    void ensureHotlistPrefetch()
+    void import('./modules/hotlist/HotlistPage')
+  }, [isMiniMode, isLauncherMode, isReaderMode])
 
   useEffect(() => {
     if (!isLauncherMode) return
@@ -214,7 +204,6 @@ function App() {
   }, [])
   const closeLauncher = useCallback(() => setShowLauncher(false), [])
   const openMobileSidebar = useCallback(() => setMobileSidebarOpen(true), [])
-  const closeMobileSidebar = useCallback(() => setMobileSidebarOpen(false), [])
   const openClockPanel = useCallback(() => setDateTimePanel('clock'), [])
   const openDatePanel = useCallback(() => setDateTimePanel('date'), [])
   const closeDateTimePanel = useCallback(() => setDateTimePanel(null), [])
@@ -270,14 +259,17 @@ function App() {
     void shortcutOverrides
     const handler = (event: KeyboardEvent) => {
       if (eventMatchesShortcut('escapeClose', event)) {
-        if (showLauncher) return
         event.preventDefault()
+        if (showLauncher) {
+          closeLauncher()
+          return
+        }
         setMobileSidebarOpen(false)
       }
     }
     window.addEventListener('keydown', handler)
     return () => window.removeEventListener('keydown', handler)
-  }, [shortcutOverrides, showLauncher])
+  }, [shortcutOverrides, showLauncher, closeLauncher])
 
   // Global Alt+Space: when main window is focused, Electron routes here for the embedded launcher.
   useEffect(() => {
@@ -345,12 +337,7 @@ function App() {
   }
 
   if (isLauncherMode) {
-    return (
-      <>
-        <GlassFilterSvg />
-        <LauncherApp />
-      </>
-    )
+    return <LauncherApp />
   }
 
   if (isMiniMode) {
@@ -365,7 +352,7 @@ function App() {
   return (
     <BorderGlow
       {...glowTheme}
-      borderRadius={22}
+      borderRadius={windowMaximized ? 0 : 22}
       backgroundColor={surfaceColor}
       glowMaskColor={surfaceColor}
       className="app-frame border-glow-card--glass"
@@ -386,36 +373,31 @@ function App() {
         brightness={0.95}
         opacity={0.42}
         pulseSpeed={1.1}
-        noiseStrength={0.035}
+        noiseStrength={0}
         idleFade
         idleTimeout={700}
         fadeDuration={900}
         blendMode="screen"
         maxDevicePixelRatio={1.5}
       >
-        <GlassFilterSvg />
-        <div className={clsx('app-shell app-shell--float', sidebarCollapsed && 'app-shell--sidebar-collapsed')}>
-          <Sidebar
-            activePage={activePage}
-            onPageChange={goToPage}
-            onOpenLauncher={openLauncher}
-            isMobileOpen={mobileSidebarOpen}
-            onMobileClose={closeMobileSidebar}
-          />
+        <div className={clsx('app-shell app-shell--float app-shell--staggered-nav')}>
           <div className={clsx('app-content-column', activePage === 'mineradio' && 'app-content-column--embed')}>
             <Header
               title={pageTitles[activePage]}
               activePage={activePage}
               onOpenMobileSidebar={openMobileSidebar}
               onNavigate={goToPage}
-              onOpenClockPanel={openClockPanel}
-              onOpenDatePanel={openDatePanel}
             />
             <main
               ref={mainRef}
+              data-page={activePage}
               className={clsx(
                 'app-main-stage page-stack',
-                activePage === 'mineradio' ? 'app-main-stage--embed p-0 overflow-hidden' : 'pb-4 md:pb-6 overflow-auto',
+                activePage === 'mineradio'
+                  ? 'app-main-stage--embed p-0 overflow-hidden'
+                  : activePage === 'taskflow' || activePage === 'hotlist'
+                    ? 'p-0 overflow-hidden'
+                    : 'pb-4 md:pb-6 overflow-y-auto overflow-x-hidden',
               )}
             >
               <ErrorBoundary>
@@ -431,7 +413,7 @@ function App() {
                   </div>
                 )}
                 {visitedPages.has('taskflow') && (
-                  <div className={clsx('page-layer', activePage === 'taskflow' && 'is-active')}>
+                  <div className={clsx('page-layer page-layer--embed', activePage === 'taskflow' && 'is-active')}>
                     <Suspense fallback={<TaskFlowSkeleton />}>
                       <WorkbenchPage />
                     </Suspense>
@@ -516,6 +498,14 @@ function App() {
           <DeepWorkTransition />
         </div>
       </GlowCursor>
+      {/* Outside GlowCursor flex column: avoids layout push + zero-box hit-test bugs */}
+      <AppStaggeredNav
+        activePage={activePage}
+        onPageChange={goToPage}
+        onOpenLauncher={openLauncher}
+        open={mobileSidebarOpen}
+        onOpenChange={setMobileSidebarOpen}
+      />
     </BorderGlow>
   )
 }

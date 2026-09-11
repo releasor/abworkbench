@@ -1,13 +1,17 @@
-import { Bell, Menu, X, Moon, Sun, Timer, Pause, Play, Settings } from 'lucide-react'
-import { useState, useEffect, useMemo, useRef, useCallback, memo, type CSSProperties } from 'react'
+import { Bell, Menu, X, Timer, Pause, Play, Settings, RefreshCw } from 'lucide-react'
+import { useState, useEffect, useMemo, useRef, useCallback, memo, useSyncExternalStore, type CSSProperties } from 'react'
 import clsx from 'clsx'
 import { useStore } from '../../store'
 import { useTaskStore } from '../../modules/taskflow/hooks/useTaskStore'
 import { useTranslation } from '../../i18n'
+import {
+  getHotlistHeaderChrome,
+  subscribeHotlistHeaderChrome,
+} from '../../modules/hotlist/hotlistHeaderChrome'
 import { useToday } from '../../hooks/useToday'
 import { nextDateStr } from '../../modules/taskflow/dateUtils'
 import { useTick } from '../../hooks/useTick'
-import { durationMinutes, fmtMin, dayNumToFullLabel, fmtHHmm } from '../../utils/format'
+import { durationMinutes, fmtMin, fmtHHmm } from '../../utils/format'
 import type { Page } from '../../navigation/pages'
 import WindowControls from './WindowControls'
 import { useSyncedLocalCollection } from '../../hooks/useSyncedLocalCollection'
@@ -30,55 +34,19 @@ import { shouldMuteReminder } from '../../utils/focusDnd'
 import { FOCUS_DND_KEY } from '../../utils/workspaceModeEffects'
 import { LOCAL_DATA_CHANGE_EVENT, readLocalValue } from '../../utils/localData'
 import { HEADER_QUICK_NAV_ITEMS } from '../../navigation/headerQuickNav'
+import Dock, { type DockItemData } from '../common/Dock'
+import { buildHeaderDockSlots } from './headerDockModel'
+import { GlassCard } from '../common/GlassSurface'
 
 const dragRegion = { WebkitAppRegion: 'drag' } as CSSProperties
 const noDragRegion = { WebkitAppRegion: 'no-drag' } as CSSProperties
 
-const LiveClock = memo(function LiveClock({
-  onOpenDatePanel,
-  onOpenClockPanel,
-}: {
-  onOpenDatePanel?: () => void
-  onOpenClockPanel?: () => void
-}) {
-  const { t } = useTranslation()
-  const time = useTick(1000)
-  const dayNum = Math.floor(time.getTime() / 86400000)
-  const weekdayNames = t('calendar.dayNames') as unknown as string[]
-  const weekday = weekdayNames[(dayNum + 4) % 7]
-  const dateLabel = dayNumToFullLabel(dayNum)
-  const h = String(time.getHours()).padStart(2, '0')
-  const m = String(time.getMinutes()).padStart(2, '0')
-  const s = String(time.getSeconds()).padStart(2, '0')
-  return (
-    <>
-      <button
-        type="button"
-        onClick={onOpenDatePanel}
-        className="hidden rounded-lg text-sm text-text-muted transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 sm:block"
-        aria-label="打开日期面板"
-      >
-        {dateLabel} {weekday}
-      </button>
-      <button
-        type="button"
-        onClick={onOpenClockPanel}
-        className="hidden rounded-lg bg-surface px-3 py-1.5 font-mono text-sm text-text-muted transition hover:text-primary focus:outline-none focus:ring-2 focus:ring-primary/30 md:block"
-        aria-label="打开时钟面板"
-      >
-        {h}:{m}:{s}
-      </button>
-    </>
-  )
-})
 
 interface HeaderProps {
   title: string
   activePage: Page
   onOpenMobileSidebar?: () => void
   onNavigate?: (page: Page) => void
-  onOpenClockPanel?: () => void
-  onOpenDatePanel?: () => void
 }
 
 type NotifKind = 'summary' | 'reminder'
@@ -92,13 +60,11 @@ interface NotifItem {
   reminderId?: string
 }
 
-export default memo(function Header({ title, activePage, onOpenMobileSidebar, onNavigate, onOpenClockPanel, onOpenDatePanel }: HeaderProps) {
+export default memo(function Header({ title, activePage, onOpenMobileSidebar, onNavigate }: HeaderProps) {
   const [showNotifications, setShowNotifications] = useState(false)
   const [seenCount, setSeenCount] = useState(0)
   const notifRef = useRef<HTMLDivElement>(null)
   const { t, tWith } = useTranslation()
-  const themeMode = useStore((s) => s.themeMode)
-  const toggleThemeMode = useStore((s) => s.toggleThemeMode)
   const pomodoroSessions = useStore((s) => s.pomodoroSessions)
   const taskFlowTasks = useTaskStore((s) => s.tasks)
   const habits = useStore((s) => s.habits)
@@ -110,6 +76,11 @@ export default memo(function Header({ title, activePage, onOpenMobileSidebar, on
   const nowMs = useTick(1000).getTime()
   const [activePomo, setActivePomo] = useState<ActivePomodoroState | null>(() => readActivePomodoro())
   const [dndEnabled, setDndEnabled] = useState(() => readLocalValue(FOCUS_DND_KEY) === 'true')
+  const hotlistChrome = useSyncExternalStore(
+    subscribeHotlistHeaderChrome,
+    getHotlistHeaderChrome,
+    getHotlistHeaderChrome,
+  )
 
   useEffect(() => {
     if (!showNotifications) return
@@ -272,6 +243,81 @@ export default memo(function Header({ title, activePage, onOpenMobileSidebar, on
     }
   }, [pomodoroSessions, habits, notes, dailyPomodoroGoal, todayStr, todayMidnightMs, tomorrowMidnightMs])
 
+
+  const headerDockItems = useMemo((): DockItemData[] => {
+    const slots = buildHeaderDockSlots({
+      activePage,
+      labels: {
+        pomodoro: t('page.pomodoro'),
+        habits: t('page.habits'),
+        notes: t('page.notes'),
+        weather: t('page.weather'),
+      },
+      badges: quickNavBadges,
+    })
+
+    const iconByNavId = Object.fromEntries(
+      HEADER_QUICK_NAV_ITEMS.map((item) => [item.id, item.icon]),
+    ) as Record<(typeof HEADER_QUICK_NAV_ITEMS)[number]['id'], (typeof HEADER_QUICK_NAV_ITEMS)[number]['icon']>
+
+    const navItems = slots.map((slot) => {
+      const Icon = iconByNavId[slot.id]
+      const badge = slot.badgeText ? (
+        <span className={clsx('dock-badge', slot.badgeTone === 'success' && 'dock-badge--success')}>
+          {slot.badgeText.length > 3 ? '•' : slot.badgeText}
+        </span>
+      ) : null
+
+      return {
+        icon: (
+          <>
+            <Icon size={18} />
+            {badge}
+          </>
+        ),
+        label: slot.label,
+        onClick: () => onNavigate?.(slot.id),
+        className: slot.active ? 'dock-item--active' : undefined,
+      }
+    })
+
+    const notifBadge =
+      hasUnread && hasNotifications ? (
+        <span className="dock-badge dock-badge--danger">
+          {notifications.length > 99 ? '99+' : notifications.length}
+        </span>
+      ) : null
+
+    return [
+      ...navItems,
+      {
+        icon: (
+          <>
+            <Bell size={18} />
+            {notifBadge}
+          </>
+        ),
+        label: t('header.notifications'),
+        onClick: () => {
+          setShowNotifications((open) => {
+            if (!open) setSeenCount(notifications.length)
+            return !open
+          })
+        },
+        className: showNotifications ? 'dock-item--active' : undefined,
+      },
+    ]
+  }, [
+    activePage,
+    hasNotifications,
+    hasUnread,
+    notifications.length,
+    onNavigate,
+    quickNavBadges,
+    showNotifications,
+    t,
+  ])
+
   const activeRemaining = getActiveRemainingSec(activePomo, nowMs)
   const activeLabel = activePomo
     ? `${Math.floor(activeRemaining / 60)}:${String(activeRemaining % 60).padStart(2, '0')}`
@@ -308,10 +354,10 @@ export default memo(function Header({ title, activePage, onOpenMobileSidebar, on
 
   return (
     <header
-      className="header-glass header-float flex h-14 shrink-0 items-center justify-between px-4 md:h-16 md:px-5"
+      className="header-glass header-float grid h-14 shrink-0 grid-cols-[minmax(0,1fr)_auto_minmax(0,1fr)] items-center px-4 md:h-16 md:px-5"
       style={dragRegion}
     >
-      <div className="flex items-center gap-3" style={noDragRegion}>
+      <div className="flex items-center gap-3 justify-self-start" style={noDragRegion}>
         <button
           onClick={onOpenMobileSidebar}
           aria-label={t('header.openMenu')}
@@ -321,6 +367,19 @@ export default memo(function Header({ title, activePage, onOpenMobileSidebar, on
         </button>
 
         <h1 key={title} className="header-title-swap text-lg md:text-xl font-semibold text-text">{title}</h1>
+
+        {activePage === 'hotlist' && hotlistChrome.onRefresh ? (
+          <button
+            type="button"
+            className="hotlist-header-refresh interactive-glass dashboard-chip inline-flex items-center gap-1.5 rounded-xl px-2.5 py-1 text-xs font-semibold text-primary disabled:opacity-50"
+            disabled={hotlistChrome.disabled}
+            onClick={() => hotlistChrome.onRefresh?.()}
+            aria-label={hotlistChrome.label}
+          >
+            <RefreshCw className={`h-3.5 w-3.5 ${hotlistChrome.refreshing ? 'animate-spin' : ''}`} />
+            <span className="hidden sm:inline">{hotlistChrome.label}</span>
+          </button>
+        ) : null}
 
         {dndEnabled && (
           <span className="hidden sm:inline-flex items-center rounded-lg border border-warning/30 bg-warning/10 px-2 py-0.5 text-[10px] font-semibold text-warning">
@@ -351,94 +410,23 @@ export default memo(function Header({ title, activePage, onOpenMobileSidebar, on
         )}
       </div>
 
-      <div className="flex items-center gap-2 md:gap-3" style={noDragRegion}>
-        <button
-          onClick={toggleThemeMode}
-          aria-label={themeMode === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
-          title={themeMode === 'dark' ? t('header.switchToLight') : t('header.switchToDark')}
-          className="p-2 icon-glass-btn text-text-muted hover:text-text"
-        >
-          {themeMode === 'dark' ? <Sun size={18} /> : <Moon size={18} />}
-        </button>
+      <div className="relative flex items-center justify-self-center gap-1.5" style={noDragRegion} ref={notifRef}>
+        <Dock
+          className="header-dock"
+          items={headerDockItems}
+          panelHeight={40}
+          baseItemSize={34}
+          magnification={48}
+          distance={140}
+          dockHeight={40}
+          growOnHover={false}
+          labelPlacement="below"
+          panelAriaLabel="快捷导航"
+        />
 
-        <div className="flex items-center gap-0.5" role="navigation" aria-label="快捷导航">
-          {HEADER_QUICK_NAV_ITEMS.map((item) => {
-            const Icon = item.icon
-            const isActive = activePage === item.id
-            const label = t(item.labelKey)
-            const badge = quickNavBadges[item.id as keyof typeof quickNavBadges]
-            const badgeText = typeof badge === 'string' ? badge : null
-            const badgeTone = item.id === 'pomodoro' && quickNavBadges.pomodoroGoalMet
-              ? 'success'
-              : item.id === 'habits' && quickNavBadges.habitsAllDone
-                ? 'success'
-                : 'primary'
-
-            return (
-              <button
-                key={item.id}
-                type="button"
-                onClick={() => onNavigate?.(item.id)}
-                aria-label={label}
-                aria-current={isActive ? 'page' : undefined}
-                title={label}
-                className={clsx(
-                  'relative rounded-xl p-2 transition-colors',
-                  isActive
-                    ? 'bg-primary/15 text-primary shadow-sm shadow-primary/10'
-                    : 'text-text-muted hover:bg-surface-lighter hover:text-text',
-                )}
-              >
-                <Icon size={18} className={clsx(isActive && 'scale-110')} />
-                {badgeText && (
-                  <span
-                    className={clsx(
-                      'absolute -right-0.5 -top-0.5 min-w-[14px] rounded-full px-1 text-center text-[9px] font-bold leading-[14px]',
-                      badgeTone === 'success' ? 'bg-success text-white' : 'bg-primary text-white',
-                    )}
-                  >
-                    {badgeText.length > 3 ? '•' : badgeText}
-                  </span>
-                )}
-              </button>
-            )
-          })}
-        </div>
-
-        {progressRing && (
-            <div className="hidden md:flex items-center gap-2 px-2.5 py-1.5 bg-primary/10 rounded-lg">
-              <div className="relative w-5 h-5">
-                <svg viewBox="0 0 20 20" className="w-full h-full -rotate-90">
-                  <circle cx="10" cy="10" r={progressRing.r} fill="none" stroke="var(--color-primary)" strokeWidth="2" opacity="0.2" />
-                  <circle cx="10" cy="10" r={progressRing.r} fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeDasharray={progressRing.c} strokeDashoffset={progressRing.offset} strokeLinecap="round" className="transition-all duration-500" />
-                </svg>
-              </div>
-              <span className="text-xs font-medium text-primary">{todayWorkCount}/{dailyPomodoroGoal}</span>
-            </div>
-        )}
-
-        <LiveClock onOpenClockPanel={onOpenClockPanel} onOpenDatePanel={onOpenDatePanel} />
-
-        <div className="relative" ref={notifRef}>
-          <button
-            onClick={() => {
-              setShowNotifications(!showNotifications)
-              if (!showNotifications) setSeenCount(notifications.length)
-            }}
-            aria-expanded={showNotifications}
-            className="p-2 icon-glass-btn text-text-muted hover:text-text relative"
-            aria-label={t('header.notifications')}
-          >
-            <Bell size={18} />
-            {hasUnread && hasNotifications && (
-              <span className="absolute -top-0.5 -right-0.5 min-w-[16px] h-4 flex items-center justify-center px-1 text-[10px] font-bold text-white bg-danger rounded-full" aria-live="polite">
-                {notifications.length}
-              </span>
-            )}
-          </button>
-
-          {showNotifications && (
-            <div className="absolute right-0 top-full mt-2 w-72 liquid-glass-panel glass-card p-3 shadow-xl z-50 animate-fade-in">
+        {showNotifications && (
+            <div className="absolute left-1/2 top-full z-50 mt-2 w-72 -translate-x-1/2 animate-fade-in">
+            <GlassCard borderRadius={22} className="dashboard-panel p-3">
               <div className="mb-2 flex items-center gap-2">
                 <span className="shrink-0 text-sm font-medium text-text">{t('header.notifications')}</span>
                 <button
@@ -464,7 +452,7 @@ export default memo(function Header({ title, activePage, onOpenMobileSidebar, on
                 {notifications.length > 0 ? notifications.map((n) => (
                   <div
                     key={n.id}
-                    className="rounded-lg bg-surface-lighter/50 p-2"
+                    className="interactive-glass rounded-xl p-2"
                   >
                     <button
                       type="button"
@@ -511,11 +499,26 @@ export default memo(function Header({ title, activePage, onOpenMobileSidebar, on
                   <p className="text-xs text-text-muted text-center py-2">{t('header.noNotifications')}</p>
                 )}
               </div>
+            </GlassCard>
             </div>
           )}
         </div>
 
-        <div className="ml-1 pl-2 border-l border-border/60">
+      <div className="flex items-center justify-self-end gap-2 md:gap-3" style={noDragRegion}>
+        {progressRing && (
+            <div className="hidden md:flex items-center gap-2 px-2.5 py-1.5 bg-primary/10 rounded-lg">
+              <div className="relative w-5 h-5">
+                <svg viewBox="0 0 20 20" className="w-full h-full -rotate-90">
+                  <circle cx="10" cy="10" r={progressRing.r} fill="none" stroke="var(--color-primary)" strokeWidth="2" opacity="0.2" />
+                  <circle cx="10" cy="10" r={progressRing.r} fill="none" stroke="var(--color-primary)" strokeWidth="2" strokeDasharray={progressRing.c} strokeDashoffset={progressRing.offset} strokeLinecap="round" className="transition-all duration-500" />
+                </svg>
+              </div>
+              <span className="text-xs font-medium text-primary">{todayWorkCount}/{dailyPomodoroGoal}</span>
+            </div>
+        )}
+
+
+        <div className="ml-1 border-l border-border/60 pl-2">
           <WindowControls />
         </div>
       </div>

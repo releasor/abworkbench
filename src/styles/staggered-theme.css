@@ -1,0 +1,1033 @@
+/* Aurora liquid-glass for app content.
+   StaggeredMenu stays nav-only — no multi-layer SM card chrome. */
+
+:root {
+  --sm-layer-a: #7c3aed;
+  --sm-layer-b: #0891b2;
+  --sm-accent: #67e8f9;
+  --sm-ink: #ffffff;
+  --aurora-ink: #ffffff;
+  --aurora-glass: rgba(255, 255, 255, 0.155);
+  --aurora-glass-line: rgba(255, 255, 255, 0.2);
+  --aurora-e-out: cubic-bezier(0.16, 1, 0.3, 1);
+  --aurora-e-soft: cubic-bezier(0.22, 0.61, 0.36, 1);
+  --app-glass-opacity: 100;
+}
+
+html[data-theme='light'] {
+  --sm-layer-a: #c4b5fd;
+  --sm-layer-b: #67e8f9;
+  --sm-accent: #0891b2;
+  --sm-ink: #0f172a;
+  --aurora-ink: #0f172a;
+  --aurora-glass: rgba(255, 255, 255, 0.55);
+  --aurora-glass-line: rgba(15, 23, 42, 0.12);
+}
+
+/* Nav menu panel only — keep StaggeredMenu identity */
+html[data-nav='staggered'] .staggered-menu-panel {
+  background: color-mix(in srgb, #04121b 82%, #fff 8%);
+  backdrop-filter: blur(18px) saturate(115%);
+  -webkit-backdrop-filter: blur(18px) saturate(115%);
+}
+
+html[data-nav='staggered'] .sm-panel-item {
+  color: var(--sm-ink);
+}
+
+html[data-nav='staggered'] .sm-panel-item:hover {
+  color: var(--sm-accent);
+}
+
+html[data-nav='staggered'] .sm-panel-list[data-numbering] .sm-panel-item::after {
+  color: var(--sm-accent);
+}
+
+/* ============================================================
+   Flatten chrome — one stage, no nested frame rings
+   ============================================================ */
+html[data-nav='staggered'] {
+  --color-primary: #7dd3fc;
+  --color-primary-light: color-mix(in srgb, #7dd3fc 70%, #fff);
+  --color-primary-dark: color-mix(in srgb, #7dd3fc 65%, #000);
+  --color-text: #ffffff;
+  --color-text-muted: rgba(255, 255, 255, 0.78);
+  --color-text-secondary: rgba(255, 255, 255, 0.88);
+  --color-border: var(--aurora-glass-line);
+  --color-surface: #04121b;
+  --color-surface-light: rgba(255, 255, 255, 0.12);
+  --color-surface-lighter: rgba(255, 255, 255, 0.16);
+  --saved-panel-glass-bg: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.258) 24%,
+    rgba(255, 255, 255, 0.252) 78%,
+    rgba(255, 255, 255, 0.232) 100%
+  );
+  --saved-panel-glass-filter: blur(26px) saturate(118%);
+  --saved-panel-glass-svg-filter: none;
+  --saved-panel-glass-shadow: none;
+  --saved-button-glass-bg: rgba(255, 255, 255, 0.15);
+  --saved-button-glass-filter: blur(16px) saturate(115%);
+  --saved-button-glass-svg-filter: none;
+  --saved-button-glass-shadow: none;
+  --saved-button-glass-hover-bg: rgba(255, 255, 255, 0.24);
+  --saved-button-glass-hover-shadow: none;
+  --glass-border: var(--aurora-glass-line);
+  --glass-border-soft: rgba(255, 255, 255, 0.16);
+  --glass-shadow: none;
+  --glass-shadow-focus: none;
+}
+
+html[data-theme='light'][data-nav='staggered'] {
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-secondary: #334155;
+  --color-surface: #e8eef3;
+  --color-primary: #0284c7;
+}
+
+html[data-nav='staggered'],
+html[data-nav='staggered'] body,
+html[data-nav='staggered'] #root {
+  /* Keep Electron transparent corners — storm paints inside .app-frame only */
+  background: transparent !important;
+}
+
+html[data-nav='staggered'] body,
+html[data-nav='staggered'] #root {
+  font-family: 'Inter', -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  font-feature-settings: 'kern' 1;
+  -webkit-font-smoothing: antialiased;
+}
+
+html[data-nav='staggered'] .app-frame.border-glow-card--glass,
+html[data-nav='staggered'] .app-frame {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+  outline: none !important;
+  border-radius: 22px !important;
+  overflow: hidden !important;
+  /* Avoid square filter/shadow bleed outside the rounded window */
+  filter: none !important;
+}
+
+html[data-nav='staggered'] .app-frame > .border-glow-inner.app-frame-shell {
+  border-radius: inherit !important;
+  overflow: hidden !important;
+}
+
+html[data-window-maximized='1'][data-nav='staggered'] .app-frame,
+html[data-window-maximized='1'][data-nav='staggered'] .app-frame > .border-glow-inner.app-frame-shell,
+html:fullscreen[data-nav='staggered'] .app-frame {
+  border-radius: 0 !important;
+}
+
+html[data-nav='staggered'] .app-frame::before,
+html[data-nav='staggered'] .app-frame::after,
+html[data-nav='staggered'] .app-frame > .edge-light {
+  display: none !important;
+}
+
+html[data-nav='staggered'] .app-frame > .border-glow-inner.app-frame-shell,
+html[data-nav='staggered'] .glow-cursor--app,
+html[data-nav='staggered'] .glow-cursor--app > .glow-cursor__content {
+  background: transparent !important;
+  overflow: hidden !important;
+  min-height: 0;
+}
+
+/* Storm stage behind content (glass frosts over this) */
+html[data-nav='staggered'] .glow-cursor--app > .glow-cursor__content {
+  position: relative;
+  isolation: isolate;
+}
+
+html[data-nav='staggered'] .glow-cursor--app > .glow-cursor__content::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-color: #04121b;
+  background-image: url('/assets/storm-background.jpg');
+  background-size: cover;
+  background-position: center 25%;
+  background-repeat: no-repeat;
+}
+
+html[data-nav='staggered'] .glow-cursor--app > .glow-cursor__content::after {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    linear-gradient(105deg, rgba(4, 16, 24, 0.34) 0%, rgba(4, 16, 24, 0.2) 40%, rgba(4, 16, 24, 0.06) 78%, transparent 100%),
+    linear-gradient(180deg, rgba(4, 16, 24, 0.12) 0%, transparent 22%),
+    linear-gradient(0deg, rgba(4, 16, 24, 0.07), rgba(4, 16, 24, 0.07));
+}
+
+html[data-nav='staggered'] .glow-cursor--app > .glow-cursor__content > * {
+  position: relative;
+  z-index: 1;
+}
+
+html[data-nav='staggered'] .app-shell--float.app-shell--staggered-nav {
+  padding: 0 !important;
+  gap: 0 !important;
+  overflow: hidden !important;
+  background: transparent !important;
+}
+
+html[data-nav='staggered'] .app-shell--staggered-nav::before {
+  display: none !important;
+}
+
+html[data-nav='staggered'] .app-content-column {
+  overflow: hidden !important;
+  min-height: 0;
+  gap: 0.75rem;
+  padding: 0.75rem 0.85rem 0.85rem;
+}
+
+html[data-nav='staggered'] .app-main-stage.page-stack {
+  flex: 1 1 0%;
+  min-height: 0;
+  overscroll-behavior: contain;
+  scrollbar-width: none;
+  -ms-overflow-style: none;
+}
+
+html[data-nav='staggered'] .app-main-stage.page-stack::-webkit-scrollbar {
+  width: 0 !important;
+  height: 0 !important;
+  display: none !important;
+}
+
+/* Header: light glass chip — not SM layered cards; dock untouched by card recipes */
+html[data-nav='staggered'] .header-glass {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.125) 0%,
+    rgba(255, 255, 255, 0.098) 100%
+  ) !important;
+  backdrop-filter: blur(18px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(18px) saturate(115%) !important;
+  border: 1px solid var(--aurora-glass-line) !important;
+  box-shadow: none !important;
+  border-radius: 1.35rem !important;
+}
+
+html[data-nav='staggered'] .header-glass.header-float {
+  /* Leave a clear gap so Menu sits beside the bar, not on top of it */
+  margin-left: 5.35rem;
+  padding-left: 1rem;
+  width: calc(100% - 5.35rem);
+}
+
+@media (min-width: 768px) {
+  html[data-nav='staggered'] .header-glass.header-float {
+    margin-left: 5.75rem;
+    width: calc(100% - 5.75rem);
+  }
+}
+
+html[data-nav='staggered'] .header-title-swap {
+  font-family: 'Inter Tight', 'Inter', Outfit, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: #fff;
+}
+
+html[data-nav='staggered'] .header-dock,
+html[data-nav='staggered'] .header-dock * {
+  animation: none !important;
+  clip-path: none !important;
+}
+
+html[data-nav='staggered'] .header-dock .dock-item--active,
+html[data-nav='staggered'] .dock-item.dock-item--active {
+  color: #fff;
+}
+
+html[data-nav='staggered'] .dock-badge {
+  background: rgba(255, 255, 255, 0.2);
+  color: #fff;
+}
+
+html[data-nav='staggered'] .icon-glass-btn {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(16px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(115%) !important;
+  border-color: transparent !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
+html[data-nav='staggered'] .icon-glass-btn:hover {
+  background: rgba(255, 255, 255, 0.24) !important;
+  color: #fff !important;
+}
+
+/* ============================================================
+   Aurora liquid-glass cards (excl. hotlist + dock)
+   ============================================================ */
+@keyframes aurora-rise {
+  from {
+    opacity: 0;
+    transform: translateY(14px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes aurora-slide-r {
+  from {
+    opacity: 0;
+    transform: translateX(24px) scale(0.985);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes aurora-sheen {
+  from {
+    transform: translate3d(-150%, 0, 0) skewX(-18deg);
+  }
+  to {
+    transform: translate3d(260%, 0, 0) skewX(-18deg);
+  }
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glass-card-glow,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glass-card,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-panel,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .settings-glass-surface,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-panel,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-hero,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glow-panel,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .liquid-glass-panel,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .surface-panel,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .modal-panel-cinematic,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .pomo-light-panel {
+  position: relative;
+  overflow: hidden;
+  isolation: isolate;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.258) 24%,
+    rgba(255, 255, 255, 0.252) 78%,
+    rgba(255, 255, 255, 0.232) 100%
+  ) !important;
+  backdrop-filter: blur(26px) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(118%) !important;
+  border: 1px solid var(--aurora-glass-line) !important;
+  box-shadow: none !important;
+  border-radius: 1.5rem !important;
+  color: #fff;
+}
+
+/* Kill BorderGlow mesh / SM multi-edge rings inside content cards */
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass::before,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass::after,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card .edge-light,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card .border-mesh {
+  display: none !important;
+  opacity: 0 !important;
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass {
+  --fill-opacity: 0 !important;
+  --card-bg: transparent !important;
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass > .border-glow-inner,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glass-card-shell {
+  background: transparent !important;
+  backdrop-filter: none !important;
+  -webkit-backdrop-filter: none !important;
+  box-shadow: none !important;
+  border: 0 !important;
+}
+
+/* Specular sheen (Aurora coda) */
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass::after,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glass-card-glow::after,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .liquid-glass-panel::after,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .settings-glass-surface::after {
+  content: '' !important;
+  display: block !important;
+  position: absolute;
+  top: 0;
+  bottom: 0;
+  left: 0;
+  width: 38%;
+  z-index: 2;
+  pointer-events: none;
+  background: linear-gradient(100deg, transparent 0%, rgba(255, 255, 255, 0.17) 50%, transparent 100%);
+  transform: translate3d(-150%, 0, 0) skewX(-18deg);
+  animation: aurora-sheen 1.15s var(--aurora-e-soft) 0.85s 1 both;
+  opacity: 1 !important;
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .liquid-glass-panel::before {
+  display: none !important;
+}
+
+/* Chips / tools — Aurora tool glass */
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-chip,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .interactive-glass,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-chip,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-btn,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .segment-tab,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .liquid-glass-chip,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .pomo-light-well {
+  background: rgba(255, 255, 255, 0.15) !important;
+  backdrop-filter: blur(16px) saturate(115%) !important;
+  -webkit-backdrop-filter: blur(16px) saturate(115%) !important;
+  border: 1px solid rgba(255, 255, 255, 0.18) !important;
+  box-shadow: none !important;
+  color: #fff !important;
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-chip:hover,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .interactive-glass:hover,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-chip:hover,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-btn:hover,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .pomo-light-well:hover {
+  background: rgba(255, 255, 255, 0.24) !important;
+  color: #fff !important;
+  border-color: rgba(255, 255, 255, 0.28) !important;
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .btn-primary,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .rounded-xl.bg-primary {
+  background: rgba(255, 255, 255, 0.22) !important;
+  color: #fff !important;
+  box-shadow: none !important;
+  border: 1px solid rgba(255, 255, 255, 0.28) !important;
+  backdrop-filter: blur(16px) saturate(115%);
+}
+
+/* Titles — Inter Tight weight, not SM uppercase purple */
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-card-header h3,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-panel h3,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-panel-header h2,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .settings-glass-surface h2,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .settings-glass-surface h3,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .page-section-title {
+  font-family: 'Inter Tight', 'Inter', Outfit, sans-serif;
+  font-weight: 500;
+  letter-spacing: -0.02em;
+  text-transform: none;
+  color: #fff;
+}
+
+/* Entry choreography — Aurora rise, not SM multi-edge clip */
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > * {
+  animation: aurora-rise 0.7s var(--aurora-e-out) both;
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(1) { animation-delay: 0.08s; }
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(2) { animation-delay: 0.16s; }
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(3) { animation-delay: 0.24s; }
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(4) { animation-delay: 0.32s; }
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(5) { animation-delay: 0.4s; }
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(6) { animation-delay: 0.48s; }
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(7) { animation-delay: 0.56s; }
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *:nth-child(n+8) { animation-delay: 0.64s; }
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .page-layer.is-active > *:not(.motion-stagger) > .border-glow-card,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .page-layer.is-active > *:not(.motion-stagger) > .glass-card-glow,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .page-layer.is-active > *:not(.motion-stagger) > .settings-glass-surface {
+  animation: aurora-slide-r 0.85s var(--aurora-e-out) both;
+}
+
+html[data-nav='staggered'] .ambient-noise,
+.ambient-noise {
+  display: none !important;
+}
+
+html[data-nav='staggered'] :focus-visible {
+  outline: 2px solid rgba(255, 255, 255, 0.9);
+  outline-offset: 2px;
+}
+
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) input:focus,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) textarea:focus,
+html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) select:focus {
+  border-color: rgba(255, 255, 255, 0.45) !important;
+  box-shadow: 0 0 0 3px rgba(255, 255, 255, 0.12) !important;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .motion-stagger > *,
+  html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .page-layer.is-active > *:not(.motion-stagger) > .border-glow-card,
+  html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass::after,
+  html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glass-card-glow::after {
+    animation: none !important;
+  }
+
+  html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass::after,
+  html[data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glass-card-glow::after {
+    display: none !important;
+  }
+}
+
+/* ---- light-mode header / top-right contrast ---- */
+html[data-theme='light'][data-nav='staggered'] {
+  --color-text: #0f172a;
+  --color-text-muted: #334155;
+  --color-text-secondary: #1e293b;
+  --aurora-ink: #0f172a;
+  --sm-ink: #0f172a;
+}
+
+html[data-theme='light'][data-nav='staggered'] .header-glass {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.82) 0%,
+    rgba(248, 250, 252, 0.78) 100%
+  ) !important;
+  border: 1px solid rgba(15, 23, 42, 0.12) !important;
+  box-shadow: 0 8px 28px rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .header-title-swap,
+html[data-theme='light'][data-nav='staggered'] .header-clock-date,
+html[data-theme='light'][data-nav='staggered'] .header-clock-time,
+html[data-theme='light'][data-nav='staggered'] .header-dock .dock-item,
+html[data-theme='light'][data-nav='staggered'] .header-dock .dock-item--active,
+html[data-theme='light'][data-nav='staggered'] .dock-item.dock-item--active {
+  color: #0f172a !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .header-clock-date,
+html[data-theme='light'][data-nav='staggered'] .header-clock-time {
+  text-shadow: none;
+  opacity: 1;
+}
+
+html[data-theme='light'][data-nav='staggered'] .header-dock .dock-item {
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .header-dock .dock-item:hover,
+html[data-theme='light'][data-nav='staggered'] .header-dock .dock-item:focus-visible {
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .header-dock .dock-item.dock-item--active {
+  color: #0284c7 !important;
+  background: rgba(2, 132, 199, 0.14) !important;
+  border-color: rgba(2, 132, 199, 0.28) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .dock-badge {
+  background: rgba(2, 132, 199, 0.18);
+  color: #0f172a !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .icon-glass-btn,
+html[data-theme='light'][data-nav='staggered'] .icon-glass-btn:hover {
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.06) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .window-control-btn {
+  color: #334155 !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .window-control-btn:hover {
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.08) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .window-control-btn--close:hover {
+  color: #fff !important;
+  background: var(--color-danger, #ef4444) !important;
+}
+
+/* Workday / Aurora cards readable on light glass */
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .border-glow-card.border-glow-card--glass,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .glass-card,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-panel,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-hero,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-panel,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .settings-glass-surface,
+html[data-theme='light'][data-nav='staggered'] .dashboard-workday {
+  color: #0f172a !important;
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.78) 0%,
+    rgba(248, 250, 252, 0.72) 100%
+  ) !important;
+  border-color: rgba(15, 23, 42, 0.12) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-chip,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .interactive-glass,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-chip,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .wb-btn,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .segment-tab,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .btn-primary {
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.06) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .dashboard-chip:hover,
+html[data-theme='light'][data-nav='staggered'] .app-main-stage:not([data-page='hotlist']) .interactive-glass:hover {
+  color: #0f172a !important;
+  background: rgba(15, 23, 42, 0.1) !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .text-text-muted {
+  color: #475569 !important;
+}
+
+/* ---- dashboard achievements ---- */
+html[data-nav='staggered'] .dashboard-achievements .dashboard-achievement-card {
+  backdrop-filter: blur(14px) saturate(115%);
+  -webkit-backdrop-filter: blur(14px) saturate(115%);
+}
+
+html[data-nav='staggered'] .dashboard-achievements .dashboard-achievement-card p {
+  display: -webkit-box;
+  -webkit-box-orient: vertical;
+  -webkit-line-clamp: 3;
+  overflow: hidden;
+  white-space: normal;
+  word-break: break-word;
+}
+
+html[data-theme='light'][data-nav='staggered'] .dashboard-achievements .dashboard-achievement-card {
+  background: rgba(255, 255, 255, 0.55) !important;
+  border-color: rgba(15, 23, 42, 0.1) !important;
+  color: #0f172a !important;
+}
+
+html[data-theme='light'][data-nav='staggered'] .dashboard-achievements .dashboard-achievement-card p,
+html[data-theme='light'][data-nav='staggered'] .dashboard-achievements .text-text-muted {
+  color: #475569 !important;
+}
+
+/* ---- black ink on listed pages (text only; keep glass backgrounds) ---- */
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) {
+  --color-text: #0f172a;
+  --color-text-muted: #475569;
+  --color-text-secondary: #334155;
+  color: #0f172a;
+}
+
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-text,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) h1,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) h2,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) h3,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-card-header h3,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-panel,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-panel h3,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-hero,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-workday,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-chip,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .interactive-glass,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-quick-stat,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-hero-score,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-hero-weather,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-achievement-card,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .wb-panel,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .wb-panel-header,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .wb-chip,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .wb-btn,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .page-section-title,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .glass-card,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .border-glow-card--glass {
+  color: #0f172a !important;
+}
+
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-text-muted,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-text-muted\/70,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-text-muted\/80,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-achievements .dashboard-achievement-card p {
+  color: #475569 !important;
+}
+
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-chip:hover,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .interactive-glass:hover,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .dashboard-quick-stat:hover,
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .wb-btn:hover {
+  color: #0f172a !important;
+}
+
+/* keep status accents */
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-success { color: #4ade80 !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-warning { color: #fbbf24 !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-danger { color: #f87171 !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-primary { color: #38bdf8 !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-orange-400 { color: #fb923c !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-amber-400 { color: #fbbf24 !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-purple-400 { color: #c084fc !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-blue-400 { color: #60a5fa !important; }
+html[data-nav='staggered'] .app-main-stage:is(
+  [data-page='dashboard'],
+  [data-page='pomodoro'],
+  [data-page='habits'],
+  [data-page='notes'],
+  [data-page='reminders'],
+  [data-page='weather'],
+  [data-page='taskflow']
+) .text-yellow-400 { color: #facc15 !important; }
+
+/* ---- header notification aurora ---- */
+html[data-nav='staggered'] .header-glass .border-glow-card.border-glow-card--glass,
+html[data-nav='staggered'] .header-glass .dashboard-panel,
+html[data-nav='staggered'] .header-glass .glass-card-glow {
+  background: linear-gradient(
+    180deg,
+    rgba(255, 255, 255, 0.2) 0%,
+    rgba(255, 255, 255, 0.258) 24%,
+    rgba(255, 255, 255, 0.252) 78%,
+    rgba(255, 255, 255, 0.232) 100%
+  ) !important;
+  backdrop-filter: blur(26px) saturate(118%) !important;
+  -webkit-backdrop-filter: blur(26px) saturate(118%) !important;
+  border: 1px solid var(--aurora-glass-line) !important;
+  box-shadow: none !important;
+  color: #fff;
+}
+
+/* ---- pomo panels — black ink text (glass bg from aurora card recipes above) ---- */
+html[data-nav='staggered'] .app-main-stage[data-page='pomodoro'] .pomo-light-panel,
+html[data-nav='staggered'] .app-main-stage[data-page='pomodoro'] .pomo-light-well {
+  color: #0f172a !important;
+}
+
+html[data-nav='staggered'] .app-main-stage[data-page='pomodoro'] .pomo-light-panel .text-text-muted,
+html[data-nav='staggered'] .app-main-stage[data-page='pomodoro'] .pomo-light-well .text-text-muted {
+  color: #475569 !important;
+}
