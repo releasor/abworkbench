@@ -131,13 +131,14 @@ html.abwb-embedded #wallpaper-engine-layer {
 html.abwb-embedded #custom-bg {
   position: fixed;
   inset: 0;
-  background-color: #050505;
+  /* Keep rgba vars so user tint/opacity still work; theme RGB is the floor */
+  background-color: rgba(var(--custom-bg-color-rgb, 5, 5, 5), var(--custom-bg-base-opacity, 1));
   background-image: none;
 }
 
 html.abwb-embedded[data-theme="light"] #custom-bg,
 html.abwb-embedded.abwb-theme-light #custom-bg {
-  background-color: #f1f5f9;
+  background-color: rgba(var(--custom-bg-color-rgb, 241, 245, 249), var(--custom-bg-base-opacity, 1));
 }
 
 html.abwb-embedded #custom-bg::before {

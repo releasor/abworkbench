@@ -31,7 +31,10 @@ test('embed bg layers keep fixed cover + dark fallback under custom-bg', () => {
   assert.match(css, /html\.abwb-embedded\s+#custom-bg\s*\{[^}]*position:\s*fixed/s)
   assert.match(css, /html\.abwb-embedded\s+#custom-bg\s*\{[^}]*inset:\s*0/s)
   assert.match(css, /#custom-bg::before[^}]*background-size:\s*cover/s)
-  assert.match(css, /html\.abwb-embedded\s+#custom-bg\s*\{[^}]*#050505/s)
+  assert.match(
+    css,
+    /html\.abwb-embedded\s+#custom-bg\s*\{[^}]*--custom-bg-color-rgb,\s*5,\s*5,\s*5/s,
+  )
 })
 
 test('index.html has Abworkbench critical first-paint style before css links', () => {
