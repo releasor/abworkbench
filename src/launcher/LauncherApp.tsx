@@ -1,4 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from 'react'
+import { createPortal } from 'react-dom'
 import {
   Search,
   Languages,
@@ -19,8 +20,6 @@ import {
   CornerDownLeft,
   Zap,
   Pin,
-  PinOff,
-  X,
   BookOpen,
   PictureInPicture2,
   Bell,
@@ -28,12 +27,18 @@ import {
   Flame,
 } from 'lucide-react'
 import clsx from 'clsx'
-import { useShortcutStore } from '../shortcuts'
 import { buildLauncherItems, detectUrl, LAUNCHER_COMMANDS, type LauncherItem } from './intents'
 import {
   filterCommandsForWorkspaceMode,
   readPersistedWorkspaceMode,
 } from '../utils/workspaceModeEffects'
+import {
+  buildAppContextMenuItems,
+  buildPathContextMenuItems,
+  buildReaderContextMenuItems,
+  type LauncherMenuActionId,
+  type LauncherMenuItem,
+} from './launcherContextMenu'
 
 interface EverythingItem {
   name: string
@@ -129,6 +134,30 @@ type SelectableEntry =
   | { type: 'recent-path'; entry: RecentPathInfo }
   | { type: 'clipboard-url'; url: string }
 
+type LauncherContextMenu =
+  | {
+      kind: 'app'
+      x: number
+      y: number
+      app: DesktopAppInfo
+      items: LauncherMenuItem[]
+    }
+  | {
+      kind: 'path'
+      x: number
+      y: number
+      path: string
+      isDir: boolean
+      canRemove: boolean
+      items: LauncherMenuItem[]
+    }
+  | {
+      kind: 'reader'
+      x: number
+      y: number
+      items: LauncherMenuItem[]
+    }
+
 export interface LauncherAppProps {
   /** window = standalone Electron launcher; embedded = modal inside main app */
   variant?: 'window' | 'embedded'
@@ -148,7 +177,7 @@ export default function LauncherApp({
   onNavigate,
 }: LauncherAppProps) {
   const [query, setQuery] = useState('')
-  const [selectedIndex, setSelectedIndex] = useState(0)
+  const [selectedIndex, setSelectedIndex] = useState(-1)
   const [everything, setEverything] = useState<EverythingState>({ status: 'idle' })
   const [clipboardText, setClipboardText] = useState('')
   const clipboardUrl = useMemo(() => (clipboardText ? detectUrl(clipboardText) : null), [clipboardText])
@@ -159,9 +188,8 @@ export default function LauncherApp({
   const [matchedApps, setMatchedApps] = useState<DesktopAppInfo[]>([])
   const [appsLoading, setAppsLoading] = useState(false)
   const [copied, setCopied] = useState(false)
-  const [readerMenu, setReaderMenu] = useState<{ x: number; y: number } | null>(null)
+  const [contextMenu, setContextMenu] = useState<LauncherContextMenu | null>(null)
   const [launchError, setLaunchError] = useState('')
-  const launcherHotkey = useShortcutStore((s) => s.getAccelerator('launcher'))
   const inputRef = useRef<HTMLInputElement>(null)
   const searchSeq = useRef(0)
   const appSearchSeq = useRef(0)
@@ -264,10 +292,10 @@ export default function LauncherApp({
 
   const resetLauncher = useCallback(() => {
     setQuery('')
-    setSelectedIndex(0)
+    setSelectedIndex(-1)
     setCopied(false)
     setLaunchError('')
-    setReaderMenu(null)
+    setContextMenu(null)
     setMatchedApps([])
     setRecentIds(readRecentIds())
     refreshRecentApps()
@@ -291,7 +319,7 @@ export default function LauncherApp({
   }, [variant, isOpen, resetLauncher])
 
   useEffect(() => {
-    queueMicrotask(() => setSelectedIndex(0))
+    queueMicrotask(() => setSelectedIndex(-1))
   }, [query])
 
   const hideLauncher = useCallback(() => {
@@ -299,7 +327,7 @@ export default function LauncherApp({
       onClose?.()
       return
     }
-    setReaderMenu(null)
+    setContextMenu(null)
     void window.electronAPI?.hideLauncher?.()
   }, [variant, onClose])
 
@@ -384,10 +412,24 @@ export default function LauncherApp({
     })()
   }, [hideLauncher, refreshRecentApps])
 
-  const applyRecentAppsUpdate = useCallback((apps: DesktopAppInfo[] | undefined) => {
-    if (Array.isArray(apps)) setRecentApps(apps)
-    else refreshRecentApps()
+  const applyRecentHomeUpdate = useCallback((payload: unknown) => {
+    if (Array.isArray(payload)) {
+      setRecentApps(payload as DesktopAppInfo[])
+      return
+    }
+    if (payload && typeof payload === 'object') {
+      const home = payload as { apps?: DesktopAppInfo[]; files?: RecentPathInfo[]; folders?: RecentPathInfo[] }
+      if (Array.isArray(home.apps)) setRecentApps(home.apps)
+      if (Array.isArray(home.files)) setRecentFiles(home.files)
+      if (Array.isArray(home.folders)) setRecentFolders(home.folders)
+      return
+    }
+    refreshRecentApps()
   }, [refreshRecentApps])
+
+  const applyRecentAppsUpdate = useCallback((apps: DesktopAppInfo[] | undefined) => {
+    applyRecentHomeUpdate(apps)
+  }, [applyRecentHomeUpdate])
 
   const pinApp = useCallback((appEntry: DesktopAppInfo, event?: { stopPropagation: () => void }) => {
     event?.stopPropagation()
@@ -409,6 +451,104 @@ export default function LauncherApp({
       setSelectedIndex((prev) => Math.max(0, Math.min(prev, Math.max(0, (apps?.length || 1) - 1))))
     })
   }, [applyRecentAppsUpdate])
+
+  const hideRecentPathEntry = useCallback((targetPath: string) => {
+    void window.electronAPI?.hideRecentPath?.(targetPath).then((home) => {
+      applyRecentHomeUpdate(home)
+    })
+  }, [applyRecentHomeUpdate])
+
+  const copyPathToClipboard = useCallback((targetPath: string) => {
+    void navigator.clipboard?.writeText(targetPath).then(() => {
+      setCopied(true)
+      window.setTimeout(() => setCopied(false), 1200)
+    }).catch(() => { /* ignore */ })
+  }, [])
+
+  const openAppContextMenu = useCallback((event: React.MouseEvent, appEntry: DesktopAppInfo) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setContextMenu({
+      kind: 'app',
+      x: event.clientX,
+      y: event.clientY,
+      app: appEntry,
+      items: buildAppContextMenuItems({
+        pinned: Boolean(appEntry.pinned),
+        canReveal: Boolean(appEntry.target || appEntry.path),
+      }),
+    })
+  }, [])
+
+  const openPathContextMenu = useCallback((
+    event: React.MouseEvent,
+    target: { path: string; isDir: boolean; canRemove?: boolean },
+  ) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setContextMenu({
+      kind: 'path',
+      x: event.clientX,
+      y: event.clientY,
+      path: target.path,
+      isDir: target.isDir,
+      canRemove: Boolean(target.canRemove),
+      items: buildPathContextMenuItems({
+        isDir: target.isDir,
+        canRemove: Boolean(target.canRemove),
+      }),
+    })
+  }, [])
+
+  const openReaderContextMenu = useCallback((event: React.MouseEvent) => {
+    event.preventDefault()
+    event.stopPropagation()
+    setContextMenu({
+      kind: 'reader',
+      x: event.clientX,
+      y: event.clientY,
+      items: buildReaderContextMenuItems(),
+    })
+  }, [])
+
+  const runContextMenuAction = useCallback((action: LauncherMenuActionId) => {
+    const menu = contextMenu
+    setContextMenu(null)
+    if (!menu) return
+
+    if (menu.kind === 'reader') {
+      if (action === 'reader-library') {
+        void window.electronAPI?.openReader?.({ mode: 'library' })
+        hideLauncher()
+      }
+      return
+    }
+
+    if (menu.kind === 'app') {
+      const appEntry = menu.app
+      if (action === 'open') openApp(appEntry)
+      else if (action === 'reveal') {
+        const target = appEntry.target || appEntry.path
+        if (target) void window.electronAPI?.revealPath?.(target)
+        hideLauncher()
+      } else if (action === 'pin') pinApp(appEntry)
+      else if (action === 'unpin') unpinApp(appEntry)
+      else if (action === 'remove') hideApp(appEntry)
+      return
+    }
+
+    if (action === 'open') {
+      void window.electronAPI?.openTarget?.(menu.path)
+      hideLauncher()
+    } else if (action === 'reveal') {
+      void window.electronAPI?.revealPath?.(menu.path)
+      hideLauncher()
+    } else if (action === 'copy-path') {
+      copyPathToClipboard(menu.path)
+    } else if (action === 'remove' && menu.canRemove) {
+      hideRecentPathEntry(menu.path)
+    }
+  }, [contextMenu, copyPathToClipboard, hideApp, hideLauncher, hideRecentPathEntry, openApp, pinApp, unpinApp])
 
   const executeItem = useCallback((item: LauncherItem) => {
     if (item.kind === 'command') {
@@ -523,7 +663,11 @@ export default function LauncherApp({
 
   useEffect(() => {
     queueMicrotask(() => {
-      setSelectedIndex((prev) => Math.min(prev, Math.max(0, selectable.length - 1)))
+      setSelectedIndex((prev) => {
+        if (prev < 0) return -1
+        if (selectable.length === 0) return -1
+        return Math.min(prev, selectable.length - 1)
+      })
     })
   }, [selectable.length])
 
@@ -533,14 +677,18 @@ export default function LauncherApp({
     if (event.key === 'ArrowDown') {
       event.preventDefault()
       setSelectedIndex((prev) => {
+        if (selectable.length === 0) return -1
+        if (prev < 0) return 0
         if (!query.trim() && prev >= homeAppOffset && prev < homeAppOffset + recentApps.length) {
           return Math.min(prev + cols, selectable.length - 1)
         }
-        return Math.min(prev + 1, Math.max(0, selectable.length - 1))
+        return Math.min(prev + 1, selectable.length - 1)
       })
     } else if (event.key === 'ArrowUp') {
       event.preventDefault()
       setSelectedIndex((prev) => {
+        if (selectable.length === 0) return -1
+        if (prev < 0) return selectable.length - 1
         if (!query.trim() && prev >= homeAppOffset && prev < homeAppOffset + recentApps.length) {
           return Math.max(prev - cols, 0)
         }
@@ -576,6 +724,10 @@ export default function LauncherApp({
       else executeFile(entry.file, event.ctrlKey || event.metaKey)
     } else if (event.key === 'Escape') {
       event.preventDefault()
+      if (contextMenu) {
+        setContextMenu(null)
+        return
+      }
       if (query) setQuery('')
       else hideLauncher()
     }
@@ -594,62 +746,32 @@ export default function LauncherApp({
     const index = flatIndex++
     const isSelected = index === selectedIndex
     return (
-      <div
+      <button
         key={appEntry.id}
-        className="group relative"
+        type="button"
+        onClick={() => openApp(appEntry)}
+        onContextMenu={(event) => openAppContextMenu(event, appEntry)}
         onMouseEnter={() => setSelectedIndex(index)}
+        onMouseLeave={() => setSelectedIndex((prev) => (prev === index ? -1 : prev))}
+        title={`${appEntry.target || appEntry.name}（右键更多操作）`}
+        className={clsx('launcher-tile', isSelected && 'is-selected')}
       >
-        <button
-          type="button"
-          onClick={() => openApp(appEntry)}
-          title={appEntry.target || appEntry.name}
-          className={clsx('launcher-tile', isSelected && 'is-selected')}
-        >
-          <div className="relative">
-            {appEntry.iconDataUrl ? (
-              <img src={appEntry.iconDataUrl} alt="" className="launcher-app-icon" />
-            ) : (
-              <div className="launcher-icon-well text-primary">
-                <AppWindow size={18} />
-              </div>
-            )}
-            {appEntry.pinned && (
-              <span className="launcher-pin-badge">
-                <Pin size={9} fill="currentColor" />
-              </span>
-            )}
-          </div>
-          <span className="text-[11px] text-text leading-tight line-clamp-2 w-full px-0.5">{appEntry.name}</span>
-        </button>
-        <div className={clsx(
-          'absolute right-0.5 top-0.5 flex gap-0.5 transition-opacity',
-          isSelected ? 'opacity-100' : 'opacity-0 group-hover:opacity-100'
-        )}>
-          <button
-            type="button"
-            title={appEntry.pinned ? '取消固定' : '固定'}
-            onClick={(event) => {
-              event.stopPropagation()
-              if (appEntry.pinned) unpinApp(appEntry, event)
-              else pinApp(appEntry, event)
-            }}
-            className="launcher-mini-btn"
-          >
-            {appEntry.pinned ? <PinOff size={11} /> : <Pin size={11} />}
-          </button>
-          <button
-            type="button"
-            title="从最近软件中移除"
-            onClick={(event) => {
-              event.stopPropagation()
-              hideApp(appEntry, event)
-            }}
-            className="launcher-mini-btn launcher-mini-btn--danger"
-          >
-            <X size={11} />
-          </button>
+        <div className="launcher-tile-icon relative">
+          {appEntry.iconDataUrl ? (
+            <img src={appEntry.iconDataUrl} alt="" className="launcher-app-icon" />
+          ) : (
+            <div className="launcher-icon-well text-primary">
+              <AppWindow size={18} />
+            </div>
+          )}
+          {appEntry.pinned && (
+            <span className="launcher-pin-badge">
+              <Pin size={9} fill="currentColor" />
+            </span>
+          )}
         </div>
-      </div>
+        <span className="launcher-tile-label text-[11px] text-text leading-tight line-clamp-2 w-full px-0.5">{appEntry.name}</span>
+      </button>
     )
   }
 
@@ -661,7 +783,9 @@ export default function LauncherApp({
       <button
         key={appEntry.id}
         onClick={() => openApp(appEntry)}
+        onContextMenu={(event) => openAppContextMenu(event, appEntry)}
         onMouseEnter={() => setSelectedIndex(index)}
+        onMouseLeave={() => setSelectedIndex((prev) => (prev === index ? -1 : prev))}
         className={rowClass(isSelected)}
       >
         {appEntry.iconDataUrl ? (
@@ -695,8 +819,14 @@ export default function LauncherApp({
       <button
         key={entry.id}
         onClick={(event) => openRecentPath(entry, event.ctrlKey || event.metaKey)}
+        onContextMenu={(event) => openPathContextMenu(event, {
+          path: entry.path,
+          isDir: entry.isDir,
+          canRemove: true,
+        })}
         onMouseEnter={() => setSelectedIndex(index)}
-        title="回车打开，Ctrl+回车定位到文件夹"
+        onMouseLeave={() => setSelectedIndex((prev) => (prev === index ? -1 : prev))}
+        title="左键打开 · 右键更多操作"
         className={rowClass(isSelected)}
       >
         {entry.iconDataUrl ? (
@@ -739,10 +869,18 @@ export default function LauncherApp({
         key={item.id}
         onClick={() => executeItem(item)}
         onMouseEnter={() => setSelectedIndex(index)}
+        onMouseLeave={() => setSelectedIndex((prev) => (prev === index ? -1 : prev))}
         onContextMenu={(event) => {
+          if (item.kind === 'path') {
+            openPathContextMenu(event, {
+              path: item.path,
+              isDir: item.pathKind === 'dir',
+              canRemove: false,
+            })
+            return
+          }
           if (item.kind !== 'command' || item.commandId !== 'stealth-reader') return
-          event.preventDefault()
-          setReaderMenu({ x: event.clientX, y: event.clientY })
+          openReaderContextMenu(event)
         }}
         className={rowClass(isSelected)}
       >
@@ -769,8 +907,14 @@ export default function LauncherApp({
       <button
         key={file.path}
         onClick={(event) => executeFile(file, event.ctrlKey || event.metaKey)}
+        onContextMenu={(event) => openPathContextMenu(event, {
+          path: file.path,
+          isDir: file.isDir,
+          canRemove: false,
+        })}
         onMouseEnter={() => setSelectedIndex(index)}
-        title="回车打开，Ctrl+回车定位到文件夹"
+        onMouseLeave={() => setSelectedIndex((prev) => (prev === index ? -1 : prev))}
+        title="左键打开 · 右键更多操作"
         className={rowClass(isSelected)}
       >
         <div className={clsx(
@@ -803,6 +947,7 @@ export default function LauncherApp({
           'launcher-panel flex flex-col',
           variant === 'embedded' ? 'relative w-full max-h-[min(560px,78vh)]' : 'h-full w-full'
         )}
+        onMouseLeave={() => setSelectedIndex(-1)}
         onClick={variant === 'embedded' ? (event) => event.stopPropagation() : undefined}
         role={variant === 'embedded' ? 'dialog' : undefined}
         aria-modal={variant === 'embedded' ? true : undefined}
@@ -829,16 +974,13 @@ export default function LauncherApp({
               className="flex-1 bg-transparent text-text text-[15px] outline-none placeholder:text-text-muted/70"
             />
           </div>
-          <div className="flex items-center gap-1.5 flex-shrink-0">
-            <kbd className="launcher-kbd">{launcherHotkey}</kbd>
-            <kbd className="launcher-kbd">ESC</kbd>
-          </div>
         </div>
 
         {showHome && clipboardUrl && (
           <button
             onClick={openClipboardUrl}
-            onMouseEnter={() => setSelectedIndex(0)}
+            onMouseEnter={() => setSelectedIndex(index)}
+        onMouseLeave={() => setSelectedIndex((prev) => (prev === index ? -1 : prev))}
             className={clsx(
               'launcher-chip mx-3 mt-3',
               selectedIndex === 0 && 'is-selected'
@@ -864,10 +1006,7 @@ export default function LauncherApp({
         <div className="flex-1 overflow-y-auto p-2 min-h-0">
           {showHome ? (
             <>
-              <div className="launcher-section-label flex items-center justify-between gap-2">
-                <span>最近软件</span>
-                <span className="text-[10px] text-text-muted/70 font-normal">悬停可固定 / 删除</span>
-              </div>
+              <div className="launcher-section-label">最近软件</div>
               {recentApps.length > 0 ? (
                 <div className="grid grid-cols-6 gap-1 px-1 pb-2">
                   {recentApps.map(renderAppTile)}
@@ -882,10 +1021,8 @@ export default function LauncherApp({
               <button
                 type="button"
                 onClick={() => runCommand('stealth-reader')}
-                onContextMenu={(event) => {
-                  event.preventDefault()
-                  setReaderMenu({ x: event.clientX, y: event.clientY })
-                }}
+                onContextMenu={openReaderContextMenu}
+                onMouseEnter={() => setSelectedIndex(-1)}
                 title="左键继续阅读 / 右键进入书架"
                 className="launcher-feature-card mx-1 mb-2"
               >
@@ -894,7 +1031,7 @@ export default function LauncherApp({
                 </div>
                 <div className="min-w-0 flex-1">
                   <div className="text-sm font-medium text-text">阅读</div>
-                  <div className="truncate text-[11px] text-text-muted">左键续读 · 右键进书架 · 透明悬浮窗</div>
+                  <div className="truncate text-[11px] text-text-muted">左键续读 · 右键进书架</div>
                 </div>
               </button>
 
@@ -926,12 +1063,15 @@ export default function LauncherApp({
                         <button
                           key={command.id}
                           onClick={() => runCommand(command.id)}
+                          onMouseEnter={() => setSelectedIndex(-1)}
                           className="launcher-tile launcher-tile--compact"
                         >
-                          <div className="launcher-icon-well launcher-icon-well--sm text-text">
-                            <Icon size={16} />
+                          <div className="launcher-tile-icon">
+                            <div className="launcher-icon-well launcher-icon-well--sm text-text">
+                              <Icon size={16} />
+                            </div>
                           </div>
-                          <span className="text-[11px] text-text-muted truncate w-full text-center">{command.label}</span>
+                          <span className="launcher-tile-label text-[11px] text-text-muted truncate w-full">{command.label}</span>
                         </button>
                       )
                     })}
@@ -949,16 +1089,18 @@ export default function LauncherApp({
                       onClick={() => runCommand(command.id)}
                       onContextMenu={(event) => {
                         if (command.id !== 'stealth-reader') return
-                        event.preventDefault()
-                        setReaderMenu({ x: event.clientX, y: event.clientY })
+                        openReaderContextMenu(event)
                       }}
                       title={command.description}
+                      onMouseEnter={() => setSelectedIndex(-1)}
                       className="launcher-tile launcher-tile--command"
                     >
-                      <div className="launcher-icon-well text-primary">
-                        <Icon size={18} />
+                      <div className="launcher-tile-icon">
+                        <div className="launcher-icon-well text-primary">
+                          <Icon size={18} />
+                        </div>
                       </div>
-                      <span className="text-[11px] text-text-muted truncate w-full text-center">{command.label}</span>
+                      <span className="launcher-tile-label text-[11px] text-text-muted truncate w-full">{command.label}</span>
                     </button>
                   )
                 })}
@@ -1014,42 +1156,42 @@ export default function LauncherApp({
           )}
         </div>
 
-        <div className="launcher-footer flex items-center justify-between px-4 py-2.5 text-[11px] text-text-muted/80">
-          <div className="flex items-center gap-3">
-            <span>↑↓ 选择</span>
-            <span>↵ 打开</span>
-            <span>Ctrl+↵ 定位文件</span>
+        {(copied || launchError) && (
+          <div className="launcher-footer flex items-center justify-end px-4 py-2 text-[11px] text-text-muted/80">
+            {copied ? <span className="text-success">已复制</span> : <span className="text-red-400">{launchError}</span>}
           </div>
-          {copied ? <span className="text-success">结果已复制</span> : launchError ? <span className="text-red-400">{launchError}</span> : <span>{launcherHotkey} 快速启动 · ESC 关闭</span>}
-        </div>
+        )}
 
-        {readerMenu && (
+        {contextMenu && createPortal(
           <div
-            className="fixed inset-0 z-[80]"
-            onClick={() => setReaderMenu(null)}
+            className="fixed inset-0 z-[9999]"
+            onClick={() => setContextMenu(null)}
             onContextMenu={(event) => {
               event.preventDefault()
-              setReaderMenu(null)
+              setContextMenu(null)
             }}
           >
             <div
-              className="launcher-menu absolute min-w-[140px] py-1"
-              style={{ left: readerMenu.x, top: readerMenu.y }}
+              className="launcher-menu absolute min-w-[148px] py-1"
+              style={{
+                left: Math.min(contextMenu.x, Math.max(8, window.innerWidth - 168)),
+                top: Math.min(contextMenu.y, Math.max(8, window.innerHeight - 220)),
+              }}
               onClick={(event) => event.stopPropagation()}
             >
-              <button
-                type="button"
-                className="launcher-menu-item"
-                onClick={() => {
-                  setReaderMenu(null)
-                  void window.electronAPI?.openReader?.({ mode: 'library' })
-                  hideLauncher()
-                }}
-              >
-                进入书架
-              </button>
+              {contextMenu.items.map((item) => (
+                <button
+                  key={item.id}
+                  type="button"
+                  className={clsx('launcher-menu-item', item.danger && 'is-danger')}
+                  onClick={() => runContextMenuAction(item.id)}
+                >
+                  {item.label}
+                </button>
+              ))}
             </div>
-          </div>
+          </div>,
+          document.body,
         )}
       </div>
       </div>
