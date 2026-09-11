@@ -956,7 +956,7 @@ export default function LauncherApp({
         {/* Brand + search — Mineradio glass chrome */}
         <div className="launcher-search flex items-center gap-3 px-4 py-3.5">
           <div className="launcher-brand-mark">
-            <Zap size={16} className="text-white" />
+            <Zap size={16} className="text-sky-600" />
           </div>
           <div className="flex-1 flex items-center gap-3 min-w-0">
             <Search size={18} className="text-text-muted flex-shrink-0" />
