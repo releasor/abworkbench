@@ -1,3 +1,4 @@
+import { useMemo } from 'react'
 import { showToast } from '../taskflow/utils/toastEvent'
 import TaskRow from './TaskRow'
 import WbPanel from './WbPanel'
@@ -10,16 +11,28 @@ interface PoolColumnProps {
 
 export default function PoolColumn({ projectId, onOpenTask }: PoolColumnProps) {
   const remoteMembers = useWorkbenchStore((s) => s.remoteMembers)
-  const pool = useWorkbenchStore((s) => s.visiblePool(projectId))
+  const remotePool = useWorkbenchStore((s) => s.remotePool)
+  const connection = useWorkbenchStore((s) => s.connection)
   const promoteRemote = useWorkbenchStore((s) => s.promoteRemote)
   const isOnMainline = useWorkbenchStore((s) => s.isOnMainline)
-  const isLive = useWorkbenchStore((s) => s.isLiveForProject(projectId))
-  const lead = useWorkbenchStore((s) => s.isLead())
+  const remoteLeadIds = useWorkbenchStore((s) => s.remoteLeadIds)
+  const user = useWorkbenchStore((s) => s.user)
+
+  const isLive = connection.mode !== 'offline' && connection.projectId === projectId
+  const lead =
+    connection.mode === 'offline' ||
+    remoteLeadIds.includes(connection.localUser.id || user.id)
+
+  const pool = useMemo(() => {
+    if (!isLive) return []
+    return remotePool
+      .filter((t) => t.projectId === projectId)
+      .slice()
+      .sort((a, b) => a.order - b.order)
+  }, [isLive, remotePool, projectId])
 
   const memberName = (authorId: string) =>
     remoteMembers.find((m) => m.id === authorId)?.displayName || authorId
-
-  if (!isLive) return null
 
   return (
     <WbPanel className="flex min-h-0 min-w-0 flex-1 flex-col">
@@ -29,7 +42,9 @@ export default function PoolColumn({ projectId, onOpenTask }: PoolColumnProps) {
       </header>
 
       <div className="motion-stagger flex flex-1 flex-col gap-2 overflow-auto p-3">
-        {pool.length === 0 ? (
+        {!isLive ? (
+          <p className="py-6 text-center text-sm text-text-muted">加入或开房后，这里会显示团队需求池</p>
+        ) : pool.length === 0 ? (
           <p className="py-6 text-center text-sm text-text-muted">暂无公开池任务</p>
         ) : (
           pool.map((task) => {

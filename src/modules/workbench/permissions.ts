@@ -2,6 +2,15 @@ export function canSubmitToPool(input: { connected: boolean }): boolean {
   return input.connected
 }
 
+/** Any connected member may submit their own task to the shared team mainline. */
+export function canSubmitToTeamMainline(input: {
+  connected: boolean
+  actorId: string
+  sourceAuthorId: string
+}): boolean {
+  return input.connected && input.actorId === input.sourceAuthorId
+}
+
 export function canPromoteToMainline(input: {
   connected: boolean
   actorId: string

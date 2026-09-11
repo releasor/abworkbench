@@ -1,4 +1,4 @@
-import type { ReactNode } from 'react'
+﻿import type { ReactNode } from 'react'
 import type { TaskStatus, WorkbenchTask } from './types'
 
 const STATUS_LABEL: Record<TaskStatus, string> = {
@@ -10,15 +10,27 @@ const STATUS_LABEL: Record<TaskStatus, string> = {
 interface TaskRowProps {
   task: WorkbenchTask
   onOpen: (taskId: string) => void
+  onContextMenu?: (event: React.MouseEvent) => void
   trailing?: ReactNode
+  isDragging?: boolean
 }
 
-export default function TaskRow({ task, onOpen, trailing }: TaskRowProps) {
+export default function TaskRow({
+  task,
+  onOpen,
+  onContextMenu,
+  trailing,
+  isDragging = false,
+}: TaskRowProps) {
   return (
-    <div className="wb-task flex items-center gap-2 px-3 py-2.5" data-status={task.status}>
+    <div
+      className={`wb-task flex items-center gap-2 px-3 py-2.5${isDragging ? ' wb-task--dragging' : ''}`}
+      data-status={task.status}
+      onContextMenu={onContextMenu}
+    >
       <button type="button" onClick={() => onOpen(task.id)} className="min-w-0 flex-1 text-left">
         <div className="wb-task-title truncate text-sm text-text">{task.title}</div>
-        <span className={`wb-chip wb-chip--${task.status} mt-1.5 inline-block px-2 py-0.5 text-[10px]`}>
+        <span className={`wb-chip wb-chip--${task.status} mt-1 inline-block px-2 py-0.5 text-[10px]`}>
           {STATUS_LABEL[task.status]}
         </span>
       </button>

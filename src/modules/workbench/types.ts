@@ -1,6 +1,13 @@
 export type TaskSpace = 'personal' | 'pool' | 'mainline'
 export type TaskStatus = 'todo' | 'doing' | 'done'
 
+export type WorkbenchActivityAction =
+  | 'submitted'
+  | 'updated'
+  | 'deleted'
+  | 'restored'
+  | 'purged'
+
 export interface WorkbenchUser {
   id: string
   displayName: string
@@ -29,6 +36,23 @@ export interface WorkbenchTask {
   updatedAt: string
   /** personal only: last failed submit marker */
   pendingPoolRetry?: boolean
+}
+
+export interface WorkbenchActivityEntry {
+  id: string
+  projectId: string
+  timestamp: string
+  actorId: string
+  action: WorkbenchActivityAction
+  taskId: string
+  taskTitle: string
+  details?: string
+}
+
+export interface TrashedMainlineTask {
+  task: WorkbenchTask
+  deletedAt: string
+  deletedBy: string
 }
 
 export type ConnectionMode = 'offline' | 'hosting' | 'joined'

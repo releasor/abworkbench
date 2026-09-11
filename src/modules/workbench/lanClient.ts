@@ -1,11 +1,13 @@
 import type { ServerEvent } from './protocol.ts'
-import type { WorkbenchTask, WorkbenchUser } from './types.ts'
+import type { TrashedMainlineTask, WorkbenchActivityEntry, WorkbenchTask, WorkbenchUser } from './types.ts'
 
 export type LanResult<T> = { ok: true; data: T } | { ok: false; error: string }
 
 export interface SnapshotPayload {
   pool: WorkbenchTask[]
   mainline: WorkbenchTask[]
+  mainlineTrash: TrashedMainlineTask[]
+  activityLog: WorkbenchActivityEntry[]
   leadIds: string[]
   members: WorkbenchUser[]
 }
@@ -103,6 +105,8 @@ export function createLanClient(baseUrl: string) {
           data: {
             pool: Array.isArray(snap.pool) ? snap.pool : [],
             mainline: Array.isArray(snap.mainline) ? snap.mainline : [],
+            mainlineTrash: Array.isArray(snap.mainlineTrash) ? snap.mainlineTrash : [],
+            activityLog: Array.isArray(snap.activityLog) ? snap.activityLog : [],
             leadIds: Array.isArray(snap.leadIds) ? snap.leadIds : [],
             members: Array.isArray(snap.members) ? snap.members : [],
           },

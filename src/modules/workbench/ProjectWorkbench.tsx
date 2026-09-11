@@ -1,10 +1,9 @@
 import { useMemo, useState } from 'react'
-import MainlineBoard from './MainlineBoard'
+import MainlineLaneBoard from './MainlineLaneBoard'
 import WbPanel from './WbPanel'
-import PersonalColumn from './PersonalColumn'
-import PoolColumn from './PoolColumn'
 import RoomBar from './RoomBar'
 import TaskDrawer from './TaskDrawer'
+import TeamMainlineToolbar from './TeamMainlineToolbar'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
 
 interface ProjectWorkbenchProps {
@@ -21,7 +20,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
   const disconnectBanner = useWorkbenchStore((s) => s.disconnectBanner)
   const clearDisconnectBanner = useWorkbenchStore((s) => s.clearDisconnectBanner)
   const unsyncedLocalMainline = useWorkbenchStore((s) => s.unsyncedLocalMainline)
-  const submitLocalMainlineToPool = useWorkbenchStore((s) => s.submitLocalMainlineToPool)
+  const submitLocalMainlineToTeam = useWorkbenchStore((s) => s.submitLocalMainlineToTeam)
   const isLive = useWorkbenchStore((s) => s.isLiveForProject(projectId))
   const [openTaskId, setOpenTaskId] = useState<string | null>(null)
   const [editingName, setEditingName] = useState(false)
@@ -46,6 +45,12 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
     if (!isLive) return 0
     return unsyncedLocalMainline(projectId).length
   }, [isLive, unsyncedLocalMainline, projectId])
+
+  const personalMainlineSubtitle = isLive
+    ? '仅本机可见；可拖到团队主线同步给全员'
+    : '未开房时仅显示个人主线；开房后可同步到团队主线'
+
+  const boardRowClass = isLive ? 'wb-board-row--live' : 'wb-board-row--solo'
 
   if (!project) {
     return (
@@ -78,10 +83,10 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
   }
 
   return (
-    <div className="flex h-full min-h-0 flex-col gap-3 motion-enter">
+    <div className="wb-page flex h-full min-h-0 flex-1 flex-col gap-2 px-2 pb-2 pt-1 motion-enter">
       <RoomBar projectId={projectId} />
 
-      <header className="flex items-center gap-3">
+      <header className="flex shrink-0 items-center gap-2">
         <button
           type="button"
           onClick={onBack}
@@ -112,6 +117,7 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
             {project.name}
           </button>
         )}
+        {isLive ? <TeamMainlineToolbar projectId={projectId} /> : null}
       </header>
 
       {disconnectBanner ? (
@@ -130,24 +136,37 @@ export default function ProjectWorkbench({ projectId, onBack }: ProjectWorkbench
       {isLive && unsyncedCount > 0 ? (
         <WbPanel as="div" className="flex flex-wrap items-center gap-2 px-3 py-2 text-sm text-text">
           <span className="flex-1 text-text-muted">
-            本机主线有 {unsyncedCount} 条未同步到团队（不自动合并）
+            个人主线有 {unsyncedCount} 条未同步到团队主线
           </span>
           <button
             type="button"
-            onClick={() => void submitLocalMainlineToPool(projectId)}
+            onClick={() => void submitLocalMainlineToTeam(projectId)}
             className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50"
           >
-            提交到所有人
+            提交到团队主线
           </button>
         </WbPanel>
       ) : null}
 
-      <div className="flex min-h-0 flex-1 flex-col gap-3">
-        <MainlineBoard projectId={projectId} onOpenTask={setOpenTaskId} />
-        <div className="flex min-h-0 flex-1 flex-col gap-3 lg:flex-row">
-          <PersonalColumn projectId={projectId} onOpenTask={setOpenTaskId} />
-          {isLive ? <PoolColumn projectId={projectId} onOpenTask={setOpenTaskId} /> : null}
-        </div>
+      <div
+        className={'wb-board-row flex min-h-0 flex-1 flex-col gap-3 overflow-hidden lg:flex-row ' + boardRowClass}
+      >
+        <MainlineLaneBoard
+          projectId={projectId}
+          kind="personalMainline"
+          title="个人主线"
+          subtitle={personalMainlineSubtitle}
+          onOpenTask={setOpenTaskId}
+        />
+        {isLive ? (
+          <MainlineLaneBoard
+            projectId={projectId}
+            kind="teamMainline"
+            title="团队主线"
+            subtitle="开房后全员可见；成员提交的任务会出现在这里"
+            onOpenTask={setOpenTaskId}
+          />
+        ) : null}
       </div>
 
       <TaskDrawer task={openTask} onClose={() => setOpenTaskId(null)} />

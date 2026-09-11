@@ -4,17 +4,17 @@ import { createEmptyLocalState, reduceLocal } from './localState.ts'
 
 const user = { id: 'u1', displayName: 'Ada' }
 
-test('create project and personal task', () => {
+test('create project and mainline task', () => {
   let s = createEmptyLocalState(user)
   s = reduceLocal(s, { type: 'project/create', name: 'Alpha', nowIso: '2026-08-21T00:00:00.000Z' })
   const projectId = s.projects[0].id
   s = reduceLocal(s, {
-    type: 'task/createPersonal',
+    type: 'task/createMainline',
     projectId,
     title: 'Do thing',
     nowIso: '2026-08-21T00:00:01.000Z',
   })
-  assert.equal(s.tasks.filter((t) => t.space === 'personal').length, 1)
+  assert.equal(s.tasks.filter((t) => t.space === 'mainline').length, 1)
 })
 
 test('offline promote moves copy to mainline with sourceTaskId', () => {

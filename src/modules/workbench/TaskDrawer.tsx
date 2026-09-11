@@ -1,4 +1,5 @@
 import { useEffect, useState } from 'react'
+import { createPortal } from 'react-dom'
 import type { TaskStatus, WorkbenchTask } from './types'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
 
@@ -24,18 +25,20 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
 
   useEffect(() => {
     if (!task) return
-    // Reset editable fields when the selected task changes.
-    const nextTitle = task.title
-    const nextStatus = task.status
-    const nextDue = task.dueDate ?? ''
-    const nextDescription = task.description ?? ''
-    void Promise.resolve().then(() => {
-      setTitle(nextTitle)
-      setStatus(nextStatus)
-      setDueDate(nextDue)
-      setDescription(nextDescription)
-    })
+    setTitle(task.title)
+    setStatus(task.status)
+    setDueDate(task.dueDate ?? '')
+    setDescription(task.description ?? '')
   }, [task])
+
+  useEffect(() => {
+    if (!task) return
+    const onKeyDown = (event: KeyboardEvent) => {
+      if (event.key === 'Escape') onClose()
+    }
+    window.addEventListener('keydown', onKeyDown)
+    return () => window.removeEventListener('keydown', onKeyDown)
+  }, [task, onClose])
 
   if (!task) return null
 
@@ -49,9 +52,23 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
     updateTask(task.id, patch)
   }
 
-  return (
-    <div className="wb-drawer-veil fixed inset-0 z-40 flex justify-end" onClick={onClose}>
-      <aside className="wb-drawer-panel flex h-full w-full max-w-md flex-col" onClick={(e) => e.stopPropagation()}>
+  return createPortal(
+    <div
+      className="wb-drawer-veil fixed inset-0 z-[200] flex"
+      role="dialog"
+      aria-modal="true"
+      aria-label="任务详情"
+    >
+      <button
+        type="button"
+        className="absolute inset-0 modal-veil"
+        onClick={onClose}
+        aria-label="关闭任务详情"
+      />
+      <aside
+        className="wb-drawer-panel wb-drawer-panel--glass modal-panel-cinematic liquid-glass-panel relative z-10 flex min-h-0 flex-col"
+        onClick={(e) => e.stopPropagation()}
+      >
         <div className="wb-panel-header flex items-center justify-between px-4 py-3">
           <h2 className="text-sm font-semibold text-text">任务详情</h2>
           <button
@@ -128,6 +145,7 @@ export default function TaskDrawer({ task, onClose }: TaskDrawerProps) {
           </label>
         </div>
       </aside>
-    </div>
+    </div>,
+    document.body,
   )
 }

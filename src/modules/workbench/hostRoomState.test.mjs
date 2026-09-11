@@ -83,6 +83,48 @@ test('lead promote from pool creates mainline task', () => {
   assert.equal(promoted.room.projects.p1.mainline[0].authorId, 'u2')
 })
 
+test('member can submit own personal task to team mainline', () => {
+  let room = createHostRoom({
+    hostUser: { id: 'host', displayName: 'Host' },
+    roomCode: 'ABCD',
+    passphrase: '',
+    nowIso: 't0',
+  })
+  room = applyHostCommand(room, {
+    type: 'shareProject',
+    project: { id: 'p1', name: 'P', leadIds: ['host'], createdAt: 't0', updatedAt: 't0' },
+    mainlineSeed: [],
+    nowIso: 't1',
+  }).room
+  room = applyHostCommand(room, {
+    type: 'join',
+    user: { id: 'u2', displayName: 'Bob' },
+    passphrase: '',
+    nowIso: 't2',
+  }).room
+  const submitted = applyHostCommand(room, {
+    type: 'submitToTeamMainline',
+    actorId: 'u2',
+    projectId: 'p1',
+    sourceTask: {
+      id: 's1',
+      projectId: 'p1',
+      space: 'personal',
+      title: 'Mine',
+      status: 'doing',
+      authorId: 'u2',
+      order: 0,
+      updatedAt: 't3',
+    },
+    status: 'doing',
+    nowIso: 't4',
+  })
+  assert.equal(submitted.ok, true)
+  assert.equal(submitted.room.projects.p1.mainline.length, 1)
+  assert.equal(submitted.room.projects.p1.mainline[0].sourceTaskId, 's1')
+  assert.equal(submitted.room.projects.p1.mainline[0].status, 'doing')
+})
+
 test('wrong passphrase on join fails', () => {
   let room = createHostRoom({
     hostUser: { id: 'host', displayName: 'Host' },

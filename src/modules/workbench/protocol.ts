@@ -7,8 +7,16 @@ export type ClientRequest =
   | { op: 'getSnapshot'; projectId: string }
   | { op: 'submitToPool'; projectId: string; task: WorkbenchTask }
   | { op: 'promote'; projectId: string; sourceTask: WorkbenchTask }
+  | {
+      op: 'submitToTeamMainline'
+      projectId: string
+      sourceTask: WorkbenchTask
+      status?: WorkbenchTask['status']
+    }
   | { op: 'updateMainlineTask'; projectId: string; taskId: string; patch: Partial<WorkbenchTask> }
   | { op: 'deleteMainlineTask'; projectId: string; taskId: string }
+  | { op: 'restoreMainlineTask'; projectId: string; taskId: string }
+  | { op: 'purgeMainlineTask'; projectId: string; taskId: string }
   | { op: 'shareProject'; project: WorkbenchProject; mainlineSeed: WorkbenchTask[] }
   | { op: 'setLeads'; projectId: string; leadIds: string[] }
 

@@ -11,6 +11,8 @@ import {
 import type { ServerEvent } from '../protocol.ts'
 import type {
   ConnectionState,
+  TrashedMainlineTask,
+  WorkbenchActivityEntry,
   WorkbenchTask,
   WorkbenchUser,
 } from '../types.ts'
@@ -37,6 +39,10 @@ function looksLikeLocalState(value: unknown): value is LocalWorkbenchState {
   return Boolean(o.user) && Array.isArray(o.projects) && Array.isArray(o.tasks)
 }
 
+function migrateLegacyPersonalTasks(tasks: WorkbenchTask[]): WorkbenchTask[] {
+  return tasks.map((task) => (task.space === 'personal' ? { ...task, space: 'mainline' } : task))
+}
+
 function pickLocal(state: LocalWorkbenchState): LocalWorkbenchState {
   return {
     user: state.user,
@@ -47,6 +53,17 @@ function pickLocal(state: LocalWorkbenchState): LocalWorkbenchState {
 
 function sortByOrder(tasks: WorkbenchTask[]): WorkbenchTask[] {
   return tasks.slice().sort((a, b) => a.order - b.order)
+}
+
+function upsertTrashById(
+  list: TrashedMainlineTask[],
+  item: TrashedMainlineTask,
+): TrashedMainlineTask[] {
+  const idx = list.findIndex((t) => t.task.id === item.task.id)
+  if (idx < 0) return [...list, item]
+  const next = list.slice()
+  next[idx] = item
+  return next
 }
 
 function upsertById(list: WorkbenchTask[], task: WorkbenchTask): WorkbenchTask[] {
@@ -68,6 +85,8 @@ export interface WorkbenchStore extends LocalWorkbenchState {
   connection: ConnectionState
   remotePool: WorkbenchTask[]
   remoteMainline: WorkbenchTask[]
+  remoteMainlineTrash: TrashedMainlineTask[]
+  remoteActivityLog: WorkbenchActivityEntry[]
   remoteLeadIds: string[]
   remoteMembers: WorkbenchUser[]
   disconnectBanner: string | null
@@ -75,10 +94,16 @@ export interface WorkbenchStore extends LocalWorkbenchState {
   hydrate: () => Promise<void>
   createProject: (name: string) => string
   renameProject: (projectId: string, name: string) => void
+  createMainlineTask: (projectId: string, title: string, status?: import('../types').TaskStatus) => void
   createPersonalTask: (projectId: string, title: string) => void
   updateTask: (taskId: string, patch: TaskUpdatePatch) => void
-  promoteToLocalMainline: (taskId: string) => void
-  deleteMainlineTask: (taskId: string) => Promise<{ ok: true } | { ok: false; error: string }>
+  promoteToLocalMainline: (taskId: string, status?: import('../types').TaskStatus) => void
+  deleteMainlineTask: (
+    taskId: string,
+    lane?: 'personalMainline' | 'teamMainline',
+  ) => Promise<{ ok: true } | { ok: false; error: string }>
+  isOnPersonalMainline: (sourceTaskId: string, projectId: string) => boolean
+  isOnTeamMainline: (sourceTaskId: string, projectId: string) => boolean
   isOnMainline: (sourceTaskId: string, projectId: string) => boolean
   importLegacyIntoProject: (projectId: string) => Promise<{ ok: true; count: number } | { ok: false; error: string }>
   tasksForProject: (projectId: string) => WorkbenchTask[]
@@ -93,17 +118,26 @@ export interface WorkbenchStore extends LocalWorkbenchState {
   disconnect: (opts?: { reason?: 'manual' | 'heartbeat' }) => Promise<void>
   isLiveForProject: (projectId: string) => boolean
   submitToPool: (taskId: string) => Promise<{ ok: true } | { ok: false; error: string }>
+  submitToTeamMainline: (
+    sourceTask: WorkbenchTask,
+    status?: import('../types').TaskStatus,
+  ) => Promise<{ ok: true } | { ok: false; error: string }>
   promoteRemote: (sourceTask: WorkbenchTask) => Promise<{ ok: true } | { ok: false; error: string }>
   updateRemoteMainlineTask: (
     taskId: string,
     patch: Partial<Pick<WorkbenchTask, 'title' | 'status' | 'dueDate' | 'description' | 'assigneeId' | 'order'>>,
   ) => Promise<{ ok: true } | { ok: false; error: string }>
+  restoreTeamMainlineTask: (taskId: string) => Promise<{ ok: true } | { ok: false; error: string }>
+  purgeTeamMainlineTask: (taskId: string) => Promise<{ ok: true } | { ok: false; error: string }>
+  teamActivityLog: (projectId: string) => WorkbenchActivityEntry[]
+  teamMainlineTrash: (projectId: string) => TrashedMainlineTask[]
   retryPendingPool: () => Promise<void>
   isLead: () => boolean
   visibleMainline: (projectId: string) => WorkbenchTask[]
   visiblePool: (projectId?: string) => WorkbenchTask[]
   findTaskEverywhere: (taskId: string) => WorkbenchTask | null
   unsyncedLocalMainline: (projectId: string) => WorkbenchTask[]
+  submitLocalMainlineToTeam: (projectId: string) => Promise<void>
   submitLocalMainlineToPool: (projectId: string) => Promise<void>
   clearDisconnectBanner: () => void
 }
@@ -118,6 +152,9 @@ let lastSnapshotAt: string | null = null
 
 const HEARTBEAT_MS = 5000
 const HEARTBEAT_FAIL_LIMIT = 2
+const EMPTY_TASK_LIST: WorkbenchTask[] = []
+const EMPTY_ACTIVITY_LOG: WorkbenchActivityEntry[] = []
+const EMPTY_TRASH_LIST: TrashedMainlineTask[] = []
 
 function clearHeartbeat(): void {
   if (heartbeatTimer) {
@@ -184,6 +221,8 @@ function applyRemoteSnapshot(
   snap: {
     pool: WorkbenchTask[]
     mainline: WorkbenchTask[]
+    mainlineTrash?: TrashedMainlineTask[]
+    activityLog?: WorkbenchActivityEntry[]
     leadIds: string[]
     members: WorkbenchUser[]
   },
@@ -192,6 +231,8 @@ function applyRemoteSnapshot(
   set({
     remotePool: snap.pool,
     remoteMainline: snap.mainline,
+    remoteMainlineTrash: snap.mainlineTrash ?? [],
+    remoteActivityLog: snap.activityLog ?? [],
     remoteLeadIds: snap.leadIds,
     remoteMembers: snap.members,
   })
@@ -208,6 +249,8 @@ function handleServerEvent(
       applyRemoteSnapshot(set, {
         pool: raw.pool,
         mainline: raw.mainline,
+        mainlineTrash: raw.mainlineTrash,
+        activityLog: raw.activityLog,
         leadIds: raw.leadIds,
         members: raw.members,
       })
@@ -223,6 +266,23 @@ function handleServerEvent(
         remoteMainline: get().remoteMainline.filter(
           (t) => !(t.id === raw.taskId && t.projectId === raw.projectId),
         ),
+      })
+      break
+    case 'mainlineTrashUpsert':
+      set({
+        remoteMainlineTrash: upsertTrashById(get().remoteMainlineTrash, raw.item),
+      })
+      break
+    case 'mainlineTrashRemove':
+      set({
+        remoteMainlineTrash: get().remoteMainlineTrash.filter(
+          (t) => !(t.task.id === raw.taskId && t.task.projectId === raw.projectId),
+        ),
+      })
+      break
+    case 'activityLogAppend':
+      set({
+        remoteActivityLog: [...get().remoteActivityLog, raw.entry].slice(-200),
       })
       break
     case 'members':
@@ -259,6 +319,8 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
   connection: offlineConnection(empty.user),
   remotePool: [],
   remoteMainline: [],
+  remoteMainlineTrash: [],
+  remoteActivityLog: [],
   remoteLeadIds: [],
   remoteMembers: [],
   disconnectBanner: null,
@@ -273,7 +335,13 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
       try {
         const raw = await electronApi()?.workbenchLocalGet?.()
         if (looksLikeLocalState(raw)) {
-          next = reduceLocal(next, { type: 'hydrate', state: raw })
+          next = reduceLocal(next, {
+            type: 'hydrate',
+            state: {
+              ...raw,
+              tasks: migrateLegacyPersonalTasks(raw.tasks),
+            },
+          })
         }
       } catch {
         // Keep empty default state when load fails.
@@ -309,13 +377,18 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
     })
   },
 
-  createPersonalTask: (projectId, title) => {
+  createMainlineTask: (projectId, title, status) => {
     applyMutation(get, set, {
-      type: 'task/createPersonal',
+      type: 'task/createMainline',
       projectId,
       title,
       nowIso: new Date().toISOString(),
+      status,
     })
+  },
+
+  createPersonalTask: (projectId, title) => {
+    get().createMainlineTask(projectId, title)
   },
 
   updateTask: (taskId, patch) => {
@@ -327,11 +400,19 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
     })
   },
 
-  promoteToLocalMainline: (taskId) => {
+  promoteToLocalMainline: (taskId, status) => {
     const source = get().tasks.find((t) => t.id === taskId)
     if (!source) return
-    if (get().isOnMainline(source.id, source.projectId)) {
-      showToast('该任务已在主线中', 'error')
+    if (get().isOnPersonalMainline(source.id, source.projectId)) {
+      const copy = get().tasks.find(
+        (t) =>
+          t.projectId === source.projectId &&
+          t.space === 'mainline' &&
+          (t.sourceTaskId === source.id || t.id === source.id),
+      )
+      if (copy && status && copy.status !== status) {
+        get().updateTask(copy.id, { status })
+      }
       return
     }
     applyMutation(get, set, {
@@ -339,22 +420,76 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
       taskId,
       actorId: get().user.id,
       nowIso: new Date().toISOString(),
+      status,
     })
   },
 
-  deleteMainlineTask: async (taskId) => {
+  deleteMainlineTask: async (taskId, lane) => {
     const mode = get().connection.mode
+
+    if (lane === 'personalMainline') {
+      const localTask = get().tasks.find((t) => t.id === taskId && t.space === 'mainline')
+      if (!localTask) return { ok: false, error: '任务不存在' }
+      applyMutation(get, set, { type: 'task/delete', taskId: localTask.id })
+      return { ok: true }
+    }
+
+    if (lane === 'teamMainline') {
+      const remoteTask = get().remoteMainline.find((t) => t.id === taskId)
+      if (!remoteTask) return { ok: false, error: '任务不存在' }
+      const live = mode !== 'offline' && get().connection.projectId === remoteTask.projectId
+      if (!live) return { ok: false, error: '未连接房间' }
+      if (!get().isLead()) {
+        const msg = '仅负责人可删除团队主线任务'
+        showToast(msg, 'error')
+        return { ok: false, error: msg }
+      }
+      const client = activeClient
+      if (!client) return { ok: false, error: '客户端未就绪' }
+      const result = await client.command(
+        { op: 'deleteMainlineTask', projectId: remoteTask.projectId, taskId: remoteTask.id },
+        get().connection.localUser.id,
+      )
+      if (!result.ok) {
+        showToast(result.error, 'error')
+        return result
+      }
+      return { ok: true }
+    }
+
     const task =
       get().remoteMainline.find((t) => t.id === taskId) ||
       get().tasks.find((t) => t.id === taskId)
     if (!task) return { ok: false, error: '任务不存在' }
 
     const live = mode !== 'offline' && get().connection.projectId === task.projectId
-    if (!live) {
+    const localMainline = get().tasks.find((t) => t.id === taskId && t.space === 'mainline')
+    const remoteMainlineTask = get().remoteMainline.find((t) => t.id === taskId)
+    if (remoteMainlineTask && live && !localMainline) {
+      if (!get().isLead()) {
+        const msg = '仅负责人可删除团队主线任务'
+        showToast(msg, 'error')
+        return { ok: false, error: msg }
+      }
+      const client = activeClient
+      if (!client) return { ok: false, error: '客户端未就绪' }
+      const result = await client.command(
+        { op: 'deleteMainlineTask', projectId: remoteMainlineTask.projectId, taskId },
+        get().connection.localUser.id,
+      )
+      if (!result.ok) {
+        showToast(result.error, 'error')
+        return result
+      }
+      return { ok: true }
+    }
+
+    if (!live || localMainline) {
       if (task.space !== 'mainline') return { ok: false, error: '只能删除主线任务' }
       applyMutation(get, set, { type: 'task/delete', taskId })
       return { ok: true }
     }
+
     if (!get().isLead()) {
       const msg = '仅负责人可删除主线任务'
       showToast(msg, 'error')
@@ -373,13 +508,27 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
     return { ok: true }
   },
 
-  isOnMainline: (sourceTaskId, projectId) => {
-    const { connection, tasks, remoteMainline } = get()
+  isOnPersonalMainline: (sourceTaskId, projectId) => {
+    const { tasks } = get()
+    return tasks
+      .filter((t) => t.projectId === projectId && t.space === 'mainline')
+      .some((t) => t.sourceTaskId === sourceTaskId || t.id === sourceTaskId)
+  },
+
+  isOnTeamMainline: (sourceTaskId, projectId) => {
+    const { connection, remoteMainline } = get()
     const live = connection.mode !== 'offline' && connection.projectId === projectId
-    const list = live
-      ? remoteMainline.filter((t) => t.projectId === projectId)
-      : tasks.filter((t) => t.projectId === projectId && t.space === 'mainline')
-    return list.some((t) => t.sourceTaskId === sourceTaskId || t.id === sourceTaskId)
+    if (!live) return false
+    return remoteMainline
+      .filter((t) => t.projectId === projectId)
+      .some((t) => t.sourceTaskId === sourceTaskId || t.id === sourceTaskId)
+  },
+
+  isOnMainline: (sourceTaskId, projectId) => {
+    return (
+      get().isOnPersonalMainline(sourceTaskId, projectId) ||
+      get().isOnTeamMainline(sourceTaskId, projectId)
+    )
   },
 
   importLegacyIntoProject: async (projectId) => {
@@ -403,7 +552,7 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
       })
       if (mapped.length === 0) return { ok: false, error: '经典任务流没有可导入的任务' }
       applyMutation(get, set, { type: 'task/importMany', tasks: mapped })
-      showToast(`已导入 ${mapped.length} 条到个人`, 'success')
+      showToast(`已导入 ${mapped.length} 条到个人主线`, 'success')
       return { ok: true, count: mapped.length }
     } catch (e) {
       const msg = e instanceof Error ? e.message : '导入失败'
@@ -432,12 +581,9 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
         userId: user.id,
         passphrase,
       })
-      const mainlineSeed = get().tasks.filter(
-        (t) => t.projectId === projectId && t.space === 'mainline',
-      )
       const shared = await api.workbenchHostShareProject({
         project,
-        mainlineSeed,
+        mainlineSeed: [],
       })
       if (!shared.ok) {
         await api.workbenchHostStop?.()
@@ -579,6 +725,8 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
       connection: offlineConnection(get().user),
       remotePool: [],
       remoteMainline: [],
+      remoteMainlineTrash: [],
+      remoteActivityLog: [],
       remoteLeadIds: [],
       remoteMembers: [],
       disconnectBanner: banner,
@@ -627,13 +775,43 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
     return { ok: true }
   },
 
+  submitToTeamMainline: async (sourceTask, status) => {
+    const mode = get().connection.mode
+    if (mode === 'offline') {
+      return { ok: false, error: '未连接房间' }
+    }
+    if (get().isOnTeamMainline(sourceTask.sourceTaskId ?? sourceTask.id, sourceTask.projectId)) {
+      const msg = '该任务已在团队主线中'
+      showToast(msg, 'error')
+      return { ok: false, error: msg }
+    }
+    const client = activeClient
+    if (!client) return { ok: false, error: '客户端未就绪' }
+
+    const userId = get().connection.localUser.id
+    const result = await client.command(
+      {
+        op: 'submitToTeamMainline',
+        projectId: sourceTask.projectId,
+        sourceTask,
+        status,
+      },
+      userId,
+    )
+    if (!result.ok) {
+      showToast(result.error, 'error')
+      return result
+    }
+    return { ok: true }
+  },
+
   promoteRemote: async (sourceTask) => {
     const mode = get().connection.mode
     if (mode === 'offline') {
       return { ok: false, error: '未连接房间' }
     }
-    if (get().isOnMainline(sourceTask.id, sourceTask.projectId)) {
-      const msg = '该任务已在主线中'
+    if (get().isOnTeamMainline(sourceTask.sourceTaskId ?? sourceTask.id, sourceTask.projectId)) {
+      const msg = '该任务已在团队主线中'
       showToast(msg, 'error')
       return { ok: false, error: msg }
     }
@@ -712,17 +890,82 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
   visiblePool: (projectId) => {
     const { connection, remotePool } = get()
     const live = connection.mode !== 'offline' && (!projectId || connection.projectId === projectId)
-    if (!live) return []
+    if (!live) return EMPTY_TASK_LIST
     if (!projectId) return sortByOrder(remotePool)
     return sortByOrder(remotePool.filter((t) => t.projectId === projectId))
   },
 
+  teamActivityLog: (projectId) => {
+    const { connection, remoteActivityLog } = get()
+    const live = connection.mode !== 'offline' && connection.projectId === projectId
+    if (!live) return EMPTY_ACTIVITY_LOG
+    return remoteActivityLog.filter((entry) => entry.projectId === projectId)
+  },
+
+  teamMainlineTrash: (projectId) => {
+    const { connection, remoteMainlineTrash } = get()
+    const live = connection.mode !== 'offline' && connection.projectId === projectId
+    if (!live) return EMPTY_TRASH_LIST
+    return remoteMainlineTrash.filter((item) => item.task.projectId === projectId)
+  },
+
+  restoreTeamMainlineTask: async (taskId) => {
+    const mode = get().connection.mode
+    if (mode === 'offline') return { ok: false, error: '未连接房间' }
+    const trashed = get().remoteMainlineTrash.find((t) => t.task.id === taskId)
+    if (!trashed) return { ok: false, error: '任务不存在' }
+    const live = get().connection.projectId === trashed.task.projectId
+    if (!live) return { ok: false, error: '未连接房间' }
+    if (!get().isLead()) {
+      const msg = '仅负责人可恢复团队主线任务'
+      showToast(msg, 'error')
+      return { ok: false, error: msg }
+    }
+    const client = activeClient
+    if (!client) return { ok: false, error: '客户端未就绪' }
+    const result = await client.command(
+      { op: 'restoreMainlineTask', projectId: trashed.task.projectId, taskId },
+      get().connection.localUser.id,
+    )
+    if (!result.ok) {
+      showToast(result.error, 'error')
+      return result
+    }
+    return { ok: true }
+  },
+
+  purgeTeamMainlineTask: async (taskId) => {
+    const mode = get().connection.mode
+    if (mode === 'offline') return { ok: false, error: '未连接房间' }
+    const trashed = get().remoteMainlineTrash.find((t) => t.task.id === taskId)
+    if (!trashed) return { ok: false, error: '任务不存在' }
+    const live = get().connection.projectId === trashed.task.projectId
+    if (!live) return { ok: false, error: '未连接房间' }
+    if (!get().isLead()) {
+      const msg = '仅负责人可永久删除团队主线任务'
+      showToast(msg, 'error')
+      return { ok: false, error: msg }
+    }
+    const client = activeClient
+    if (!client) return { ok: false, error: '客户端未就绪' }
+    const result = await client.command(
+      { op: 'purgeMainlineTask', projectId: trashed.task.projectId, taskId },
+      get().connection.localUser.id,
+    )
+    if (!result.ok) {
+      showToast(result.error, 'error')
+      return result
+    }
+    return { ok: true }
+  },
+
   findTaskEverywhere: (taskId) => {
-    const { tasks, remotePool, remoteMainline } = get()
+    const { tasks, remotePool, remoteMainline, remoteMainlineTrash } = get()
     return (
       tasks.find((t) => t.id === taskId) ||
       remotePool.find((t) => t.id === taskId) ||
       remoteMainline.find((t) => t.id === taskId) ||
+      remoteMainlineTrash.find((t) => t.task.id === taskId)?.task ||
       null
     )
   },
@@ -734,33 +977,21 @@ export const useWorkbenchStore = create<WorkbenchStore>((set, get) => ({
     return sortByOrder(localMain.filter((t) => t.updatedAt > lastSnapshotAt!))
   },
 
-  submitLocalMainlineToPool: async (projectId) => {
+  submitLocalMainlineToTeam: async (projectId) => {
     if (get().connection.mode === 'offline') {
       showToast('请先连接房间', 'error')
       return
     }
     const items = get().unsyncedLocalMainline(projectId)
     for (const task of items) {
-      // Ensure a personal copy exists to submit, or submit the mainline task reshaped as pool payload.
-      const client = activeClient
-      if (!client) return
-      const userId = get().connection.localUser.id
-      const poolTask: WorkbenchTask = {
-        ...task,
-        id: task.id,
-        space: 'pool',
-        updatedAt: new Date().toISOString(),
-      }
-      const result = await client.command(
-        { op: 'submitToPool', projectId, task: poolTask },
-        userId,
-      )
-      if (!result.ok) {
-        showToast(result.error, 'error')
-        return
-      }
+      const result = await get().submitToTeamMainline(task, task.status)
+      if (!result.ok) return
     }
-    if (items.length > 0) showToast(`已提交 ${items.length} 条本机主线到所有人`, 'success')
+    if (items.length > 0) showToast(`已提交 ${items.length} 条个人主线到团队主线`, 'success')
+  },
+
+  submitLocalMainlineToPool: async (projectId) => {
+    await get().submitLocalMainlineToTeam(projectId)
   },
 
   clearDisconnectBanner: () => set({ disconnectBanner: null }),

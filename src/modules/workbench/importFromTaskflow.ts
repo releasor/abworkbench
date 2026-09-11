@@ -19,7 +19,7 @@ export function importLegacyTasks(input: {
   return input.legacyTasks.map((t, index) => ({
     id: createId('task'),
     projectId: input.projectId,
-    space: 'personal',
+    space: 'mainline',
     title: t.title,
     status: mapLegacyStatus(t.status ?? 'todo'),
     dueDate: t.dueDate ?? null,

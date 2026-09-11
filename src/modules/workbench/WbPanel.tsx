@@ -1,6 +1,5 @@
 import type { ComponentPropsWithoutRef, ElementType, ReactNode } from 'react'
 import clsx from 'clsx'
-import GlassCard, { type GlassCardProps } from '../../components/common/GlassSurface/GlassCard'
 
 type WbPanelProps<T extends ElementType = 'section'> = {
   as?: T
@@ -11,6 +10,7 @@ type WbPanelProps<T extends ElementType = 'section'> = {
   children?: ReactNode
 } & Omit<ComponentPropsWithoutRef<T>, 'as' | 'className' | 'children'>
 
+/** Light glass panel shell — styling from staggered-theme `.wb-panel` / `.dashboard-panel` (no BorderGlow hooks). */
 export default function WbPanel<T extends ElementType = 'section'>({
   as,
   className,
@@ -20,21 +20,21 @@ export default function WbPanel<T extends ElementType = 'section'>({
   borderRadius,
   ...props
 }: WbPanelProps<T>) {
+  const Component = (as ?? 'section') as ElementType
   const radius = borderRadius ?? (hero ? 28 : 22)
 
-  // GlassCard's default `as: 'div'` generic rejects polymorphic tags; cast like SettingsGlassCard.
-  const cardProps = {
-    as: as ?? 'section',
-    borderRadius: radius,
-    className: clsx(
-      'dashboard-panel wb-panel',
-      hero && 'wb-panel--hero',
-      className,
-    ),
-    contentClassName,
-    children,
-    ...props,
-  } as GlassCardProps
-
-  return <GlassCard {...cardProps} />
+  return (
+    <Component
+      className={clsx(
+        'dashboard-panel wb-panel min-w-0',
+        hero && 'wb-panel--hero',
+        className,
+        contentClassName,
+      )}
+      style={{ borderRadius: `${radius}px` }}
+      {...props}
+    >
+      {children}
+    </Component>
+  )
 }

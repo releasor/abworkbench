@@ -1,6 +1,6 @@
 import assert from 'node:assert/strict'
 import test from 'node:test'
-import { canPromoteToMainline, canSubmitToPool } from './permissions.ts'
+import { canPromoteToMainline, canSubmitToPool, canSubmitToTeamMainline } from './permissions.ts'
 
 const base = {
   connected: false,
@@ -36,4 +36,19 @@ test('online: only lead can promote pool or personal to team mainline', () => {
 test('submitToPool requires connection', () => {
   assert.equal(canSubmitToPool({ connected: false }), false)
   assert.equal(canSubmitToPool({ connected: true }), true)
+})
+
+test('submitToTeamMainline requires connection and own task', () => {
+  assert.equal(
+    canSubmitToTeamMainline({ connected: false, actorId: 'u1', sourceAuthorId: 'u1' }),
+    false,
+  )
+  assert.equal(
+    canSubmitToTeamMainline({ connected: true, actorId: 'u1', sourceAuthorId: 'u1' }),
+    true,
+  )
+  assert.equal(
+    canSubmitToTeamMainline({ connected: true, actorId: 'u1', sourceAuthorId: 'u2' }),
+    false,
+  )
 })

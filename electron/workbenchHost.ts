@@ -107,6 +107,8 @@ function listProjectsBody(): Array<{ id: string; name: string }> {
 function snapshotBody(projectId: string): {
   pool: WorkbenchTask[]
   mainline: WorkbenchTask[]
+  mainlineTrash: import('../src/modules/workbench/types.ts').TrashedMainlineTask[]
+  activityLog: import('../src/modules/workbench/types.ts').WorkbenchActivityEntry[]
   leadIds: string[]
   members: WorkbenchUser[]
 } | null {
@@ -116,6 +118,8 @@ function snapshotBody(projectId: string): {
   return {
     pool: bundle.pool,
     mainline: bundle.mainline,
+    mainlineTrash: bundle.mainlineTrash ?? [],
+    activityLog: bundle.activityLog ?? [],
     leadIds: bundle.project.leadIds,
     members: room.members,
   }
@@ -195,6 +199,19 @@ export function hostApplyClientRequest(
       return result.ok ? { ok: true } : { ok: false, error: result.error }
     }
 
+    case 'submitToTeamMainline': {
+      if (!actorIdHint) return { ok: false, error: 'missing x-user-id' }
+      const result = applyAndBroadcast({
+        type: 'submitToTeamMainline',
+        actorId: actorIdHint,
+        projectId: clientReq.projectId,
+        sourceTask: clientReq.sourceTask,
+        status: clientReq.status,
+        nowIso,
+      })
+      return result.ok ? { ok: true } : { ok: false, error: result.error }
+    }
+
     case 'updateMainlineTask': {
       if (!actorIdHint) return { ok: false, error: 'missing x-user-id' }
       const result = applyAndBroadcast({
@@ -212,6 +229,30 @@ export function hostApplyClientRequest(
       if (!actorIdHint) return { ok: false, error: 'missing x-user-id' }
       const result = applyAndBroadcast({
         type: 'deleteMainlineTask',
+        actorId: actorIdHint,
+        projectId: clientReq.projectId,
+        taskId: clientReq.taskId,
+        nowIso,
+      })
+      return result.ok ? { ok: true } : { ok: false, error: result.error }
+    }
+
+    case 'restoreMainlineTask': {
+      if (!actorIdHint) return { ok: false, error: 'missing x-user-id' }
+      const result = applyAndBroadcast({
+        type: 'restoreMainlineTask',
+        actorId: actorIdHint,
+        projectId: clientReq.projectId,
+        taskId: clientReq.taskId,
+        nowIso,
+      })
+      return result.ok ? { ok: true } : { ok: false, error: result.error }
+    }
+
+    case 'purgeMainlineTask': {
+      if (!actorIdHint) return { ok: false, error: 'missing x-user-id' }
+      const result = applyAndBroadcast({
+        type: 'purgeMainlineTask',
         actorId: actorIdHint,
         projectId: clientReq.projectId,
         taskId: clientReq.taskId,
@@ -321,7 +362,15 @@ async function handleRequest(req: IncomingMessage, res: ServerResponse): Promise
       return
     }
     const op = (parsed as { op?: string })?.op
-    const needsActor = op === 'submitToPool' || op === 'promote' || op === 'updateMainlineTask' || op === 'setLeads'
+    const needsActor =
+      op === 'submitToPool' ||
+      op === 'promote' ||
+      op === 'submitToTeamMainline' ||
+      op === 'updateMainlineTask' ||
+      op === 'deleteMainlineTask' ||
+      op === 'restoreMainlineTask' ||
+      op === 'purgeMainlineTask' ||
+      op === 'setLeads'
     const actorId = needsActor ? memberIdFromHeader(req) : undefined
     if (needsActor && !actorId) {
       sendJson(res, 403, { ok: false, error: 'missing or unknown x-user-id' })

@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { showToast } from '../taskflow/utils/toastEvent'
 import { useWorkbenchStore } from './hooks/useWorkbenchStore'
-import WbPanel from './WbPanel'
 
 interface RoomBarProps {
   projectId: string
@@ -35,6 +34,12 @@ export default function RoomBar({ projectId }: RoomBarProps) {
     connection.projectName ||
     projects.find((p) => p.id === connection.projectId)?.name ||
     '另一项目'
+
+  const hint = isLive
+    ? '协作仅限本项目：所有人池与团队主线只同步此项目'
+    : boundElsewhere
+      ? `当前房间绑定「${boundName}」。本页仅本机；回到该项目可继续协作，或断开后为本项目开房。`
+      : '开房只绑定当前这一个项目，不会带上其他项目'
 
   const onHost = async () => {
     setBusy(true)
@@ -79,9 +84,9 @@ export default function RoomBar({ projectId }: RoomBarProps) {
   }
 
   return (
-    <WbPanel as="div" className="wb-room flex flex-col gap-2 px-3 py-2.5">
-      <div className="flex flex-wrap items-center gap-2">
-        <span className="text-xs font-semibold tracking-wide text-text">局域网 · 本项目</span>
+    <div className="wb-room--compact dashboard-panel wb-panel shrink-0 flex w-full flex-col gap-1" title={hint}>
+      <div className="flex min-h-0 flex-wrap items-center gap-1.5">
+        <span className="text-[11px] font-semibold tracking-wide text-text">局域网</span>
         {isLive ? (
           <span className="wb-mode-pill" data-mode={connection.mode}>
             {MODE_LABEL[connection.mode]}
@@ -96,31 +101,31 @@ export default function RoomBar({ projectId }: RoomBarProps) {
           </span>
         )}
         {isLive && connection.mode === 'hosting' && connection.roomCode ? (
-          <span className="text-xs text-text">
+          <span className="text-[11px] text-text">
             短码 <span className="font-mono font-semibold text-primary">{connection.roomCode}</span>
           </span>
         ) : null}
         {isLive && connection.hostBaseUrl ? (
-          <span className="truncate font-mono text-[11px] text-text-muted" title="本机连接地址">
-            本机 {connection.hostBaseUrl}
+          <span className="max-w-[10rem] truncate font-mono text-[10px] text-text-muted" title="本机连接地址">
+            {connection.hostBaseUrl}
           </span>
         ) : null}
 
-        <div className="ml-auto flex flex-wrap items-center gap-2">
+        <div className="ml-auto flex flex-wrap items-center gap-1">
           {offline ? (
             <>
               <input
                 value={passphrase}
                 onChange={(e) => setPassphrase(e.target.value)}
-                placeholder="开房口令（可选）"
-                className="interactive-glass w-32 rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
+                placeholder="口令"
+                className="interactive-glass w-20 rounded-lg px-1.5 py-0.5 text-[10px] text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
               />
               <button
                 type="button"
                 disabled={busy}
                 onClick={() => void onHost()}
                 title="仅为当前项目开房"
-                className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50"
+                className="interactive-glass dashboard-chip rounded-lg px-2 py-0.5 text-[10px] font-semibold text-primary disabled:opacity-50"
               >
                 开房
               </button>
@@ -128,7 +133,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
                 type="button"
                 disabled={busy}
                 onClick={() => setShowJoin((v) => !v)}
-                className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-text-muted"
+                className="interactive-glass dashboard-chip rounded-lg px-2 py-0.5 text-[10px] font-semibold text-text-muted"
               >
                 加入
               </button>
@@ -138,7 +143,7 @@ export default function RoomBar({ projectId }: RoomBarProps) {
               type="button"
               disabled={busy}
               onClick={() => void onDisconnect()}
-              className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-text-muted"
+              className="interactive-glass dashboard-chip rounded-lg px-2 py-0.5 text-[10px] font-semibold text-text-muted"
             >
               断开
             </button>
@@ -146,17 +151,9 @@ export default function RoomBar({ projectId }: RoomBarProps) {
         </div>
       </div>
 
-      <p className="text-[11px] text-text-muted">
-        {isLive
-          ? '协作仅限本项目：所有人池与团队主线只同步此项目'
-          : boundElsewhere
-            ? `当前房间绑定「${boundName}」。本页仅本机；回到该项目可继续协作，或断开后为本项目开房。`
-            : '开房只绑定当前这一个项目，不会带上其他项目'}
-      </p>
-
       {isLive && connection.mode === 'hosting' && connection.lanUrls && connection.lanUrls.length > 0 ? (
-        <div className="flex flex-wrap gap-x-3 gap-y-1 text-[11px] text-text-muted">
-          <span>他人加入请用：</span>
+        <div className="flex flex-wrap gap-x-2 gap-y-0.5 text-[10px] text-text-muted">
+          <span>他人加入：</span>
           {connection.lanUrls.map((url) => (
             <span key={url} className="font-mono text-text">
               {url}
@@ -166,44 +163,44 @@ export default function RoomBar({ projectId }: RoomBarProps) {
       ) : null}
 
       {offline && showJoin ? (
-        <div className="wb-section-divider flex flex-wrap items-end gap-2 pt-2">
-          <label className="flex min-w-[12rem] flex-1 flex-col gap-1">
-            <span className="text-[10px] text-text-muted">主机地址</span>
+        <div className="flex flex-wrap items-end gap-1.5 pt-0.5">
+          <label className="flex min-w-[9rem] flex-1 flex-col gap-0.5">
+            <span className="text-[9px] text-text-muted">主机地址</span>
             <input
               value={joinUrl}
               onChange={(e) => setJoinUrl(e.target.value)}
               placeholder="http://192.168.x.x:端口"
-              className="interactive-glass rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
+              className="interactive-glass rounded-lg px-1.5 py-0.5 text-[10px] text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
-          <label className="flex w-28 flex-col gap-1">
-            <span className="text-[10px] text-text-muted">口令</span>
+          <label className="flex w-20 flex-col gap-0.5">
+            <span className="text-[9px] text-text-muted">口令</span>
             <input
               value={joinPassphrase}
               onChange={(e) => setJoinPassphrase(e.target.value)}
               placeholder="可选"
-              className="interactive-glass rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
+              className="interactive-glass rounded-lg px-1.5 py-0.5 text-[10px] text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
-          <label className="flex w-28 flex-col gap-1">
-            <span className="text-[10px] text-text-muted">显示名</span>
+          <label className="flex w-20 flex-col gap-0.5">
+            <span className="text-[9px] text-text-muted">显示名</span>
             <input
               value={displayName}
               onChange={(e) => setDisplayName(e.target.value)}
               placeholder="可选"
-              className="interactive-glass rounded-xl px-2 py-1 text-xs text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
+              className="interactive-glass rounded-lg px-1.5 py-0.5 text-[10px] text-text bg-transparent outline-none focus:ring-2 focus:ring-primary/30"
             />
           </label>
           <button
             type="button"
             disabled={busy || !joinUrl.trim()}
             onClick={() => void onJoin()}
-            className="interactive-glass dashboard-chip rounded-xl px-3 py-1 text-xs font-semibold text-primary disabled:opacity-50"
+            className="interactive-glass dashboard-chip rounded-lg px-2 py-0.5 text-[10px] font-semibold text-primary disabled:opacity-50"
           >
-            确认加入
+            确认
           </button>
         </div>
       ) : null}
-    </WbPanel>
+    </div>
   )
 }

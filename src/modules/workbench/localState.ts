@@ -13,6 +13,7 @@ export type LocalAction =
   | { type: 'project/rename'; projectId: string; name: string; nowIso: string }
   | { type: 'project/ensure'; project: WorkbenchProject }
   | { type: 'task/createPersonal'; projectId: string; title: string; nowIso: string }
+  | { type: 'task/createMainline'; projectId: string; title: string; nowIso: string; status?: import('./types').TaskStatus }
   | {
       type: 'task/update'
       taskId: string
@@ -24,7 +25,13 @@ export type LocalAction =
       >
       nowIso: string
     }
-  | { type: 'task/promoteToLocalMainline'; taskId: string; actorId: string; nowIso: string }
+  | {
+      type: 'task/promoteToLocalMainline'
+      taskId: string
+      actorId: string
+      nowIso: string
+      status?: import('./types').TaskStatus
+    }
   | { type: 'task/delete'; taskId: string }
   | { type: 'task/importMany'; tasks: WorkbenchTask[] }
   | { type: 'hydrate'; state: LocalWorkbenchState }
@@ -88,6 +95,23 @@ export function reduceLocal(state: LocalWorkbenchState, action: LocalAction): Lo
       }
       return { ...state, tasks: [...state.tasks, task] }
     }
+    case 'task/createMainline': {
+      const order = state.tasks.filter(
+        (t) => t.projectId === action.projectId && t.space === 'mainline',
+      ).length
+      const task: WorkbenchTask = {
+        id: createId('task'),
+        projectId: action.projectId,
+        space: 'mainline',
+        title: action.title.trim() || '未命名',
+        status: action.status ?? 'todo',
+        authorId: state.user.id,
+        assigneeId: state.user.id,
+        order,
+        updatedAt: action.nowIso,
+      }
+      return { ...state, tasks: [...state.tasks, task] }
+    }
     case 'task/update': {
       return {
         ...state,
@@ -124,6 +148,7 @@ export function reduceLocal(state: LocalWorkbenchState, action: LocalAction): Lo
         id: createId('task'),
         space: 'mainline',
         sourceTaskId: source.id,
+        status: action.status ?? source.status,
         order,
         updatedAt: action.nowIso,
       }

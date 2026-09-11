@@ -2,7 +2,7 @@ import assert from 'node:assert/strict'
 import test from 'node:test'
 import { importLegacyTasks } from './importFromTaskflow.ts'
 
-test('imports title status dueDate description into personal space', () => {
+test('imports title status dueDate description into mainline space', () => {
   const out = importLegacyTasks({
     projectId: 'p1',
     authorId: 'u1',
@@ -19,7 +19,7 @@ test('imports title status dueDate description into personal space', () => {
     ],
   })
   assert.equal(out.length, 1)
-  assert.equal(out[0].space, 'personal')
+  assert.equal(out[0].space, 'mainline')
   assert.equal(out[0].status, 'doing')
   assert.equal(out[0].title, 'A')
   assert.equal(out[0].dueDate, '2026-08-22')
