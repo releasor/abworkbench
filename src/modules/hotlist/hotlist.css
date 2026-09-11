@@ -1,15 +1,17 @@
-/* Hotlist domain layout — glass shells come from GlassCard / BorderGlow / mineradio-skin. */
+/* Hotlist domain layout — glass shells come from GlassCard / mineradio-skin.
+   Outer shell fills the main stage (bottom aligns with sidebar); scroll lives inside.
+   Horizontal inset matches Header (px-4 / md:px-5). */
 
-.hotlist-stage-frame.border-glow-card--glass {
-  border-radius: var(--radius-frame, 22px) !important;
+.hotlist-stage-frame {
+  border-radius: var(--radius-frame, 22px);
   flex: 1 1 auto;
   min-height: 100%;
   height: 100%;
-}
-
-.hotlist-stage-frame > .border-glow-inner {
-  min-height: 0;
-  height: 100%;
+  min-width: 0;
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  overflow: hidden;
 }
 
 .page-layer.is-active:has(.hotlist-stage-frame) {
@@ -25,17 +27,23 @@
   min-height: 100%;
   height: 100%;
   overflow: hidden;
+  border-radius: inherit;
 }
 
 .hotlist-content-scroll {
   min-height: 0;
+  flex: 1 1 auto;
   overflow-y: auto;
   overflow-x: hidden;
+  /* Match .header-glass horizontal inset (px-4 / md:px-5) */
+  padding: 0 1rem 0.75rem;
+  box-sizing: border-box;
 }
 
-.hotlist-hero {
-  /* Compact title strip — height follows content, no dashboard-hero min padding */
-  min-height: 0;
+@media (min-width: 768px) {
+  .hotlist-content-scroll {
+    padding-inline: 1.25rem;
+  }
 }
 
 .hotlist-grid {
@@ -43,7 +51,7 @@
   grid-template-columns: repeat(auto-fill, minmax(220px, 1fr));
   gap: 0.85rem;
   align-content: start;
-  padding: 2px 2px 8px;
+  padding: 0 0 8px;
 }
 
 @media (min-width: 1280px) {
@@ -55,8 +63,8 @@
 .hotlist-card {
   display: flex;
   flex-direction: column;
-  height: 320px;
-  max-height: 320px;
+  height: auto;
+  min-height: 0;
   overflow: hidden;
 }
 
@@ -64,19 +72,26 @@
   display: flex;
   align-items: flex-start;
   justify-content: space-between;
-  gap: 0.5rem;
-  flex-shrink: 0;
-  padding: 0.85rem 0.9rem 0.55rem;
-  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 55%, transparent);
-  background: transparent;
+  gap: 0.75rem;
+  padding: 0.85rem 0.95rem 0.55rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--color-border) 70%, transparent);
 }
 
 .hotlist-card__body {
   flex: 1 1 auto;
   min-height: 0;
   overflow-y: auto;
-  overscroll-behavior: contain;
-  scrollbar-gutter: stable;
+  overflow-x: hidden;
+  padding: 0.35rem 0.55rem 0.65rem;
+}
+
+.hotlist-card__body--gallery {
+  overflow: visible;
+  padding: 0.55rem 0.75rem 0.85rem;
+}
+
+.hotlist-card__body--gallery .accordion-gallery {
+  min-width: 0;
 }
 
 .hotlist-card__body::-webkit-scrollbar {
@@ -84,12 +99,12 @@
 }
 
 .hotlist-card__body::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--color-text-muted) 35%, transparent);
   border-radius: 999px;
-  background: color-mix(in srgb, var(--color-border) 70%, transparent);
 }
 
 .hotlist-card__body::-webkit-scrollbar-thumb:hover {
-  background: color-mix(in srgb, var(--color-primary) 35%, var(--color-border));
+  background: color-mix(in srgb, var(--color-text-muted) 55%, transparent);
 }
 
 .hotlist-card__title-wrap {
@@ -98,21 +113,22 @@
 
 .hotlist-card__title {
   margin: 0;
-  font-size: 0.95rem;
+  font-size: 0.92rem;
   font-weight: 700;
   color: var(--color-text);
+  line-height: 1.25;
 }
 
 .hotlist-card__subtitle {
   display: block;
   margin-top: 0.15rem;
-  font-size: 0.68rem;
+  font-size: 0.7rem;
   color: var(--color-text-muted);
 }
 
 .hotlist-card__time {
-  flex: 0 0 auto;
-  font-size: 0.62rem;
+  flex-shrink: 0;
+  font-size: 0.65rem;
   color: var(--color-text-muted);
   white-space: nowrap;
 }
@@ -120,7 +136,7 @@
 .hotlist-card__list {
   list-style: none;
   margin: 0;
-  padding: 0.35rem 0;
+  padding: 0;
 }
 
 .hotlist-card__item {
@@ -128,56 +144,56 @@
 }
 
 .hotlist-card__link {
-  width: 100%;
-  display: grid;
-  grid-template-columns: auto minmax(0, 1fr) auto;
-  align-items: center;
+  display: flex;
+  align-items: flex-start;
   gap: 0.45rem;
-  padding: 0.42rem 0.85rem;
-  border: 0;
-  border-radius: 0;
-  background: transparent;
+  width: 100%;
+  padding: 0.35rem 0.4rem;
+  border-radius: 10px;
   text-align: left;
-  cursor: pointer;
   color: inherit;
-  font: inherit;
+  text-decoration: none;
+  border: 0;
+  background: transparent;
+  cursor: pointer;
 }
 
 .hotlist-card__link:hover {
-  background: color-mix(in srgb, var(--color-primary) 8%, transparent);
+  background: color-mix(in srgb, #fff 6%, transparent);
 }
 
 html[data-theme='light'] .hotlist-card__link:hover {
-  background: color-mix(in srgb, var(--color-primary) 5%, #fff);
+  background: color-mix(in srgb, var(--color-primary) 6%, transparent);
 }
 
 .hotlist-rank {
-  width: 1.1rem;
+  flex-shrink: 0;
+  width: 1.15rem;
   font-size: 0.72rem;
   font-weight: 700;
+  font-family: var(--font-numeric), var(--font-sans);
   font-variant-numeric: tabular-nums;
   color: var(--color-text-muted);
 }
 
 .hotlist-rank--1 {
-  color: #ef4444;
+  color: #f59e0b;
 }
 
 .hotlist-rank--2 {
-  color: #f97316;
+  color: #94a3b8;
 }
 
 .hotlist-rank--3 {
-  color: #fb923c;
+  color: #d97706;
 }
 
 .hotlist-card__text {
-  overflow: hidden;
-  text-overflow: ellipsis;
-  white-space: nowrap;
+  flex: 1 1 auto;
+  min-width: 0;
   font-size: 0.78rem;
   line-height: 1.35;
-  color: var(--color-text-secondary);
+  color: var(--color-text);
 }
 
 html[data-theme='light'] .hotlist-card__text {
@@ -185,35 +201,247 @@ html[data-theme='light'] .hotlist-card__text {
 }
 
 .hotlist-card__hot {
-  font-size: 0.62rem;
+  flex-shrink: 0;
+  font-size: 0.65rem;
   color: var(--color-text-muted);
-  white-space: nowrap;
+  font-family: var(--font-numeric), var(--font-sans);
+  font-variant-numeric: tabular-nums;
 }
 
 .hotlist-card__error {
-  margin: 0;
-  padding: 1rem 0.9rem;
-  font-size: 0.74rem;
-  line-height: 1.5;
-  color: var(--color-danger);
+  margin: 0.75rem 0.5rem;
+  font-size: 0.78rem;
+  color: #fca5a5;
 }
 
 .hotlist-card__empty,
 .hotlist-card__loading {
-  margin: 0;
-  padding: 1rem 0.9rem;
-  font-size: 0.74rem;
-  line-height: 1.5;
+  margin: 1.25rem 0.5rem;
+  font-size: 0.78rem;
   color: var(--color-text-muted);
+  text-align: center;
 }
 
 .hotlist-state {
-  flex: 1;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   gap: 0.75rem;
-  min-height: 16rem;
-  color: var(--color-text-muted);
+  min-height: 12rem;
+  padding: 2rem 1rem;
+}
+
+.hotlist-state--error {
+  color: #fca5a5;
+}
+
+
+.hotlist-platform-gallery {
+  width: 100%;
+}
+
+/* Panel sheet tinted to each platform cover palette (not flat black). */
+.hotlist-platform-gallery .ag-panel {
+  --hotlist-base: #0f172a;
+  --hotlist-mid: #334155;
+  --hotlist-accent: #67e8f9;
+  background: var(--hotlist-base);
+}
+
+.hotlist-platform-gallery .ag-panel__content {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+  backdrop-filter: none;
+  -webkit-backdrop-filter: none;
+}
+
+.hotlist-platform-gallery.ag-panel--active .ag-panel__content,
+.hotlist-platform-gallery .ag-panel--active .ag-panel__content {
+  background: transparent;
+  border: 0;
+}
+
+html[data-theme='light'] .hotlist-platform-gallery .ag-panel__content {
+  background: transparent;
+  border: 0;
+  box-shadow: none;
+}
+
+.hotlist-panel-list {
+  display: flex;
+  flex-direction: column;
+  min-height: 0;
+  height: 100%;
+  color: color-mix(in srgb, #fff 92%, var(--hotlist-accent) 8%);
+}
+
+.hotlist-panel-list__meta {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  padding: 0.4rem 0.5rem 0.5rem;
+  border-bottom: 1px solid color-mix(in srgb, var(--hotlist-accent) 22%, transparent);
+}
+
+.hotlist-panel-list__subtitle {
+  font-size: 0.68rem;
+  color: color-mix(in srgb, var(--hotlist-accent) 70%, #fff);
+}
+
+.hotlist-panel-list__time {
+  flex-shrink: 0;
+  font-size: 0.62rem;
+  color: color-mix(in srgb, #fff 55%, var(--hotlist-accent) 45%);
+}
+
+.hotlist-panel-list .hotlist-card__list {
+  flex: 1 1 auto;
+  min-height: 0;
+  overflow-y: auto;
+  padding: 0.3rem 0.25rem 0.4rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.15rem;
+}
+
+.hotlist-panel-list .hotlist-card__list::-webkit-scrollbar {
+  width: 5px;
+}
+
+.hotlist-panel-list .hotlist-card__list::-webkit-scrollbar-thumb {
+  background: color-mix(in srgb, var(--hotlist-accent) 45%, transparent);
+  border-radius: 999px;
+}
+
+.hotlist-panel-list .hotlist-panel-list__row {
+  border-radius: 10px;
+  background: color-mix(in srgb, var(--hotlist-mid) 28%, transparent);
+  border: 1px solid color-mix(in srgb, var(--hotlist-accent) 10%, transparent);
+}
+
+.hotlist-panel-list .hotlist-panel-list__row:hover {
+  background: color-mix(in srgb, var(--hotlist-accent) 18%, var(--hotlist-mid) 35%);
+  border-color: color-mix(in srgb, var(--hotlist-accent) 40%, transparent);
+}
+
+html[data-theme='light'] .hotlist-panel-list {
+  color: color-mix(in srgb, var(--hotlist-base) 75%, #0f172a);
+}
+
+html[data-theme='light'] .hotlist-panel-list__subtitle,
+html[data-theme='light'] .hotlist-panel-list__time {
+  color: color-mix(in srgb, var(--hotlist-mid) 65%, #334155);
+}
+
+html[data-theme='light'] .hotlist-panel-list .hotlist-panel-list__row {
+  background: color-mix(in srgb, #fff 70%, var(--hotlist-accent) 12%);
+  border-color: color-mix(in srgb, var(--hotlist-accent) 18%, transparent);
+}
+
+html[data-theme='light'] .hotlist-panel-list .hotlist-panel-list__row:hover {
+  background: color-mix(in srgb, var(--hotlist-accent) 16%, #fff);
+  border-color: color-mix(in srgb, var(--hotlist-accent) 35%, transparent);
+}
+
+.hotlist-panel-list .hotlist-card__text {
+  color: color-mix(in srgb, #fff 94%, var(--hotlist-accent) 6%);
+}
+
+html[data-theme='light'] .hotlist-panel-list .hotlist-card__text {
+  color: color-mix(in srgb, var(--hotlist-base) 80%, #0f172a);
+}
+
+.hotlist-panel-list .hotlist-card__hot,
+.hotlist-panel-list .hotlist-rank {
+  color: color-mix(in srgb, var(--hotlist-accent) 55%, #cbd5e1);
+}
+
+html[data-theme='light'] .hotlist-panel-list .hotlist-card__hot,
+html[data-theme='light'] .hotlist-panel-list .hotlist-rank {
+  color: color-mix(in srgb, var(--hotlist-mid) 55%, #64748b);
+}
+
+.hotlist-panel-list .hotlist-rank--1 {
+  color: color-mix(in srgb, var(--hotlist-accent) 35%, #f59e0b);
+}
+
+.hotlist-panel-list .hotlist-rank--2 {
+  color: color-mix(in srgb, var(--hotlist-accent) 40%, #e2e8f0);
+}
+
+.hotlist-panel-list .hotlist-rank--3 {
+  color: color-mix(in srgb, var(--hotlist-accent) 30%, #fdba74);
+}
+
+.hotlist-panel-list .hotlist-card__link:hover {
+  background: transparent;
+}
+
+
+/* Collapsed platform strip: compact titles with ellipsis */
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list__meta {
+  display: none;
+}
+
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__list {
+  overflow: hidden;
+  padding: 0.2rem 0.1rem;
+}
+
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__item:nth-child(n + 9) {
+  display: none;
+}
+
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__link {
+  gap: 0.25rem;
+  padding: 0.18rem 0.2rem;
+  pointer-events: none;
+}
+
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__hot {
+  display: none;
+}
+
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__text {
+  font-size: 0.62rem;
+  line-height: 1.25;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-rank {
+  width: 0.85rem;
+  font-size: 0.58rem;
+}
+
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__loading,
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__empty,
+.ag-panel:not(.ag-panel--active) .hotlist-panel-list .hotlist-card__error {
+  margin: 0.35rem 0.15rem;
+  font-size: 0.62rem;
+  white-space: nowrap;
+  overflow: hidden;
+  text-overflow: ellipsis;
+}
+
+.hotlist-panel-list .hotlist-card__loading,
+.hotlist-panel-list .hotlist-card__empty {
+  color: color-mix(in srgb, var(--hotlist-accent) 50%, #94a3b8);
+}
+
+.hotlist-panel-list .hotlist-card__error {
+  color: color-mix(in srgb, #fca5a5 80%, var(--hotlist-accent) 20%);
+}
+
+.hotlist-panel-list .hotlist-card__loading,
+.hotlist-panel-list .hotlist-card__empty {
+  color: var(--color-text-muted, #a1a1aa);
+}
+
+.hotlist-panel-list .hotlist-card__error {
+  color: #fca5a5;
 }

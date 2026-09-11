@@ -1,22 +1,22 @@
+import { useMemo } from 'react'
 import { GlassCard } from '../../components/common/GlassSurface'
+import AccordionGallery from '../../components/common/AccordionGallery'
 import { useTranslation } from '../../i18n'
 import type { HotlistBoard } from './types'
 import { formatHotlistUpdateLabel } from '../../utils/hotlistFormat'
+import { mapHotlistItemsToAccordion } from './hotlistAccordion'
 
 type Props = {
   board: HotlistBoard
   onOpen: (url: string) => void
 }
 
-function rankClass(rank: number): string {
-  if (rank === 1) return 'hotlist-rank hotlist-rank--1'
-  if (rank === 2) return 'hotlist-rank hotlist-rank--2'
-  if (rank === 3) return 'hotlist-rank hotlist-rank--3'
-  return 'hotlist-rank'
-}
-
 export default function HotlistBoardCard({ board, onOpen }: Props) {
   const { t } = useTranslation()
+  const panels = useMemo(
+    () => mapHotlistItemsToAccordion(board.items, board.id, 6),
+    [board.id, board.items],
+  )
 
   return (
     <GlassCard borderRadius={22} className="dashboard-panel hotlist-card h-full min-w-0 w-full">
@@ -43,25 +43,28 @@ export default function HotlistBoardCard({ board, onOpen }: Props) {
           <p className="hotlist-card__empty">{t('hotlist.empty')}</p>
         </div>
       ) : (
-        <div className="hotlist-card__body">
-          <ol className="hotlist-card__list">
-            {board.items.map((item) => (
-              <li key={`${board.id}-${item.rank}-${item.url}`} className="hotlist-card__item">
-                <button
-                  type="button"
-                  className="hotlist-card__link interactive-glass"
-                  onClick={() => onOpen(item.url)}
-                  title={item.title}
-                >
-                  <span className={rankClass(item.rank)} aria-hidden="true">
-                    {item.rank}
-                  </span>
-                  <span className="hotlist-card__text">{item.title}</span>
-                  {item.hot ? <span className="hotlist-card__hot">{item.hot}</span> : null}
-                </button>
-              </li>
-            ))}
-          </ol>
+        <div className="hotlist-card__body hotlist-card__body--gallery">
+          <AccordionGallery
+            items={panels}
+            defaultIndex={Math.min(2, Math.max(panels.length - 1, 0))}
+            height={220}
+            gap={8}
+            radius={14}
+            expandRatio={0.42}
+            trigger="hover"
+            grayscale
+            showLabels
+            accentColor="var(--color-primary, #67e8f9)"
+            overlayColor="#060010"
+            textColor="#ffffff"
+            tilt={6}
+            parallax={0.35}
+            duration={0.45}
+            ariaLabel={`${board.title} 热榜`}
+            onItemOpen={(item) => {
+              if (item.link) onOpen(item.link)
+            }}
+          />
         </div>
       )}
     </GlassCard>
