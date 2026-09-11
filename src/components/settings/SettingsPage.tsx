@@ -95,6 +95,8 @@ export default function SettingsPage() {
   const setVisualParticles = useStore((s) => s.setVisualParticles)
   const glowCursor = useStore((s) => s.glowCursor)
   const setGlowCursor = useStore((s) => s.setGlowCursor)
+  const glassOpacity = useStore((s) => s.glassOpacity)
+  const setGlassOpacity = useStore((s) => s.setGlassOpacity)
   const dailyPomodoroGoal = useStore((s) => s.dailyPomodoroGoal)
   const setDailyPomodoroGoal = useStore((s) => s.setDailyPomodoroGoal)
   const pomodoroWorkDuration = useStore((s) => s.pomodoroWorkDuration)
@@ -201,6 +203,7 @@ export default function SettingsPage() {
       userName,
       accentColor,
       workspaceMode,
+      glassOpacity,
       glowCursor,
       visualParticles,
       dailyPomodoroGoal,
@@ -246,6 +249,7 @@ export default function SettingsPage() {
           if (typeof d.userName === 'string') patch.userName = d.userName
           if (typeof d.accentColor === 'string') patch.accentColor = d.accentColor
           if (d.workspaceMode === 'focus' || d.workspaceMode === 'deep' || d.workspaceMode === 'night' || d.workspaceMode === 'minimal' || d.workspaceMode === 'dashboard') patch.workspaceMode = d.workspaceMode
+          if (typeof d.glassOpacity === 'number' && d.glassOpacity >= 40 && d.glassOpacity <= 100) patch.glassOpacity = Math.round(d.glassOpacity)
           if (typeof d.glowCursor === 'boolean') patch.glowCursor = d.glowCursor
           if (typeof d.visualParticles === 'boolean') patch.visualParticles = d.visualParticles
           if (typeof d.dailyPomodoroGoal === 'number' && d.dailyPomodoroGoal > 0) patch.dailyPomodoroGoal = d.dailyPomodoroGoal
@@ -521,6 +525,39 @@ export default function SettingsPage() {
                   <p className="mt-1 text-xs text-text-muted">{option.description}</p>
                 </button>
               ))}
+            </div>
+          </SettingsGlassCard>
+
+          <SettingsGlassCard className="dashboard-panel p-6">
+            <div className="mb-4 flex items-center gap-2">
+              <Sparkles size={20} className="text-primary" />
+              <h2 className="text-lg font-semibold text-text">玻璃透明度</h2>
+            </div>
+            <p className="mb-4 text-xs text-text-muted">
+              调节主窗口与快搜面板的磨砂不透明度。数值越高越不透、越接近实色；越低越能透出背景。
+            </p>
+            <div className="flex items-center gap-4">
+              <span className="w-10 shrink-0 text-xs text-text-muted">透</span>
+              <input
+                type="range"
+                min={40}
+                max={100}
+                step={1}
+                value={glassOpacity}
+                onChange={(e) => setGlassOpacity(Number(e.target.value))}
+                aria-label="玻璃不透明度"
+                className="h-2 w-full flex-1 cursor-pointer appearance-none rounded-full bg-surface-lighter accent-[var(--color-primary)]"
+              />
+              <span className="w-14 shrink-0 text-right text-sm font-semibold tabular-nums text-text">{glassOpacity}%</span>
+            </div>
+            <div className="mt-3 flex justify-end">
+              <button
+                type="button"
+                onClick={() => setGlassOpacity(90)}
+                className="interactive-glass rounded-xl px-3 py-1.5 text-xs font-semibold text-text-muted transition hover:text-text"
+              >
+                恢复默认 90%
+              </button>
             </div>
           </SettingsGlassCard>
 
