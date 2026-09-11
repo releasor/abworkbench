@@ -2,8 +2,8 @@ import {
   fetchHotlistBatch,
   fetchHotlistPlatforms,
   sortHotlistBoards,
-} from './hotlistApi'
-import type { HotlistBoard, HotlistPlatform } from './types'
+} from './hotlistApi.ts'
+import type { HotlistBoard, HotlistPlatform } from './types.ts'
 
 export type HotlistStoreSnapshot = {
   boards: HotlistBoard[]

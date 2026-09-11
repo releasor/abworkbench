@@ -156,6 +156,35 @@ function ensureAbwbIndexHooks() {
     )
     changed = true
   }
+  if (!html.includes('/* abwb-embed-critical')) {
+    const critical = `  <!-- Abworkbench embed: first-paint shell before external CSS (do not remove) -->
+  <style>
+    /* abwb-embed-critical */
+    html, body {
+      margin: 0;
+      width: 100%;
+      height: 100%;
+      overflow: hidden;
+      background: #050505;
+    }
+    html.abwb-embedded,
+    html.abwb-embedded body {
+      background: #050505;
+    }
+    html.abwb-embedded[data-theme="light"],
+    html.abwb-embedded[data-theme="light"] body,
+    html.abwb-embedded.abwb-theme-light,
+    html.abwb-embedded.abwb-theme-light body {
+      background: #f1f5f9;
+    }
+  </style>
+`
+    const next = html.replace(/(<link rel="stylesheet" href="css\/index\.css[^"]*">)/, `${critical}$1`)
+    if (next !== html) {
+      html = next
+      changed = true
+    }
+  }
   if (!html.includes('css/abwb-embed.css')) {
     html = html.replace(
       /(<link rel="stylesheet" href="css\/index\.css[^"]*">)/,

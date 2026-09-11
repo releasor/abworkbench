@@ -1,4 +1,4 @@
-import type { HotlistBoard, HotlistPlatform } from './types'
+import type { HotlistBoard, HotlistPlatform } from './types.ts'
 
 /** 有数据的排前，加载中居中，失败/空数据排后；同组内保持平台原始顺序。 */
 export function sortHotlistBoards(boards: HotlistBoard[], platformOrder: readonly string[]): HotlistBoard[] {
