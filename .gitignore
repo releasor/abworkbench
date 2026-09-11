@@ -36,6 +36,8 @@ electron/data/
 .codex-run/
 .workbuddy/
 .superpowers/
+# Cursor/ECC local install (agents, skills, hooks); keep any already-tracked project rules
+.cursor/
 
 # Archify scratch (diagram tool checkout / test exports)
 archify-temp/
