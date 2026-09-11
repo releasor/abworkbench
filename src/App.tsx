@@ -155,10 +155,11 @@ function App() {
     return () => mq.removeEventListener('change', sync)
   }, [])
 
+  const glassOpacity = useStore((s) => s.glassOpacity)
   useEffect(() => {
-    document.documentElement.style.setProperty('--app-glass-opacity', '100')
+    document.documentElement.style.setProperty('--app-glass-opacity', String(glassOpacity))
     document.documentElement.classList.remove('control-glass-svg-ok')
-  }, [])
+  }, [glassOpacity])
 
   useEffect(() => {
     const api = typeof window !== 'undefined' ? window.electronAPI : undefined

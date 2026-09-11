@@ -8,6 +8,7 @@ import {
   recomputeCompletedDates,
   timestampToDateStr,
 } from '../components/habits/habitSchedule'
+import { clampGlassOpacity, GLASS_OPACITY_DEFAULT } from './glassOpacity'
 
 export type Priority = 'low' | 'medium' | 'high' | 'urgent'
 export type ThemeMode = 'dark' | 'light'
@@ -137,6 +138,9 @@ interface AppState {
   /** Soft luminous cursor trail over the app background */
   glowCursor: boolean
   setGlowCursor: (enabled: boolean) => void
+  /** Window / launcher glass opacity, 40–100 (higher = less see-through) */
+  glassOpacity: number
+  setGlassOpacity: (opacity: number) => void
 
   // Weather
   weatherCity: string
@@ -307,6 +311,8 @@ export const useStore = create<AppState>()(
       setVisualParticles: (enabled) => set({ visualParticles: enabled }),
       glowCursor: true,
       setGlowCursor: (enabled) => set({ glowCursor: enabled }),
+      glassOpacity: GLASS_OPACITY_DEFAULT,
+      setGlassOpacity: (opacity) => set({ glassOpacity: clampGlassOpacity(opacity) }),
 
       // Weather
       weatherCity: '北京',
@@ -405,6 +411,7 @@ export const useStore = create<AppState>()(
         workspaceMode: state.workspaceMode,
         visualParticles: state.visualParticles,
         glowCursor: state.glowCursor,
+        glassOpacity: state.glassOpacity,
         habits: state.habits,
         userName: state.userName,
         dailyPomodoroGoal: state.dailyPomodoroGoal,
@@ -420,6 +427,7 @@ export const useStore = create<AppState>()(
       onRehydrateStorage: () => (state) => {
         if (!state) return
         state.themeMode = 'dark'
+        state.glassOpacity = clampGlassOpacity(state.glassOpacity)
         if (typeof state.glowCursor !== 'boolean') {
           state.glowCursor = true
         }
