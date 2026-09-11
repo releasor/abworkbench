@@ -3,6 +3,10 @@ html.abwb-embedded,
 html.abwb-embedded body {
   width: 100%;
   height: 100%;
+  min-height: 100%;
+  min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
   margin: 0;
   overflow: hidden;
   background: #050505;
@@ -72,8 +76,12 @@ html.abwb-embedded body.desktop-shell #desktop-titlebar {
 html.abwb-embedded #desktop-window-shell,
 body.abwb-embedded #desktop-window-shell,
 html.abwb-embedded body.desktop-shell #desktop-window-shell {
-  height: 100vh;
+  /* % chain from host webview; min-height cascade for Safari/odd viewports */
+  height: 100%;
+  min-height: 100%;
   min-height: 100vh;
+  min-height: -webkit-fill-available;
+  min-height: 100dvh;
   border-radius: 0 !important;
   clip-path: none !important;
   -webkit-clip-path: none !important;
@@ -105,6 +113,49 @@ html.abwb-embedded #album-bg-next {
   border-radius: 0 !important;
   clip-path: none !important;
   -webkit-clip-path: none !important;
+}
+
+/* Fullscreen bg fill — embed only (cover + solid fallback; no JS --vh) */
+html.abwb-embedded #custom-bg,
+html.abwb-embedded #splash,
+html.abwb-embedded #splash.ready,
+html.abwb-embedded #album-bg,
+html.abwb-embedded #album-bg-next,
+html.abwb-embedded #wallpaper-engine-layer {
+  position: fixed;
+  inset: 0;
+  width: auto;
+  height: auto;
+}
+
+html.abwb-embedded #custom-bg {
+  position: fixed;
+  inset: 0;
+  background-color: #050505;
+  background-image: none;
+}
+
+html.abwb-embedded[data-theme="light"] #custom-bg,
+html.abwb-embedded.abwb-theme-light #custom-bg {
+  background-color: #f1f5f9;
+}
+
+html.abwb-embedded #custom-bg::before {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: var(--custom-bg-position-x, 50%) var(--custom-bg-position-y, 50%);
+}
+
+html.abwb-embedded #custom-bg-video {
+  object-fit: cover;
+  object-position: var(--custom-bg-position-x, 50%) var(--custom-bg-position-y, 50%);
+}
+
+html.abwb-embedded #album-bg,
+html.abwb-embedded #album-bg-next {
+  background-size: cover;
+  background-repeat: no-repeat;
+  background-position: center;
 }
 
 
