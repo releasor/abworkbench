@@ -375,36 +375,6 @@ html[data-workspace-mode="minimal"] .glass-card:not(.glass-surface):hover {
   animation: panel-soft-enter 280ms var(--ease-spring) both;
 }
 
-@keyframes panel-slide-from-right {
-  from {
-    opacity: 0;
-    transform: translate3d(28px, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-@keyframes panel-slide-from-left {
-  from {
-    opacity: 0;
-    transform: translate3d(-28px, 0, 0);
-  }
-  to {
-    opacity: 1;
-    transform: translate3d(0, 0, 0);
-  }
-}
-
-.panel-switch--from-right {
-  animation: panel-slide-from-right 300ms var(--ease-spring) both;
-}
-
-.panel-switch--from-left {
-  animation: panel-slide-from-left 300ms var(--ease-spring) both;
-}
-
 /* Settings tab panels — crossfade (avoid transform on glass-card ancestors) */
 .settings-tab-viewport {
   position: relative;
