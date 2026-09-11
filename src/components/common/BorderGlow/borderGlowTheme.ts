@@ -1,10 +1,15 @@
 import { useEffect, useState } from 'react'
 import type { BorderGlowProps } from './BorderGlow'
 
-export type BorderGlowTheme = Pick<
-  BorderGlowProps,
-  'glowColor' | 'colors' | 'glowIntensity' | 'edgeSensitivity' | 'fillOpacity' | 'glowRadius' | 'coneSpread'
->
+export type BorderGlowTheme = Omit<
+  Pick<
+    BorderGlowProps,
+    'glowColor' | 'colors' | 'glowIntensity' | 'edgeSensitivity' | 'fillOpacity' | 'glowRadius' | 'coneSpread'
+  >,
+  'colors'
+> & {
+  colors: string[]
+}
 
 const BORDER_GLOW_THEME: BorderGlowTheme = {
   glowColor: '40 80 80',

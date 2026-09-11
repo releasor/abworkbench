@@ -978,8 +978,8 @@ export default function LauncherApp({
         {showHome && clipboardUrl && (
           <button
             onClick={openClipboardUrl}
-            onMouseEnter={() => setSelectedIndex(index)}
-        onMouseLeave={() => setSelectedIndex((prev) => (prev === index ? -1 : prev))}
+            onMouseEnter={() => setSelectedIndex(0)}
+            onMouseLeave={() => setSelectedIndex((prev) => (prev === 0 ? -1 : prev))}
             className={clsx(
               'launcher-chip mx-3 mt-3',
               selectedIndex === 0 && 'is-selected'
